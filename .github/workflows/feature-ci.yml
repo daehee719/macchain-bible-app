@@ -1,0 +1,263 @@
+name: 🔀 Feature Branch CI
+
+on:
+  pull_request:
+    branches: [ develop ]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ 'feature/**', 'bugfix/**', 'improvement/**' ]
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '18'
+
+jobs:
+  # ===== 변경사항 감지 =====
+  detect-changes:
+    name: 🔍 Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      docs: ${{ steps.changes.outputs.docs }}
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Detect Changes
+      uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          backend:
+            - 'macchain-backend/**'
+          frontend:
+            - 'macchain-frontend/**'
+          docs:
+            - 'docs/**'
+            - '*.md'
+
+  # ===== 백엔드 검증 =====
+  backend-validation:
+    name: 🏗️ Backend Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        
+    - name: 📦 Cache Gradle Dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 🔧 Make Gradlew Executable
+      run: chmod +x macchain-backend/gradlew
+      
+    - name: 🧹 Gradle Clean & Compile
+      run: cd macchain-backend && ./gradlew clean compileJava compileTestJava
+      
+    - name: 🔍 Code Quality Check
+      run: cd macchain-backend && ./gradlew checkstyleMain checkstyleTest
+      continue-on-error: true
+      
+    - name: 🧪 Run Tests
+      run: cd macchain-backend && ./gradlew test -Dspring.profiles.active=dev
+      
+    - name: 📊 Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: 🧪 Backend Test Results
+        path: macchain-backend/build/test-results/test/*.xml
+        reporter: java-junit
+
+  # ===== 프론트엔드 검증 =====
+  frontend-validation:
+    name: ⚛️ Frontend Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: macchain-frontend/package-lock.json
+        
+    - name: 📦 Install Dependencies
+      run: cd macchain-frontend && npm ci
+      
+    - name: 📏 TypeScript Check
+      run: cd macchain-frontend && npm run type-check
+      
+    - name: 🔍 ESLint Check
+      run: cd macchain-frontend && npm run lint
+      continue-on-error: true
+      
+    - name: 🎨 Prettier Check
+      run: cd macchain-frontend && npm run format:check
+      continue-on-error: true
+      
+    - name: 🧪 Run Tests
+      run: cd macchain-frontend && npm run test:coverage
+      
+    - name: 🏗️ Build Check
+      run: cd macchain-frontend && npm run build
+
+  # ===== 보안 스캔 =====
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🛡️ Run Trivy Security Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: 📋 Upload Security Results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # ===== 문서 검증 =====
+  docs-validation:
+    name: 📚 Documentation Validation
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.docs == 'true'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Markdown Lint
+      uses: articulate/actions-markdownlint@v1
+      with:
+        config: .markdownlint.json
+        files: '**/*.md'
+        ignore: 'node_modules'
+      continue-on-error: true
+      
+    - name: 🔗 Link Check
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.markdown-link-check.json'
+      continue-on-error: true
+
+  # ===== 통합 검증 결과 =====
+  validation-summary:
+    name: ✅ Validation Summary
+    runs-on: ubuntu-latest
+    needs: [detect-changes, backend-validation, frontend-validation, security-scan, docs-validation]
+    if: always()
+    
+    steps:
+    - name: 📊 Check Results
+      run: |
+        echo "🔍 변경사항 감지 결과:"
+        echo "- Backend: ${{ needs.detect-changes.outputs.backend }}"
+        echo "- Frontend: ${{ needs.detect-changes.outputs.frontend }}"
+        echo "- Docs: ${{ needs.detect-changes.outputs.docs }}"
+        echo ""
+        echo "✅ 검증 결과:"
+        echo "- Backend: ${{ needs.backend-validation.result }}"
+        echo "- Frontend: ${{ needs.frontend-validation.result }}"
+        echo "- Security: ${{ needs.security-scan.result }}"
+        echo "- Docs: ${{ needs.docs-validation.result }}"
+        
+        # 실패한 작업이 있는지 확인
+        if [[ "${{ needs.backend-validation.result }}" == "failure" ]] || \
+           [[ "${{ needs.frontend-validation.result }}" == "failure" ]] || \
+           [[ "${{ needs.security-scan.result }}" == "failure" ]]; then
+          echo "❌ 일부 검증이 실패했습니다."
+          exit 1
+        else
+          echo "✅ 모든 검증이 성공했습니다!"
+        fi
+
+  # ===== PR 코멘트 =====
+  pr-comment:
+    name: 💬 PR Comment
+    runs-on: ubuntu-latest
+    needs: [detect-changes, validation-summary]
+    if: github.event_name == 'pull_request' && always()
+    
+    steps:
+    - name: 💬 Add PR Comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('🔀 Feature Branch CI Results')
+          );
+          
+          const body = `## 🔀 Feature Branch CI Results
+          
+          ### 📊 변경사항 감지
+          - 🏗️ Backend: ${{ needs.detect-changes.outputs.backend == 'true' && '✅' || '⏭️' }}
+          - ⚛️ Frontend: ${{ needs.detect-changes.outputs.frontend == 'true' && '✅' || '⏭️' }}
+          - 📚 Docs: ${{ needs.detect-changes.outputs.docs == 'true' && '✅' || '⏭️' }}
+          
+          ### 🧪 검증 결과
+          - 🏗️ Backend Validation: ${{ needs.validation-summary.result == 'success' && '✅ 통과' || '❌ 실패' }}
+          - ⚛️ Frontend Validation: ${{ needs.validation-summary.result == 'success' && '✅ 통과' || '❌ 실패' }}
+          - 🔒 Security Scan: ${{ needs.validation-summary.result == 'success' && '✅ 통과' || '❌ 실패' }}
+          
+          ### 📋 다음 단계
+          ${{ needs.validation-summary.result == 'success' && '✅ 모든 검증이 완료되었습니다. 코드 리뷰 후 병합 가능합니다!' || '❌ 일부 검증이 실패했습니다. 문제를 수정한 후 다시 푸시해주세요.' }}
+          
+          ---
+          *🤖 자동 생성된 코멘트입니다. 업데이트 시간: ${new Date().toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'})}*`;
+          
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: body
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+          }

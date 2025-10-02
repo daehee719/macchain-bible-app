@@ -7,9 +7,10 @@ on:
       - 'macchain-frontend/**'
       - '.github/workflows/frontend-ci.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
     paths:
       - 'macchain-frontend/**'
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '18'
