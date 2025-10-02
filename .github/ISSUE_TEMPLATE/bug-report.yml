@@ -1,0 +1,147 @@
+name: 🐛 Bug Report
+description: 버그를 신고합니다
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 버그 신고
+        발견한 버그에 대해 자세히 설명해주세요.
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 📝 버그 설명
+      description: 발생한 버그에 대해 명확하고 간결하게 설명해주세요
+      placeholder: 로그인 후 대시보드 페이지에서 읽기 진행률이 올바르게 표시되지 않습니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: 🔄 재현 단계
+      description: 버그를 재현하기 위한 단계별 과정을 작성해주세요
+      placeholder: |
+        1. 웹사이트에 로그인
+        2. 대시보드 페이지로 이동
+        3. '오늘의 읽기' 섹션 확인
+        4. 진행률이 0%로 표시됨 (실제로는 50% 완료)
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: ✅ 예상 동작
+      description: 어떤 동작이 일어나야 하는지 설명해주세요
+      placeholder: 실제 읽기 진행률인 50%가 표시되어야 합니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: ❌ 실제 동작
+      description: 실제로 어떤 동작이 일어나는지 설명해주세요
+      placeholder: 진행률이 항상 0%로 표시됩니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 스크린샷
+      description: 가능하다면 스크린샷을 첨부해주세요
+      placeholder: 스크린샷을 드래그 앤 드롭하거나 붙여넣기 하세요
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 🚨 심각도
+      description: 버그의 심각도를 선택해주세요
+      options:
+        - "🔴 Critical (서비스 중단)"
+        - "🟠 High (주요 기능 영향)"
+        - "🟡 Medium (일부 기능 영향)"
+        - "🟢 Low (UI/UX 개선)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: 🌐 브라우저
+      description: 어떤 브라우저에서 발생했나요?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - 기타
+
+  - type: input
+    id: browser-version
+    attributes:
+      label: 🔢 브라우저 버전
+      description: 브라우저 버전을 입력해주세요
+      placeholder: "예: Chrome 118.0.5993.88"
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: 📱 디바이스
+      description: 어떤 디바이스에서 발생했나요?
+      options:
+        - Desktop
+        - Mobile
+        - Tablet
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 💻 운영체제
+      description: 어떤 운영체제에서 발생했나요?
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - iOS
+        - Android
+
+  - type: textarea
+    id: console-logs
+    attributes:
+      label: 📋 콘솔 로그
+      description: 브라우저 개발자 도구의 콘솔 로그가 있다면 첨부해주세요
+      placeholder: |
+        ```
+        Error: Cannot read property 'progress' of undefined
+            at Dashboard.jsx:45
+        ```
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📝 추가 정보
+      description: 버그와 관련된 추가 정보가 있다면 작성해주세요
+      placeholder: |
+        - 특정 사용자 계정에서만 발생
+        - 특정 시간대에만 발생
+        - 관련 API 응답 데이터
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ 체크리스트
+      description: 버그 신고 전 확인사항
+      options:
+        - label: 동일한 버그가 이미 신고되지 않았는지 확인했습니다
+          required: true
+        - label: 최신 버전에서 테스트했습니다
+          required: true
+        - label: 재현 단계를 검증했습니다
+          required: true

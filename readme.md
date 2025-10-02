@@ -125,6 +125,40 @@ chmod +x scripts/git-flow-helper.sh
 
 자세한 Git Flow 사용법은 [Git Flow 가이드](docs/GIT_FLOW_GUIDE.md)를 참조하세요.
 
+## 🏃‍♂️ 애자일 개발 프로세스
+
+이 프로젝트는 스크럼 기반의 애자일 개발 방법론을 사용합니다.
+
+### 애자일 도구 사용법
+
+```bash
+# 스프린트 관리
+./scripts/agile-helper.sh sprint start 1    # 새 스프린트 시작
+./scripts/agile-helper.sh sprint status     # 현재 스프린트 상태
+./scripts/agile-helper.sh sprint end 1      # 스프린트 종료
+
+# 일일 스탠드업
+./scripts/agile-helper.sh daily             # 일일 진행 상황 리포트
+
+# 메트릭스 확인
+./scripts/agile-helper.sh velocity          # 팀 벨로시티 계산
+
+# 회고 생성
+./scripts/agile-helper.sh retrospective 1   # 스프린트 회고 템플릿
+```
+
+### 이슈 템플릿
+
+- **📖 User Story**: 사용자 중심의 기능 요구사항
+- **🐛 Bug Report**: 버그 신고 및 재현 단계
+- **⚙️ Task**: 기술적 작업 및 개선사항
+- **🎯 Epic**: 대규모 기능 또는 프로젝트
+
+### 애자일 가이드
+
+- [애자일 개발 가이드](docs/AGILE_DEVELOPMENT_GUIDE.md) - 스크럼 프로세스 및 베스트 프랙티스
+- [GitHub Projects 설정](docs/GITHUB_PROJECTS_SETUP.md) - 칸반 보드 및 프로젝트 관리
+
 ## 📁 프로젝트 구조
 
 ```

@@ -1,0 +1,107 @@
+name: 📖 User Story
+description: 사용자 스토리를 작성합니다
+title: "[USER STORY] "
+labels: ["user-story", "needs-estimation"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📖 사용자 스토리 작성
+        애자일 개발을 위한 사용자 스토리를 작성해주세요.
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: 📝 사용자 스토리
+      description: "As a [사용자], I want [기능] so that [목적]" 형식으로 작성해주세요
+      placeholder: |
+        **As a** 성경 읽기를 하는 사용자
+        **I want** 매일의 읽기 진행률을 확인하고 싶다
+        **So that** 나의 성경 읽기 습관을 지속적으로 관리할 수 있다
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ 인수 조건 (Acceptance Criteria)
+      description: 이 스토리가 완료되었다고 판단할 수 있는 구체적인 조건들을 작성해주세요
+      placeholder: |
+        - [ ] 사용자는 대시보드에서 오늘의 읽기 진행률을 백분율로 볼 수 있다
+        - [ ] 사용자는 이번 주 읽기 진행률을 차트로 볼 수 있다
+        - [ ] 사용자는 연속 읽기 일수를 확인할 수 있다
+        - [ ] 진행률이 100%일 때 축하 메시지가 표시된다
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🎯 우선순위
+      description: 이 스토리의 비즈니스 우선순위를 선택해주세요
+      options:
+        - "🔴 Critical (즉시 처리 필요)"
+        - "🟠 High (이번 스프린트 내 처리)"
+        - "🟡 Medium (다음 스프린트 고려)"
+        - "🟢 Low (백로그 관리)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: story-points
+    attributes:
+      label: 📊 스토리 포인트 (추정)
+      description: 개발 복잡도와 소요 시간을 피보나치 수열로 추정해주세요
+      options:
+        - "1 (매우 간단, 1-2시간)"
+        - "2 (간단, 반나절)"
+        - "3 (보통, 1일)"
+        - "5 (복잡, 2-3일)"
+        - "8 (매우 복잡, 1주일)"
+        - "13 (대규모, 2주일)"
+        - "21 (Epic 분할 필요)"
+        - "? (추정 불가, 스파이크 필요)"
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: 🔧 기술적 고려사항
+      description: 개발 시 고려해야 할 기술적 사항들을 작성해주세요
+      placeholder: |
+        - API 엔드포인트: GET /api/progress/today
+        - 프론트엔드: React Context로 상태 관리
+        - 데이터베이스: user_progress 테이블 활용
+        - 캐싱: Redis로 일일 진행률 캐시
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 🔗 의존성
+      description: 이 스토리를 완료하기 위해 먼저 완료되어야 하는 다른 스토리나 작업이 있다면 작성해주세요
+      placeholder: |
+        - #123 사용자 인증 시스템 구현
+        - #124 읽기 진행률 데이터 모델 설계
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: 🎨 목업/와이어프레임
+      description: UI/UX 관련 스토리의 경우 목업이나 와이어프레임 링크를 첨부해주세요
+      placeholder: |
+        - Figma: https://figma.com/...
+        - 스크린샷: (이미지 첨부)
+
+  - type: checkboxes
+    id: definition-of-done
+    attributes:
+      label: ✅ Definition of Done
+      description: 완료 기준을 확인해주세요
+      options:
+        - label: 코드 리뷰 완료
+        - label: 단위 테스트 작성 및 통과
+        - label: 통합 테스트 통과
+        - label: 문서 업데이트
+        - label: QA 테스트 완료
+        - label: 제품 오너 승인
