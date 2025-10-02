@@ -29,7 +29,7 @@ public class UserController {
     /**
      * 사용자 회원가입
      */
-    @PostMapping("/register")여
+    @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequest request) {
         try {
             User user = registerUserUseCase.execute(

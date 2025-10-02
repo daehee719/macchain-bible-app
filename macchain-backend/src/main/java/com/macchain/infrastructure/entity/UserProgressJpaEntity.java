@@ -37,7 +37,7 @@ public class UserProgressJpaEntity {
     private double progressPercentage;
     
     @Convert(converter = ReadingProgressListConverter.class)
-    @Column(name = "readings", columnDefinition = "jsonb")
+    @Column(name = "readings", columnDefinition = "TEXT")
     private List<ReadingProgress> readings;
     
     @Column(name = "created_at", nullable = false)

@@ -72,7 +72,7 @@ public class UserStatisticsJpaEntity {
     
     // 최근 7일 통계
     @Convert(converter = DailyProgressListConverter.class)
-    @Column(name = "last_7_days", columnDefinition = "jsonb")
+    @Column(name = "last_7_days", columnDefinition = "TEXT")
     private List<UserStatistics.DailyProgress> last7Days;
     
     @Column(name = "created_at", nullable = false, updatable = false)
