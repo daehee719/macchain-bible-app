@@ -1,0 +1,298 @@
+name: 🚀 Full Stack Deployment
+
+on:
+  workflow_run:
+    workflows: ["🏗️ Backend CI/CD Pipeline", "⚛️ Frontend CI/CD Pipeline"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment Environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  DOCKER_REGISTRY: docker.io
+  PROJECT_NAME: macchain
+
+jobs:
+  # ===== 배포 준비 =====
+  prepare-deployment:
+    name: 📋 Prepare Deployment
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      backend-image: ${{ steps.set-env.outputs.backend-image }}
+      frontend-image: ${{ steps.set-env.outputs.frontend-image }}
+      
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🎯 Set Environment
+      id: set-env
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+        else
+          echo "environment=production" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "backend-image=${{ secrets.DOCKER_USERNAME }}/macchain-backend:latest" >> $GITHUB_OUTPUT
+        echo "frontend-image=${{ secrets.DOCKER_USERNAME }}/macchain-frontend:latest" >> $GITHUB_OUTPUT
+
+  # ===== 인프라 배포 =====
+  deploy-infrastructure:
+    name: 🏗️ Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: prepare-deployment
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+        
+    - name: 🏗️ Terraform Init
+      run: |
+        cd infrastructure/terraform
+        terraform init
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        
+    - name: 📋 Terraform Plan
+      run: |
+        cd infrastructure/terraform
+        terraform plan -var="environment=${{ needs.prepare-deployment.outputs.environment }}"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        
+    - name: 🚀 Terraform Apply
+      if: needs.prepare-deployment.outputs.environment == 'production'
+      run: |
+        cd infrastructure/terraform
+        terraform apply -auto-approve -var="environment=${{ needs.prepare-deployment.outputs.environment }}"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  # ===== 데이터베이스 마이그레이션 =====
+  database-migration:
+    name: 🗄️ Database Migration
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, deploy-infrastructure]
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: 🗄️ Run Database Migration
+      run: |
+        cd macchain-backend
+        ./gradlew flywayMigrate -Dspring.profiles.active=prod
+      env:
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+  # ===== 애플리케이션 배포 =====
+  deploy-application:
+    name: 🚀 Deploy Application
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, database-migration]
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Setup Docker Compose
+      run: |
+        # Docker Compose 환경 변수 설정
+        cat > .env << EOF
+        ENVIRONMENT=${{ needs.prepare-deployment.outputs.environment }}
+        BACKEND_IMAGE=${{ needs.prepare-deployment.outputs.backend-image }}
+        FRONTEND_IMAGE=${{ needs.prepare-deployment.outputs.frontend-image }}
+        
+        # Database
+        POSTGRES_HOST=${{ secrets.DB_HOST }}
+        POSTGRES_DB=${{ secrets.DB_NAME }}
+        POSTGRES_USER=${{ secrets.DB_USERNAME }}
+        POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+        
+        # MongoDB
+        MONGODB_HOST=${{ secrets.MONGODB_HOST }}
+        MONGODB_PORT=${{ secrets.MONGODB_PORT }}
+        MONGODB_DB=${{ secrets.MONGODB_DB }}
+        
+        # Redis
+        REDIS_HOST=${{ secrets.REDIS_HOST }}
+        REDIS_PORT=${{ secrets.REDIS_PORT }}
+        
+        # OpenAI
+        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+        
+        # JWT
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        EOF
+        
+    - name: 🚀 Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.DEPLOY_HOST }}
+        username: ${{ secrets.DEPLOY_USER }}
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        script: |
+          # 배포 디렉토리로 이동
+          cd /opt/macchain
+          
+          # 최신 코드 가져오기
+          git pull origin main
+          
+          # Docker 이미지 업데이트
+          docker-compose pull
+          
+          # 애플리케이션 재시작
+          docker-compose down
+          docker-compose up -d
+          
+          # 불필요한 이미지 정리
+          docker system prune -f
+
+  # ===== 배포 검증 =====
+  verify-deployment:
+    name: ✅ Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, deploy-application]
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🏥 Health Check - Backend
+      run: |
+        echo "🔍 백엔드 헬스 체크 중..."
+        for i in {1..30}; do
+          if curl -f ${{ secrets.BACKEND_URL }}/api/health; then
+            echo "✅ 백엔드가 정상적으로 실행 중입니다!"
+            break
+          fi
+          echo "⏳ 백엔드 시작 대기 중... ($i/30)"
+          sleep 10
+        done
+        
+    - name: 🏥 Health Check - Frontend
+      run: |
+        echo "🔍 프론트엔드 헬스 체크 중..."
+        for i in {1..30}; do
+          if curl -f ${{ secrets.FRONTEND_URL }}; then
+            echo "✅ 프론트엔드가 정상적으로 실행 중입니다!"
+            break
+          fi
+          echo "⏳ 프론트엔드 시작 대기 중... ($i/30)"
+          sleep 10
+        done
+        
+    - name: 🧪 Smoke Tests
+      run: |
+        echo "🧪 스모크 테스트 실행 중..."
+        
+        # API 엔드포인트 테스트
+        curl -f ${{ secrets.BACKEND_URL }}/api/mccheyne/today
+        curl -f ${{ secrets.BACKEND_URL }}/api/health
+        
+        # 프론트엔드 페이지 테스트
+        curl -f ${{ secrets.FRONTEND_URL }}/
+        
+        echo "✅ 모든 스모크 테스트가 통과했습니다!"
+
+  # ===== 롤백 준비 =====
+  prepare-rollback:
+    name: 🔄 Prepare Rollback
+    runs-on: ubuntu-latest
+    needs: [verify-deployment]
+    if: failure()
+    
+    steps:
+    - name: 🚨 Deployment Failed - Preparing Rollback
+      run: |
+        echo "❌ 배포가 실패했습니다. 롤백을 준비합니다..."
+        
+    - name: 🔄 Execute Rollback
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.DEPLOY_HOST }}
+        username: ${{ secrets.DEPLOY_USER }}
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        script: |
+          cd /opt/macchain
+          
+          # 이전 버전으로 롤백
+          docker-compose down
+          git checkout HEAD~1
+          docker-compose up -d
+          
+          echo "🔄 롤백이 완료되었습니다."
+
+  # ===== 배포 완료 알림 =====
+  notify-completion:
+    name: 📢 Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, verify-deployment]
+    if: always()
+    
+    steps:
+    - name: 📧 Send Success Notification
+      if: needs.verify-deployment.result == 'success'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        channel: '#macchain-deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        text: |
+          🎉 **MacChain 배포 성공!**
+          
+          **환경**: ${{ needs.prepare-deployment.outputs.environment }}
+          **백엔드**: ${{ needs.prepare-deployment.outputs.backend-image }}
+          **프론트엔드**: ${{ needs.prepare-deployment.outputs.frontend-image }}
+          
+          **URL**: 
+          - 🌐 Frontend: ${{ secrets.FRONTEND_URL }}
+          - 🔧 Backend: ${{ secrets.BACKEND_URL }}
+          
+    - name: 📧 Send Failure Notification
+      if: needs.verify-deployment.result == 'failure'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#macchain-deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        text: |
+          🚨 **MacChain 배포 실패!**
+          
+          **환경**: ${{ needs.prepare-deployment.outputs.environment }}
+          **실패 단계**: 배포 검증
+          
+          롤백이 자동으로 실행되었습니다. 로그를 확인해주세요.
