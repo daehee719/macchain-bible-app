@@ -1,0 +1,152 @@
+name: 🎯 Epic
+description: 대규모 기능이나 프로젝트를 정의합니다
+title: "[EPIC] "
+labels: ["epic", "needs-breakdown"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎯 에픽 정의
+        여러 스프린트에 걸쳐 진행될 대규모 기능이나 프로젝트를 정의합니다.
+
+  - type: textarea
+    id: epic-description
+    attributes:
+      label: 📝 에픽 설명
+      description: 이 에픽이 달성하고자 하는 목표와 비즈니스 가치를 설명해주세요
+      placeholder: |
+        **목표:** 사용자들이 성경 읽기를 더 효과적으로 할 수 있도록 AI 기반 분석 기능을 제공
+        
+        **비즈니스 가치:**
+        - 사용자 참여도 증가
+        - 앱 차별화 요소 제공
+        - 프리미엄 기능으로 수익화 가능
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-personas
+    attributes:
+      label: 👥 대상 사용자
+      description: 이 에픽의 주요 대상 사용자를 설명해주세요
+      placeholder: |
+        **주요 사용자:**
+        - 성경 공부에 깊이 관심이 있는 신자
+        - 원어 성경에 관심이 있지만 전문 지식이 부족한 사용자
+        - 체계적인 성경 읽기를 원하는 사용자
+
+  - type: textarea
+    id: success-metrics
+    attributes:
+      label: 📊 성공 지표
+      description: 이 에픽의 성공을 측정할 수 있는 지표들을 정의해주세요
+      placeholder: |
+        - AI 분석 기능 사용률 > 60%
+        - 사용자 만족도 점수 > 4.5/5.0
+        - 일일 활성 사용자 20% 증가
+        - 평균 세션 시간 30% 증가
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-stories
+    attributes:
+      label: 📖 포함된 사용자 스토리 (예상)
+      description: 이 에픽을 구성할 것으로 예상되는 주요 사용자 스토리들을 나열해주세요
+      placeholder: |
+        - [ ] #XXX 히브리어 텍스트 표시 기능
+        - [ ] #XXX AI 기반 단어별 분석 기능
+        - [ ] #XXX 문화적 배경 설명 기능
+        - [ ] #XXX 실용적 적용 가이드 기능
+        - [ ] #XXX 분석 결과 저장 및 히스토리 기능
+        - [ ] #XXX 분석 결과 공유 기능
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🎯 비즈니스 우선순위
+      description: 이 에픽의 비즈니스 우선순위를 선택해주세요
+      options:
+        - "🔴 Critical (최우선 처리)"
+        - "🟠 High (높은 우선순위)"
+        - "🟡 Medium (보통 우선순위)"
+        - "🟢 Low (낮은 우선순위)"
+    validations:
+      required: true
+
+  - type: input
+    id: target-release
+    attributes:
+      label: 🎯 목표 릴리스
+      description: 이 에픽을 완료하고자 하는 목표 릴리스 버전을 입력해주세요
+      placeholder: "예: v2.0.0"
+
+  - type: textarea
+    id: estimated-timeline
+    attributes:
+      label: ⏰ 예상 일정
+      description: 이 에픽 완료에 필요한 예상 일정을 작성해주세요
+      placeholder: |
+        **전체 예상 기간:** 3-4 스프린트 (6-8주)
+        
+        **단계별 일정:**
+        - Sprint 1: 기본 AI 분석 API 구축
+        - Sprint 2: 프론트엔드 UI/UX 개발
+        - Sprint 3: 고급 분석 기능 추가
+        - Sprint 4: 성능 최적화 및 테스트
+
+  - type: textarea
+    id: technical-considerations
+    attributes:
+      label: 🔧 기술적 고려사항
+      description: 이 에픽 구현 시 고려해야 할 주요 기술적 사항들을 작성해주세요
+      placeholder: |
+        **기술 스택:**
+        - OpenAI GPT-4 API 통합
+        - MongoDB for 분석 결과 저장
+        - Redis for 캐싱
+        
+        **주요 고려사항:**
+        - API 비용 최적화
+        - 응답 시간 최소화
+        - 확장성 고려한 아키텍처 설계
+
+  - type: textarea
+    id: risks-assumptions
+    attributes:
+      label: ⚠️ 위험 요소 및 가정사항
+      description: 이 에픽 진행 시 예상되는 위험 요소와 가정사항을 작성해주세요
+      placeholder: |
+        **위험 요소:**
+        - OpenAI API 비용 증가
+        - AI 응답 품질의 일관성 문제
+        - 외부 API 의존성으로 인한 안정성 이슈
+        
+        **가정사항:**
+        - OpenAI API 서비스 안정성 유지
+        - 사용자들이 AI 분석 기능에 관심을 가질 것
+        - 히브리어 분석에 대한 정확도 확보 가능
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 🔗 의존성
+      description: 이 에픽을 시작하기 전에 완료되어야 하는 다른 에픽이나 작업들을 작성해주세요
+      placeholder: |
+        - #XXX 사용자 인증 시스템 완료
+        - #XXX 기본 성경 읽기 기능 안정화
+        - OpenAI API 계정 및 결제 설정
+
+  - type: checkboxes
+    id: epic-checklist
+    attributes:
+      label: ✅ 에픽 체크리스트
+      description: 에픽 진행을 위한 준비사항을 확인해주세요
+      options:
+        - label: 비즈니스 요구사항 명확화 완료
+        - label: 기술적 실현 가능성 검토 완료
+        - label: 예산 및 리소스 확보 완료
+        - label: 주요 이해관계자 승인 완료
+        - label: 프로토타입 또는 POC 계획 수립

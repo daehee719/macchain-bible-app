@@ -1,144 +1,294 @@
-# MacChain - 맥체인 성경통독 & AI 원어 분석 서비스
+# 📖 MacChain Bible Reading App
 
-## 📖 프로젝트 개요
+> **AI 기반 성경 읽기 플랫폼** - McCheyne 읽기 계획과 원어 분석을 통한 깊이 있는 성경 공부
 
-MacChain은 맥체인 플랜 기반의 1년 성경통독 서비스와 AI 히브리어/헬라어 원어 분석, 그리고 사용자 토론 커뮤니티를 제공하는 종합 성경 공부 플랫폼입니다.
+## 🌟 주요 기능
 
-## 🏗️ 아키텍처
+### 📅 **McCheyne 읽기 계획**
+- 365일 체계적인 성경 읽기 계획
+- 매일 구약 2장, 신약 2장 읽기
+- 진행률 추적 및 통계
 
-### 헥사고날 아키텍처 (Hexagonal Architecture)
-- **도메인 레이어**: 비즈니스 로직과 규칙
-- **애플리케이션 레이어**: 유스케이스와 포트
-- **인프라스트럭처 레이어**: 외부 시스템 연동
-- **프레젠테이션 레이어**: REST API와 DTO
+### 🤖 **AI 원어 분석**
+- OpenAI GPT-4 기반 히브리어/그리스어 분석
+- 단어별 문법 분석 및 의미 해석
+- 문화적 배경 및 실용적 적용
 
-### 기술 스택
-- **백엔드**: Spring Boot 3.2, Java 17, Gradle
-- **프론트엔드**: React 18, TypeScript, Vite
-- **데이터베이스**: PostgreSQL 15
-- **컨테이너**: Docker, Docker Compose
-- **외부 API**: Bible API (https://github.com/wldeh/bible-api)
+### 📊 **개인 통계**
+- 읽기 진행률 및 연속 읽기 기록
+- 월별/연도별 통계
+- 완독 달성률 추적
+
+### 🎨 **사용자 경험**
+- 다크 모드 지원
+- 반응형 디자인
+- 직관적인 UI/UX
+
+## 🏗️ 기술 스택
+
+### **Backend**
+- **Framework**: Spring Boot 3.2.0
+- **Language**: Java 17
+- **Architecture**: Hexagonal Architecture
+- **Database**: 
+  - PostgreSQL (운영)
+  - H2 (개발/테스트)
+  - MongoDB (AI 분석 데이터)
+- **Cache**: Redis
+- **Build Tool**: Gradle
+
+### **Frontend**
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: CSS3 + CSS Grid
+- **State Management**: React Context API
+
+### **External APIs**
+- **Bible API**: wldeh/bible-api (KJV, Hebrew WLC, Greek SRGNT)
+- **AI Service**: OpenAI GPT-4
 
 ## 🚀 빠른 시작
 
-### 1. 전체 서비스 실행 (Docker Compose)
+### **환경별 실행**
+
+#### 개발 환경 (간단하고 빠름)
 ```bash
-./scripts/start.sh
-```
-
-### 2. 개발 환경 실행 (데이터베이스만 Docker, 앱은 로컬)
-```bash
-./scripts/dev.sh
-```
-
-### 3. 서비스 중지
-```bash
-./scripts/stop.sh
-```
-
-## 📁 프로젝트 구조
-
-```
-macchain/
-├── macchain-backend/          # Spring Boot 백엔드
-│   ├── src/main/java/com/macchain/
-│   │   ├── domain/            # 도메인 레이어
-│   │   ├── application/       # 애플리케이션 레이어
-│   │   ├── infrastructure/    # 인프라스트럭처 레이어
-│   │   └── presentation/      # 프레젠테이션 레이어
-│   ├── build.gradle
-│   └── Dockerfile
-├── macchain-frontend/         # React 프론트엔드
-│   ├── src/
-│   │   ├── components/        # 재사용 가능한 컴포넌트
-│   │   ├── pages/            # 페이지 컴포넌트
-│   │   ├── services/         # API 서비스
-│   │   └── styles/           # 스타일시트
-│   ├── package.json
-│   └── Dockerfile
-├── scripts/                   # 자동화 스크립트
-│   ├── start.sh              # 전체 서비스 시작
-│   ├── dev.sh                # 개발 환경 시작
-│   └── stop.sh               # 서비스 중지
-├── docs/                     # 문서
-│   └── design-mockups/       # 디자인 목업
-├── docker-compose.yml        # Docker Compose 설정
-└── README.md
-```
-
-## 🔌 API 엔드포인트
-
-### 맥체인 플랜
-- `GET /api/mccheyne/today` - 오늘의 읽기 계획
-- `GET /api/mccheyne/day/{dayNumber}` - 특정 일자 계획
-
-### 헬스 체크
-- `GET /api/health` - 서비스 상태 확인
-
-## 🎯 주요 기능
-
-### 1. 맥체인 통독 시스템
-- 365일 일별 플랜 제공 (하루 4챕터)
-- 진도 추적 및 완료 체크
-- 연속 읽기 기록 (Streak)
-- 통계 및 진행률 시각화
-
-### 2. AI 원어 분석 시스템
-- 히브리어/헬라어 원문 제공
-- Strong's Concordance 기반 단어 분석
-- AI 기반 원어 해설 및 문맥 분석
-- 다양한 번역본 비교
-
-### 3. 토론 커뮤니티
-- 챕터별/구절별 토론방
-- 질문 & 답변, 묵상 나눔
-- 좋아요/댓글/북마크 기능
-
-## 🛠️ 개발 환경 설정
-
-### 필수 요구사항
-- Docker & Docker Compose
-- Java 17+
-- Node.js 18+
-- Gradle 8.5+
-
-### 로컬 개발 실행
-```bash
-# 1. 데이터베이스만 Docker로 실행
-docker-compose up -d postgres
-
-# 2. 백엔드 실행
+# 백엔드 (H2 + 간단한 캐시)
 cd macchain-backend
-./gradlew bootRun
+./run-dev.sh
 
-# 3. 프론트엔드 실행
+# 프론트엔드
 cd macchain-frontend
 npm install
 npm run dev
 ```
 
-## 📊 서비스 정보
+#### 테스트 환경 (중간 기능)
+```bash
+# MongoDB, Redis 실행 필요
+brew services start mongodb-community
+brew services start redis
 
-- **프론트엔드**: http://localhost:3000
-- **백엔드 API**: http://localhost:8080/api
-- **데이터베이스**: localhost:5432
+# 백엔드 (H2 파일 + MongoDB + Redis)
+cd macchain-backend
+./run-test.sh
+```
 
-## 🔧 유용한 명령어
+#### 운영 환경 (전체 기능)
+```bash
+# 모든 서비스 실행
+docker-compose up -d
+
+# 백엔드 (PostgreSQL + MongoDB + Redis)
+cd macchain-backend
+./run-prod.sh
+```
+
+### **접속 정보**
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8081
+- **H2 Console**: http://localhost:8081/h2-console (개발 환경)
+
+## 🌿 개발 워크플로우 (Git Flow)
+
+이 프로젝트는 체계적인 개발을 위해 Git Flow 브랜치 전략을 사용합니다.
+
+### Git Flow 빠른 시작
 
 ```bash
-# 컨테이너 상태 확인
-docker-compose ps
+# 헬퍼 스크립트 실행 권한 부여
+chmod +x scripts/git-flow-helper.sh
+
+# 새로운 기능 개발 시작
+./scripts/git-flow-helper.sh feature start user-authentication
+
+# 기능 개발 완료 (PR 생성)
+./scripts/git-flow-helper.sh feature finish user-authentication
+
+# 현재 상태 확인
+./scripts/git-flow-helper.sh status
+
+# 현재 브랜치 동기화
+./scripts/git-flow-helper.sh sync
+```
+
+### 브랜치 구조
+
+- **`main`** - 운영 환경 배포용 (Production)
+- **`develop`** - 개발 통합 브랜치 (Staging)
+- **`feature/*`** - 새로운 기능 개발 (`develop`에서 분기)
+- **`bugfix/*`** - 버그 수정 (`develop`에서 분기)
+- **`release/*`** - 릴리스 준비 (`develop`에서 분기)
+- **`hotfix/*`** - 긴급 수정 (`main`에서 분기)
+
+### 상세 워크플로우 가이드
+
+자세한 Git Flow 사용법은 [Git Flow 가이드](docs/GIT_FLOW_GUIDE.md)를 참조하세요.
+
+## 🏃‍♂️ 애자일 개발 프로세스
+
+이 프로젝트는 스크럼 기반의 애자일 개발 방법론을 사용합니다.
+
+### 애자일 도구 사용법
+
+```bash
+# 스프린트 관리
+./scripts/agile-helper.sh sprint start 1    # 새 스프린트 시작
+./scripts/agile-helper.sh sprint status     # 현재 스프린트 상태
+./scripts/agile-helper.sh sprint end 1      # 스프린트 종료
+
+# 일일 스탠드업
+./scripts/agile-helper.sh daily             # 일일 진행 상황 리포트
+
+# 메트릭스 확인
+./scripts/agile-helper.sh velocity          # 팀 벨로시티 계산
+
+# 회고 생성
+./scripts/agile-helper.sh retrospective 1   # 스프린트 회고 템플릿
+```
+
+### 이슈 템플릿
+
+- **📖 User Story**: 사용자 중심의 기능 요구사항
+- **🐛 Bug Report**: 버그 신고 및 재현 단계
+- **⚙️ Task**: 기술적 작업 및 개선사항
+- **🎯 Epic**: 대규모 기능 또는 프로젝트
+
+### 애자일 가이드
+
+- [애자일 개발 가이드](docs/AGILE_DEVELOPMENT_GUIDE.md) - 스크럼 프로세스 및 베스트 프랙티스
+- [GitHub Projects 설정](docs/GITHUB_PROJECTS_SETUP.md) - 칸반 보드 및 프로젝트 관리
+
+## 📁 프로젝트 구조
+
+```
+macchain-bible-app/
+├── macchain-backend/          # Spring Boot 백엔드
+│   ├── src/main/java/
+│   │   └── com/macchain/
+│   │       ├── application/   # 비즈니스 로직
+│   │       ├── domain/        # 도메인 엔티티
+│   │       ├── infrastructure/ # 외부 연동
+│   │       └── presentation/  # REST API
+│   ├── src/main/resources/
+│   │   ├── application.yml    # 공통 설정
+│   │   ├── application-dev.yml # 개발 환경
+│   │   ├── application-test.yml # 테스트 환경
+│   │   └── application-prod.yml # 운영 환경
+│   └── build.gradle
+├── macchain-frontend/         # React 프론트엔드
+│   ├── src/
+│   │   ├── components/        # 재사용 컴포넌트
+│   │   ├── pages/            # 페이지 컴포넌트
+│   │   ├── services/         # API 서비스
+│   │   └── styles/           # CSS 스타일
+│   └── package.json
+├── docker-compose.yml         # 서비스 구성
+└── README.md
+```
+
+## 🔧 개발 환경 설정
+
+### **필수 요구사항**
+- Java 17+
+- Node.js 18+
+- Docker & Docker Compose
+
+### **선택적 요구사항**
+- MongoDB (테스트/운영 환경)
+- Redis (테스트/운영 환경)
+- PostgreSQL (운영 환경)
+
+### **환경 변수**
+```bash
+# OpenAI API Key (AI 분석 기능용)
+OPENAI_API_KEY=your-openai-api-key
+
+# Database (운영 환경)
+POSTGRES_URL=jdbc:postgresql://localhost:5434/macchain_db
+POSTGRES_USERNAME=macchain
+POSTGRES_PASSWORD=macchain
+
+# MongoDB (테스트/운영 환경)
+MONGODB_HOST=localhost
+MONGODB_PORT=27017
+MONGODB_DB=macchain_analysis
+
+# Redis (테스트/운영 환경)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+## 📚 API 문서
+
+### **주요 엔드포인트**
+
+#### McCheyne 읽기 계획
+- `GET /api/mccheyne/today` - 오늘의 읽기 계획
+- `GET /api/mccheyne/day/{dayNumber}` - 특정 일자 읽기 계획
+
+#### AI 원어 분석 (운영 환경만)
+- `POST /api/analysis/verse/{book}/{chapter}/{verse}` - 구절 분석
+
+#### 사용자 관리
+- `POST /api/users/register` - 회원가입
+- `POST /api/users/login` - 로그인
+- `GET /api/users/profile` - 프로필 조회
+
+#### 진행률 관리
+- `GET /api/progress/user/{userId}` - 사용자 진행률
+- `POST /api/progress/update` - 진행률 업데이트
+
+## 🧪 테스트
+
+```bash
+# 백엔드 테스트
+cd macchain-backend
+./gradlew test
+
+# 프론트엔드 테스트
+cd macchain-frontend
+npm test
+```
+
+## 📦 배포
+
+### **Docker를 이용한 배포**
+```bash
+# 전체 서비스 실행
+docker-compose up -d
 
 # 로그 확인
 docker-compose logs -f
-
-# 특정 서비스 로그
-docker-compose logs -f postgres
-
-# 서비스 재시작
-docker-compose restart
 ```
 
-## 📝 라이선스
+### **수동 배포**
+```bash
+# 백엔드 빌드
+cd macchain-backend
+./gradlew build
 
-MIT License
+# 프론트엔드 빌드
+cd macchain-frontend
+npm run build
+```
+
+## 🤝 기여하기
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 있습니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
+
+## 📞 문의
+
+프로젝트에 대한 문의사항이 있으시면 이슈를 생성해 주세요.
+
+---
+
+**Made with ❤️ for Bible Study**

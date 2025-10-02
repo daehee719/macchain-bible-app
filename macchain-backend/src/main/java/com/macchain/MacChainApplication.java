@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @SpringBootApplication
 @EnableScheduling
-@CrossOrigin(origins = "http://localhost:5173") // Vite 개발 서버 CORS 허용
+@CrossOrigin(origins = "http://localhost:3000") // React 개발 서버 CORS 허용
 public class MacChainApplication {
     public static void main(String[] args) {
         SpringApplication.run(MacChainApplication.class, args);

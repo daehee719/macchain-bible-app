@@ -1,0 +1,138 @@
+name: ⚙️ Task
+description: 개발 작업이나 기술적 태스크를 생성합니다
+title: "[TASK] "
+labels: ["task", "needs-estimation"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚙️ 개발 태스크
+        기술적 작업이나 개발 태스크를 정의합니다.
+
+  - type: textarea
+    id: task-description
+    attributes:
+      label: 📝 작업 설명
+      description: 수행해야 할 작업에 대해 명확하게 설명해주세요
+      placeholder: |
+        데이터베이스 성능 최적화를 위해 인덱스를 추가하고 쿼리를 개선합니다.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: 🏷️ 작업 유형
+      description: 작업의 유형을 선택해주세요
+      options:
+        - "🔧 Technical Debt (기술 부채 해결)"
+        - "⚡ Performance (성능 개선)"
+        - "🔒 Security (보안 강화)"
+        - "🧪 Testing (테스트 추가/개선)"
+        - "📚 Documentation (문서화)"
+        - "🔄 Refactoring (리팩토링)"
+        - "🏗️ Infrastructure (인프라 구축)"
+        - "🔍 Research (기술 조사)"
+        - "🛠️ Tooling (도구 개선)"
+        - "🧹 Maintenance (유지보수)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ 완료 조건
+      description: 이 작업이 완료되었다고 판단할 수 있는 구체적인 조건들을 작성해주세요
+      placeholder: |
+        - [ ] user_progress 테이블에 적절한 인덱스 추가
+        - [ ] 느린 쿼리 식별 및 최적화
+        - [ ] 쿼리 실행 시간 50% 이상 단축
+        - [ ] 성능 테스트 결과 문서화
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🎯 우선순위
+      description: 이 작업의 우선순위를 선택해주세요
+      options:
+        - "🔴 Critical (즉시 처리 필요)"
+        - "🟠 High (이번 스프린트 내 처리)"
+        - "🟡 Medium (다음 스프린트 고려)"
+        - "🟢 Low (백로그 관리)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: 📊 예상 소요 시간
+      description: 작업 완료에 필요한 예상 시간을 선택해주세요
+      options:
+        - "1 (1-2시간)"
+        - "2 (반나절)"
+        - "3 (1일)"
+        - "5 (2-3일)"
+        - "8 (1주일)"
+        - "13 (2주일)"
+        - "? (추정 불가)"
+
+  - type: textarea
+    id: technical-details
+    attributes:
+      label: 🔧 기술적 세부사항
+      description: 작업 수행에 필요한 기술적 세부사항을 작성해주세요
+      placeholder: |
+        **영향 받는 컴포넌트:**
+        - 데이터베이스: PostgreSQL
+        - 테이블: user_progress, mccheyne_plan
+        - API: /api/progress/*
+        
+        **구현 방법:**
+        1. 쿼리 분석 도구로 느린 쿼리 식별
+        2. 적절한 인덱스 설계 및 추가
+        3. 쿼리 최적화 및 테스트
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 🔗 의존성
+      description: 이 작업을 완료하기 위해 먼저 완료되어야 하는 다른 작업이 있다면 작성해주세요
+      placeholder: |
+        - #123 데이터베이스 마이그레이션 완료
+        - #124 성능 모니터링 도구 설정
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: ⚠️ 위험 요소
+      description: 작업 수행 시 발생할 수 있는 위험 요소나 주의사항을 작성해주세요
+      placeholder: |
+        - 데이터베이스 다운타임 발생 가능성
+        - 기존 쿼리 성능에 영향을 줄 수 있음
+        - 백업 및 롤백 계획 필요
+
+  - type: textarea
+    id: testing-plan
+    attributes:
+      label: 🧪 테스트 계획
+      description: 작업 완료 후 수행할 테스트 계획을 작성해주세요
+      placeholder: |
+        - 성능 벤치마크 테스트
+        - 기존 기능 회귀 테스트
+        - 부하 테스트
+
+  - type: checkboxes
+    id: definition-of-done
+    attributes:
+      label: ✅ Definition of Done
+      description: 완료 기준을 확인해주세요
+      options:
+        - label: 코드 리뷰 완료
+        - label: 테스트 작성 및 통과
+        - label: 문서 업데이트
+        - label: 성능 검증 완료
+        - label: 배포 및 모니터링 확인

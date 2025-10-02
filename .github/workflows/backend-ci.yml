@@ -7,9 +7,10 @@ on:
       - 'macchain-backend/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
     paths:
       - 'macchain-backend/**'
+  workflow_dispatch:
 
 env:
   JAVA_VERSION: '17'
