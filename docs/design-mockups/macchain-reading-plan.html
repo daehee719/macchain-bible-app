@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맥체인 통독 플랜 - 365일 캘린더</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #60a5fa;
+            --primary-blue-light: #93c5fd;
+            --primary-blue-dark: #3b82f6;
+            --secondary-gold: #fcd34d;
+            --accent-green: #6ee7b7;
+            --accent-red: #fca5a5;
+            --neutral-50: #000000;
+            --neutral-100: #0a0a0a;
+            --neutral-200: #1a1a1a;
+            --neutral-300: #2a2a2a;
+            --neutral-400: #3a3a3a;
+            --neutral-500: #4a4a4a;
+            --neutral-600: #6a6a6a;
+            --neutral-700: #8a8a8a;
+            --neutral-800: #e0e0e0;
+            --neutral-900: #ffffff;
+            --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+            color: var(--neutral-800);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: var(--neutral-800);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: "📅";
+            font-size: 2rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            color: var(--neutral-600);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--neutral-200);
+            color: var(--neutral-800);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neutral-800);
+            text-shadow: 0 0 15px rgba(252, 211, 77, 0.4);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .toggle-btn.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .calendar-container {
+            background: var(--neutral-100);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: var(--neutral-100);
+            border: none;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .current-month {
+            font-size: 1.5rem;
+            font-weight: 600;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            color: var(--neutral-600);
+            padding: 0.75rem 0;
+            font-size: 0.875rem;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            border: 1px solid var(--neutral-200);
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 80px;
+        }
+
+        .day-cell:hover {
+            background: var(--neutral-50);
+            border-color: var(--primary-blue);
+        }
+
+        .day-cell.today {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .day-cell.completed {
+            background: var(--accent-green);
+            color: white;
+            border-color: var(--accent-green);
+        }
+
+        .day-cell.partial {
+            background: var(--secondary-gold);
+            color: white;
+            border-color: var(--secondary-gold);
+        }
+
+        .day-cell.future {
+            background: var(--neutral-100);
+            color: var(--neutral-400);
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .day-status {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            text-align: center;
+        }
+
+        .day-progress {
+            position: absolute;
+            bottom: 0.25rem;
+            left: 0.25rem;
+            right: 0.25rem;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 1.5px;
+        }
+
+        .day-progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 1.5px;
+            transition: width 0.3s ease;
+        }
+
+        .reading-details {
+            margin-top: 2rem;
+            background: var(--neutral-50);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .details-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--neutral-900);
+        }
+
+        .reading-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .reading-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid var(--neutral-200);
+        }
+
+        .reading-item.completed {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .reading-item.completed .check-icon {
+            color: white;
+        }
+
+        .check-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid var(--neutral-400);
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .check-icon.checked {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
+
+        .reading-info {
+            flex: 1;
+        }
+
+        .reading-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .reading-subtitle {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+        }
+
+        .reading-item.completed .reading-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+        }
+
+        .legend-color.completed {
+            background: var(--accent-green);
+        }
+
+        .legend-color.partial {
+            background: var(--secondary-gold);
+        }
+
+        .legend-color.today {
+            background: var(--primary-blue);
+        }
+
+        .legend-color.future {
+            background: var(--neutral-100);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .calendar-grid {
+                gap: 0.25rem;
+            }
+            
+            .day-cell {
+                min-height: 60px;
+            }
+            
+            .legend {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">맥체인 통독 플랜</div>
+            <nav class="nav">
+                <a href="#" class="nav-item">통독</a>
+                <a href="#" class="nav-item active">플랜</a>
+                <a href="#" class="nav-item">원어분석</a>
+                <a href="#" class="nav-item">토론</a>
+                <a href="#" class="nav-item">통계</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="page-header">
+            <h1 class="page-title">365일 통독 캘린더</h1>
+            <div class="view-toggle">
+                <button class="toggle-btn active">월별</button>
+                <button class="toggle-btn">연도별</button>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="month-navigation">
+                    <button class="nav-btn">‹</button>
+                    <div class="current-month">2024년 1월</div>
+                    <button class="nav-btn">›</button>
+                </div>
+            </div>
+
+            <div class="calendar-grid">
+                <div class="day-header">일</div>
+                <div class="day-header">월</div>
+                <div class="day-header">화</div>
+                <div class="day-header">수</div>
+                <div class="day-header">목</div>
+                <div class="day-header">금</div>
+                <div class="day-header">토</div>
+
+                <!-- 1월 캘린더 -->
+                <div class="day-cell future">
+                    <div class="day-number">31</div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">1</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">2</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">3</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">4</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">5</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">6</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="day-cell completed">
+                    <div class="day-number">7</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">8</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">9</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">10</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">11</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">12</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell completed">
+                    <div class="day-number">13</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="day-cell completed">
+                    <div class="day-number">14</div>
+                    <div class="day-status">완료</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="day-cell today">
+                    <div class="day-number">15</div>
+                    <div class="day-status">오늘</div>
+                    <div class="day-progress">
+                        <div class="day-progress-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">16</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">17</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">18</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">19</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">20</div>
+                </div>
+
+                <!-- 나머지 일수들... -->
+                <div class="day-cell future">
+                    <div class="day-number">21</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">22</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">23</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">24</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">25</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">26</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">27</div>
+                </div>
+
+                <div class="day-cell future">
+                    <div class="day-number">28</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">29</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">30</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">31</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">1</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">2</div>
+                </div>
+                <div class="day-cell future">
+                    <div class="day-number">3</div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color completed"></div>
+                    <span>완료</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color partial"></div>
+                    <span>부분 완료</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color today"></div>
+                    <span>오늘</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color future"></div>
+                    <span>미래</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="reading-details">
+            <h3 class="details-title">오늘의 읽기 (Day 15)</h3>
+            <div class="reading-list">
+                <div class="reading-item completed">
+                    <div class="check-icon checked">✓</div>
+                    <div class="reading-info">
+                        <div class="reading-title">창세기 15장</div>
+                        <div class="reading-subtitle">구약 - 아브람과의 언약</div>
+                    </div>
+                </div>
+                <div class="reading-item completed">
+                    <div class="check-icon checked">✓</div>
+                    <div class="reading-info">
+                        <div class="reading-title">시편 15편</div>
+                        <div class="reading-subtitle">구약 - 여호와의 산에 거할 자</div>
+                    </div>
+                </div>
+                <div class="reading-item">
+                    <div class="check-icon"></div>
+                    <div class="reading-info">
+                        <div class="reading-title">마태복음 15장</div>
+                        <div class="reading-subtitle">신약 - 바리새인들의 질문</div>
+                    </div>
+                </div>
+                <div class="reading-item">
+                    <div class="check-icon"></div>
+                    <div class="reading-info">
+                        <div class="reading-title">사도행전 15장</div>
+                        <div class="reading-subtitle">신약 - 예루살렘 공의회</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">15</div>
+                <div class="stat-label">연속 읽기 일수</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card">
+                <div class="stat-number">4.1%</div>
+                <div class="stat-label">전체 진행률</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">56</div>
+                <div class="stat-label">완료한 챕터</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">14</div>
+                <div class="stat-label">완료한 일수</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 체크박스 토글 기능
+        document.querySelectorAll('.check-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                this.classList.toggle('checked');
+                const readingItem = this.closest('.reading-item');
+                readingItem.classList.toggle('completed');
+            });
+        });
+
+        // 날짜 클릭 이벤트
+        document.querySelectorAll('.day-cell').forEach(cell => {
+            cell.addEventListener('click', function() {
+                // 선택된 날짜 표시 로직
+                document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // 월 네비게이션
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 월 변경 로직
+                console.log('월 변경');
+            });
+        });
+
+        // 뷰 토글
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

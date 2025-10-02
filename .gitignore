@@ -1,0 +1,93 @@
+# MacChain Bible App - Git Ignore
+
+# ===== Backend (Java/Spring Boot) =====
+macchain-backend/target/
+macchain-backend/build/
+macchain-backend/.gradle/
+macchain-backend/gradle/wrapper/gradle-wrapper.jar
+macchain-backend/gradlew
+macchain-backend/gradlew.bat
+macchain-backend/out/
+macchain-backend/bin/
+macchain-backend/.settings/
+macchain-backend/.project
+macchain-backend/.classpath
+macchain-backend/*.iml
+macchain-backend/*.ipr
+macchain-backend/*.iws
+macchain-backend/.idea/
+macchain-backend/logs/
+macchain-backend/testdb.*
+
+# ===== Frontend (React/Node.js) =====
+macchain-frontend/node_modules/
+macchain-frontend/dist/
+macchain-frontend/build/
+macchain-frontend/.vite/
+macchain-frontend/.env.local
+macchain-frontend/.env.development.local
+macchain-frontend/.env.test.local
+macchain-frontend/.env.production.local
+macchain-frontend/npm-debug.log*
+macchain-frontend/yarn-debug.log*
+macchain-frontend/yarn-error.log*
+
+# ===== Database Files =====
+*.db
+*.sqlite
+*.sqlite3
+testdb.*
+devdb.*
+
+# ===== Environment & Config =====
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+environment.properties
+application-local.yml
+
+# ===== IDE & Editor =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== Logs =====
+logs/
+*.log
+log/
+
+# ===== Temporary Files =====
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ===== OS Generated =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===== MCP Related =====
+src/cursor_mcp_plugin/
+src/talk_to_figma_mcp/
+*.lock
+bun.lock
+smithery.yaml
+DRAGME.md
+scripts/
+Dockerfile
+tsconfig.json
+tsup.config.ts

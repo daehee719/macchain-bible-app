@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맥체인 성경통독 & AI 원어 분석 서비스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* 깊은 다크모드 색상 시스템 */
+            --primary-blue: #60a5fa;
+            --primary-blue-light: #93c5fd;
+            --primary-blue-dark: #3b82f6;
+            --secondary-gold: #fcd34d;
+            --secondary-gold-light: #fde68a;
+            --accent-green: #6ee7b7;
+            --accent-red: #fca5a5;
+            --neutral-50: #000000;
+            --neutral-100: #0a0a0a;
+            --neutral-200: #1a1a1a;
+            --neutral-300: #2a2a2a;
+            --neutral-400: #3a3a3a;
+            --neutral-500: #4a4a4a;
+            --neutral-600: #6a6a6a;
+            --neutral-700: #8a8a8a;
+            --neutral-800: #e0e0e0;
+            --neutral-900: #ffffff;
+
+            /* 타이포그래피 */
+            --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            --font-size-4xl: 2.25rem;
+
+            /* 간격 */
+            --spacing-1: 0.25rem;
+            --spacing-2: 0.5rem;
+            --spacing-3: 0.75rem;
+            --spacing-4: 1rem;
+            --spacing-5: 1.25rem;
+            --spacing-6: 1.5rem;
+            --spacing-8: 2rem;
+            --spacing-10: 2.5rem;
+            --spacing-12: 3rem;
+            --spacing-16: 4rem;
+
+            /* 그림자 */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+            /* 둥근 모서리 */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.375rem;
+            --radius-lg: 0.5rem;
+            --radius-xl: 0.75rem;
+            --radius-2xl: 1rem;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+            color: var(--neutral-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: var(--neutral-800);
+            padding: var(--spacing-4) var(--spacing-6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+        }
+
+        .logo::before {
+            content: "📖";
+            font-size: var(--font-size-3xl);
+        }
+
+        .nav {
+            display: flex;
+            gap: var(--spacing-6);
+        }
+
+        .nav-item {
+            color: var(--neutral-600);
+            text-decoration: none;
+            padding: var(--spacing-2) var(--spacing-4);
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background-color: var(--neutral-200);
+            color: var(--neutral-800);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* 메인 컨테이너 */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-8) var(--spacing-6);
+        }
+
+        /* 대시보드 그리드 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--spacing-8);
+            margin-bottom: var(--spacing-8);
+        }
+
+        /* 오늘의 통독 카드 */
+        .today-reading-card {
+            background: var(--neutral-100);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-6);
+        }
+
+        .card-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--neutral-800);
+            text-shadow: 0 0 10px rgba(252, 211, 77, 0.3);
+        }
+
+        .day-badge {
+            background: var(--secondary-gold);
+            color: white;
+            padding: var(--spacing-2) var(--spacing-4);
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .reading-list {
+            display: grid;
+            gap: var(--spacing-4);
+        }
+
+        .reading-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-4);
+            padding: var(--spacing-4);
+            background: var(--neutral-50);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--neutral-200);
+            transition: all 0.2s;
+        }
+
+        .reading-item:hover {
+            background: var(--neutral-100);
+            border-color: var(--primary-blue);
+        }
+
+        .reading-item.completed {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .reading-item.completed .check-icon {
+            color: white;
+        }
+
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--neutral-400);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .check-icon.checked {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
+
+        .reading-info {
+            flex: 1;
+        }
+
+        .reading-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-1);
+            color: var(--neutral-800);
+            text-shadow: 0 0 8px rgba(96, 165, 250, 0.2);
+        }
+
+        .reading-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-600);
+        }
+
+        .reading-item.completed .reading-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .ai-analysis-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: var(--spacing-2) var(--spacing-4);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .ai-analysis-btn:hover {
+            background: var(--primary-blue-dark);
+        }
+
+        /* 진행률 사이드바 */
+        .progress-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-6);
+        }
+
+        .progress-card {
+            background: var(--neutral-100);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .progress-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--spacing-4);
+        }
+
+        .streak-counter {
+            text-align: center;
+            margin-bottom: var(--spacing-4);
+        }
+
+        .streak-number {
+            font-size: var(--font-size-4xl);
+            font-weight: 700;
+            color: var(--secondary-gold);
+            line-height: 1;
+        }
+
+        .streak-label {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-600);
+            margin-top: var(--spacing-1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--neutral-200);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: var(--spacing-2);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--accent-green) 100%);
+            border-radius: var(--radius-sm);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-600);
+            text-align: center;
+        }
+
+        /* AI 원어 분석 모달 */
+        .ai-analysis-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .ai-analysis-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--neutral-100);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-8);
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-6);
+        }
+
+        .modal-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: var(--font-size-2xl);
+            cursor: pointer;
+            color: var(--neutral-500);
+        }
+
+        .verse-container {
+            margin-bottom: var(--spacing-6);
+        }
+
+        .verse-text {
+            font-size: var(--font-size-lg);
+            line-height: 1.8;
+            margin-bottom: var(--spacing-4);
+            padding: var(--spacing-4);
+            background: var(--neutral-100);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary-blue);
+            color: var(--neutral-800);
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.3), 0 0 20px rgba(96, 165, 250, 0.1);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.1);
+        }
+
+        .original-text {
+            font-family: 'Times New Roman', serif;
+            font-size: var(--font-size-lg);
+            color: var(--primary-blue);
+            margin-bottom: var(--spacing-4);
+            padding: var(--spacing-4);
+            background: var(--neutral-100);
+            border-radius: var(--radius-lg);
+            text-shadow: 0 0 15px rgba(96, 165, 250, 0.4), 0 0 30px rgba(96, 165, 250, 0.2);
+            box-shadow: 0 0 25px rgba(96, 165, 250, 0.2);
+        }
+
+        .word-analysis {
+            display: grid;
+            gap: var(--spacing-4);
+        }
+
+        .word-item {
+            padding: var(--spacing-4);
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+        }
+
+        .word-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-2);
+        }
+
+        .word-text {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .strongs-number {
+            background: var(--secondary-gold);
+            color: white;
+            padding: var(--spacing-1) var(--spacing-2);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+
+        .word-meaning {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-700);
+            margin-bottom: var(--spacing-2);
+        }
+
+        .word-etymology {
+            font-size: var(--font-size-xs);
+            color: var(--neutral-500);
+            font-style: italic;
+        }
+
+        /* 토론 커뮤니티 */
+        .community-section {
+            background: var(--neutral-100);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-6);
+        }
+
+        .section-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+        }
+
+        .view-all-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: var(--spacing-2) var(--spacing-4);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .view-all-btn:hover {
+            background: var(--primary-blue-dark);
+        }
+
+        .discussion-list {
+            display: grid;
+            gap: var(--spacing-4);
+        }
+
+        .discussion-item {
+            padding: var(--spacing-4);
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s;
+        }
+
+        .discussion-item:hover {
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .discussion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-2);
+        }
+
+        .discussion-title {
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: var(--spacing-1);
+        }
+
+        .discussion-meta {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-500);
+        }
+
+        .discussion-content {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-700);
+            margin-bottom: var(--spacing-3);
+        }
+
+        .discussion-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .discussion-stats {
+            display: flex;
+            gap: var(--spacing-4);
+            font-size: var(--font-size-sm);
+            color: var(--neutral-500);
+        }
+
+        .discussion-tags {
+            display: flex;
+            gap: var(--spacing-2);
+        }
+
+        .tag {
+            background: var(--neutral-100);
+            color: var(--neutral-600);
+            padding: var(--spacing-1) var(--spacing-2);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: var(--spacing-4);
+            }
+            
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .main-container {
+                padding: var(--spacing-4);
+            }
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 유틸리티 클래스 */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-4 { margin-bottom: var(--spacing-4); }
+        .mb-6 { margin-bottom: var(--spacing-6); }
+        .mt-4 { margin-top: var(--spacing-4); }
+        .mt-6 { margin-top: var(--spacing-6); }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">맥체인 성경통독</div>
+            <nav class="nav">
+                <a href="#" class="nav-item">통독</a>
+                <a href="#" class="nav-item">원어분석</a>
+                <a href="#" class="nav-item">토론</a>
+                <a href="#" class="nav-item">통계</a>
+            </nav>
+            <div class="user-profile">
+                <div class="avatar">김</div>
+                <span>김민준님</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <main class="main-container">
+        <!-- 대시보드 그리드 -->
+        <div class="dashboard-grid">
+            <!-- 오늘의 통독 카드 -->
+            <div class="today-reading-card fade-in">
+                <div class="card-header">
+                    <h2 class="card-title">오늘의 통독</h2>
+                    <div class="day-badge">Day 15</div>
+                </div>
+                <div class="reading-list">
+                    <div class="reading-item completed">
+                        <div class="check-icon checked">✓</div>
+                        <div class="reading-info">
+                            <div class="reading-title">창세기 15장</div>
+                            <div class="reading-subtitle">구약 - 아브람과의 언약</div>
+                        </div>
+                        <button class="ai-analysis-btn" onclick="openAIAnalysis()">원어분석</button>
+                    </div>
+                    <div class="reading-item completed">
+                        <div class="check-icon checked">✓</div>
+                        <div class="reading-info">
+                            <div class="reading-title">시편 15편</div>
+                            <div class="reading-subtitle">구약 - 여호와의 산에 거할 자</div>
+                        </div>
+                        <button class="ai-analysis-btn" onclick="openAIAnalysis()">원어분석</button>
+                    </div>
+                    <div class="reading-item">
+                        <div class="check-icon"></div>
+                        <div class="reading-info">
+                            <div class="reading-title">마태복음 15장</div>
+                            <div class="reading-subtitle">신약 - 바리새인들의 질문</div>
+                        </div>
+                        <button class="ai-analysis-btn" onclick="openAIAnalysis()">원어분석</button>
+                    </div>
+                    <div class="reading-item">
+                        <div class="check-icon"></div>
+                        <div class="reading-info">
+                            <div class="reading-title">사도행전 15장</div>
+                            <div class="reading-subtitle">신약 - 예루살렘 공의회</div>
+                        </div>
+                        <button class="ai-analysis-btn" onclick="openAIAnalysis()">원어분석</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 진행률 사이드바 -->
+            <div class="progress-sidebar">
+                <div class="progress-card fade-in">
+                    <h3 class="progress-title">연속 읽기</h3>
+                    <div class="streak-counter">
+                        <div class="streak-number">15</div>
+                        <div class="streak-label">일 연속</div>
+                    </div>
+                </div>
+
+                <div class="progress-card fade-in">
+                    <h3 class="progress-title">전체 진행률</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 4.1%"></div>
+                    </div>
+                    <div class="progress-text">15일 / 365일 (4.1%)</div>
+                </div>
+
+                <div class="progress-card fade-in">
+                    <h3 class="progress-title">이번 주 통계</h3>
+                    <div style="text-align: center;">
+                        <div style="font-size: var(--font-size-2xl); font-weight: 700; color: var(--accent-green); margin-bottom: var(--spacing-2);">7/7</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--neutral-600);">완독 일수</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 토론 커뮤니티 -->
+        <div class="community-section fade-in">
+            <div class="section-header">
+                <h3 class="section-title">최근 토론</h3>
+                <button class="view-all-btn">전체 보기</button>
+            </div>
+            <div class="discussion-list">
+                <div class="discussion-item">
+                    <div class="discussion-header">
+                        <div>
+                            <div class="discussion-title">창세기 15:6 "여호와를 믿으니"의 원어 의미</div>
+                            <div class="discussion-meta">김민준 • 2시간 전</div>
+                        </div>
+                    </div>
+                    <div class="discussion-content">
+                        히브리어 '아만'의 의미가 단순한 믿음이 아니라 신뢰와 순종을 포함한다는 것을 알게 되었습니다. 
+                        이 구절이 어떻게 아브라함의 의로움을 설명하는지 궁금합니다.
+                    </div>
+                    <div class="discussion-footer">
+                        <div class="discussion-stats">
+                            <span>👍 12</span>
+                            <span>💬 8</span>
+                            <span>🔖 3</span>
+                        </div>
+                        <div class="discussion-tags">
+                            <span class="tag">창세기</span>
+                            <span class="tag">원어분석</span>
+                            <span class="tag">질문</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="discussion-item">
+                    <div class="discussion-header">
+                        <div>
+                            <div class="discussion-title">마태복음 15장 바리새인들의 전통에 대한 묵상</div>
+                            <div class="discussion-meta">이지은 • 5시간 전</div>
+                        </div>
+                    </div>
+                    <div class="discussion-content">
+                        예수님이 바리새인들의 전통을 비판하신 부분에서, 오늘날 우리의 종교적 관습에 대해 
+                        생각해볼 점이 많았습니다. 진정한 경건이란 무엇일까요?
+                    </div>
+                    <div class="discussion-footer">
+                        <div class="discussion-stats">
+                            <span>👍 7</span>
+                            <span>💬 5</span>
+                            <span>🔖 1</span>
+                        </div>
+                        <div class="discussion-tags">
+                            <span class="tag">마태복음</span>
+                            <span class="tag">묵상</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="discussion-item">
+                    <div class="discussion-header">
+                        <div>
+                            <div class="discussion-title">사도행전 15장 예루살렘 공의회의 현대적 의미</div>
+                            <div class="discussion-meta">박성훈 • 1일 전</div>
+                        </div>
+                    </div>
+                    <div class="discussion-content">
+                        초대교회가 복잡한 신학적 문제를 어떻게 해결했는지 보면서, 
+                        오늘날 교회의 갈등 해결 방식에 대해 배울 점이 많습니다.
+                    </div>
+                    <div class="discussion-footer">
+                        <div class="discussion-stats">
+                            <span>👍 15</span>
+                            <span>💬 12</span>
+                            <span>🔖 6</span>
+                        </div>
+                        <div class="discussion-tags">
+                            <span class="tag">사도행전</span>
+                            <span class="tag">토론</span>
+                            <span class="tag">교회론</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- AI 원어 분석 모달 -->
+    <div class="ai-analysis-modal" id="aiAnalysisModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">AI 원어 분석</h3>
+                <button class="close-btn" onclick="closeAIAnalysis()">&times;</button>
+            </div>
+            <div class="verse-container">
+                <div class="verse-text">
+                    "여호와의 말씀이 환상 중에 아브람에게 임하여 이르시되 아브람아 두려워하지 말라 나는 네 방패요 너의 지극히 큰 상급이니라"
+                </div>
+                <div class="original-text">
+                    וַיְהִי דְבַר־יְהוָה אֶל־אַבְרָם בַּמַּחֲזֶה לֵאמֹר אַל־תִּירָא אַבְרָם אָנֹכִי מָגֵן לָךְ שְׂכָרְךָ הַרְבֵּה מְאֹד
+                </div>
+            </div>
+            <div class="word-analysis">
+                <div class="word-item">
+                    <div class="word-header">
+                        <span class="word-text">마하제 (מחזה)</span>
+                        <span class="strongs-number">H4236</span>
+                    </div>
+                    <div class="word-meaning">환상, 계시적 비전</div>
+                    <div class="word-etymology">어근: 하자 (보다, 바라보다) - 깨어있는 상태에서 받는 계시</div>
+                </div>
+                <div class="word-item">
+                    <div class="word-header">
+                        <span class="word-text">마겐 (מגן)</span>
+                        <span class="strongs-number">H4043</span>
+                    </div>
+                    <div class="word-meaning">방패, 보호자</div>
+                    <div class="word-etymology">어근: 가난 (덮다, 보호하다) - 적의 공격으로부터 보호하는 도구</div>
+                </div>
+                <div class="word-item">
+                    <div class="word-header">
+                        <span class="word-text">사카르 (שכר)</span>
+                        <span class="strongs-number">H7939</span>
+                    </div>
+                    <div class="word-meaning">상급, 보상, 임금</div>
+                    <div class="word-etymology">어근: 사카르 (임금을 주다) - 일한 대가로 받는 보상</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAIAnalysis() {
+            document.getElementById('aiAnalysisModal').classList.add('show');
+        }
+
+        function closeAIAnalysis() {
+            document.getElementById('aiAnalysisModal').classList.remove('show');
+        }
+
+        // 모달 외부 클릭 시 닫기
+        document.getElementById('aiAnalysisModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAIAnalysis();
+            }
+        });
+
+        // 체크박스 토글 기능
+        document.querySelectorAll('.check-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                this.classList.toggle('checked');
+                const readingItem = this.closest('.reading-item');
+                readingItem.classList.toggle('completed');
+            });
+        });
+
+        // 애니메이션 효과
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

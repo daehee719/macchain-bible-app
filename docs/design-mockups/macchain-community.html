@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>토론 커뮤니티 - 맥체인 성경통독</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #60a5fa;
+            --primary-blue-light: #93c5fd;
+            --primary-blue-dark: #3b82f6;
+            --secondary-gold: #fcd34d;
+            --accent-green: #6ee7b7;
+            --accent-red: #fca5a5;
+            --neutral-50: #000000;
+            --neutral-100: #0a0a0a;
+            --neutral-200: #1a1a1a;
+            --neutral-300: #2a2a2a;
+            --neutral-400: #3a3a3a;
+            --neutral-500: #4a4a4a;
+            --neutral-600: #6a6a6a;
+            --neutral-700: #8a8a8a;
+            --neutral-800: #e0e0e0;
+            --neutral-900: #ffffff;
+            --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+            color: var(--neutral-800);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: var(--neutral-800);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: "💬";
+            font-size: 2rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .community-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .filter-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--neutral-900);
+        }
+
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--neutral-700);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .filter-options {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-option:hover {
+            background: var(--neutral-100);
+        }
+
+        .filter-option.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .filter-checkbox {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--neutral-300);
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-option.active .filter-checkbox {
+            background: white;
+            border-color: white;
+            color: var(--primary-blue);
+        }
+
+        .filter-text {
+            font-size: 0.875rem;
+        }
+
+        .filter-count {
+            margin-left: auto;
+            font-size: 0.75rem;
+            background: var(--neutral-200);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .filter-option.active .filter-count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .quick-stats {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .stats-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--neutral-900);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .discussions-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+        }
+
+        .write-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .write-btn:hover {
+            background: var(--primary-blue-dark);
+        }
+
+        .discussion-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .discussion-item {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .discussion-item:hover {
+            box-shadow: 0 8px 15px -3px rgb(0 0 0 / 0.1);
+            border-color: var(--primary-blue);
+        }
+
+        .discussion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .discussion-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: var(--secondary-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .post-time {
+            font-size: 0.875rem;
+            color: var(--neutral-500);
+        }
+
+        .discussion-type {
+            background: var(--neutral-100);
+            color: var(--neutral-700);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .discussion-type.question {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .discussion-type.meditation {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .discussion-type.discussion {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .discussion-type.analysis {
+            background: var(--secondary-gold);
+            color: white;
+        }
+
+        .discussion-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .discussion-content {
+            font-size: 0.875rem;
+            color: var(--neutral-700);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .discussion-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: var(--neutral-100);
+            color: var(--neutral-600);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .discussion-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .discussion-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .stat:hover {
+            color: var(--primary-blue);
+        }
+
+        .stat-icon {
+            font-size: 1rem;
+        }
+
+        .discussion-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid var(--neutral-300);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .action-btn.bookmarked {
+            background: var(--secondary-gold);
+            color: white;
+            border-color: var(--secondary-gold);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--neutral-300);
+            background: white;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .page-btn:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .page-btn.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .search-bar {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--neutral-300);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .search-suggestions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .suggestion-tag {
+            background: var(--neutral-100);
+            color: var(--neutral-600);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-tag:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .community-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .discussion-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .discussion-meta {
+                width: 100%;
+            }
+            
+            .discussion-footer {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">토론 커뮤니티</div>
+            <nav class="nav">
+                <a href="#" class="nav-item">통독</a>
+                <a href="#" class="nav-item">플랜</a>
+                <a href="#" class="nav-item">원어분석</a>
+                <a href="#" class="nav-item active">토론</a>
+                <a href="#" class="nav-item">통계</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="community-layout">
+            <div class="sidebar">
+                <div class="filter-section">
+                    <h3 class="filter-title">필터</h3>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">토론 유형</label>
+                        <div class="filter-options">
+                            <div class="filter-option active">
+                                <div class="filter-checkbox">✓</div>
+                                <span class="filter-text">전체</span>
+                                <span class="filter-count">127</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">질문</span>
+                                <span class="filter-count">45</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">묵상</span>
+                                <span class="filter-count">32</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">토론</span>
+                                <span class="filter-count">28</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">원어분석</span>
+                                <span class="filter-count">22</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">성경 구절</label>
+                        <div class="filter-options">
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">창세기</span>
+                                <span class="filter-count">18</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">마태복음</span>
+                                <span class="filter-count">15</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">시편</span>
+                                <span class="filter-count">12</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">사도행전</span>
+                                <span class="filter-count">8</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">정렬</label>
+                        <div class="filter-options">
+                            <div class="filter-option active">
+                                <div class="filter-checkbox">✓</div>
+                                <span class="filter-text">최신순</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">인기순</span>
+                            </div>
+                            <div class="filter-option">
+                                <div class="filter-checkbox"></div>
+                                <span class="filter-text">댓글순</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-stats">
+                    <h3 class="stats-title">커뮤니티 현황</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">총 게시글</span>
+                        <span class="stat-value">1,247</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">오늘 게시글</span>
+                        <span class="stat-value">23</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">활성 사용자</span>
+                        <span class="stat-value">156</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">미해결 질문</span>
+                        <span class="stat-value">12</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="discussions-section">
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="토론 검색... (예: 창세기, 믿음, 원어)">
+                    <div class="search-suggestions">
+                        <span class="suggestion-tag">창세기 15장</span>
+                        <span class="suggestion-tag">아브라함</span>
+                        <span class="suggestion-tag">믿음</span>
+                        <span class="suggestion-tag">언약</span>
+                        <span class="suggestion-tag">원어분석</span>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2 class="section-title">최근 토론</h2>
+                    <button class="write-btn">
+                        <span>✏️</span>
+                        글쓰기
+                    </button>
+                </div>
+
+                <div class="discussion-list">
+                    <div class="discussion-item">
+                        <div class="discussion-header">
+                            <div class="discussion-meta">
+                                <div class="user-avatar">김</div>
+                                <div class="user-info">
+                                    <div class="user-name">김민준</div>
+                                    <div class="post-time">2시간 전</div>
+                                </div>
+                            </div>
+                            <div class="discussion-type question">질문</div>
+                        </div>
+                        <h3 class="discussion-title">창세기 15:6 "여호와를 믿으니"의 원어 의미가 궁금합니다</h3>
+                        <div class="discussion-content">
+                            히브리어 '아만'의 의미가 단순한 믿음이 아니라 신뢰와 순종을 포함한다는 것을 알게 되었습니다. 
+                            이 구절이 어떻게 아브라함의 의로움을 설명하는지, 그리고 이것이 우리의 구원과 어떤 관련이 있는지 
+                            궁금합니다. 특히 바울이 로마서에서 이 구절을 인용한 부분과의 연관성도 알고 싶습니다.
+                        </div>
+                        <div class="discussion-tags">
+                            <span class="tag">창세기</span>
+                            <span class="tag">원어분석</span>
+                            <span class="tag">질문</span>
+                            <span class="tag">아브라함</span>
+                        </div>
+                        <div class="discussion-footer">
+                            <div class="discussion-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">👍</span>
+                                    <span>12</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">💬</span>
+                                    <span>8</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">👁️</span>
+                                    <span>156</span>
+                                </div>
+                            </div>
+                            <div class="discussion-actions">
+                                <button class="action-btn bookmarked">🔖</button>
+                                <button class="action-btn">공유</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="discussion-item">
+                        <div class="discussion-header">
+                            <div class="discussion-meta">
+                                <div class="user-avatar">이</div>
+                                <div class="user-info">
+                                    <div class="user-name">이지은</div>
+                                    <div class="post-time">5시간 전</div>
+                                </div>
+                            </div>
+                            <div class="discussion-type meditation">묵상</div>
+                        </div>
+                        <h3 class="discussion-title">마태복음 15장 바리새인들의 전통에 대한 묵상</h3>
+                        <div class="discussion-content">
+                            예수님이 바리새인들의 전통을 비판하신 부분에서, 오늘날 우리의 종교적 관습에 대해 
+                            생각해볼 점이 많았습니다. 진정한 경건이란 무엇일까요? 외적인 규칙을 지키는 것보다 
+                            마음의 변화가 더 중요하다는 것을 깨달았습니다. 우리도 때로는 전통에 매몰되어 
+                            하나님의 뜻을 놓치지는 않는지 돌아봐야 할 것 같습니다.
+                        </div>
+                        <div class="discussion-tags">
+                            <span class="tag">마태복음</span>
+                            <span class="tag">묵상</span>
+                            <span class="tag">바리새인</span>
+                            <span class="tag">전통</span>
+                        </div>
+                        <div class="discussion-footer">
+                            <div class="discussion-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">👍</span>
+                                    <span>7</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">💬</span>
+                                    <span>5</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">👁️</span>
+                                    <span>89</span>
+                                </div>
+                            </div>
+                            <div class="discussion-actions">
+                                <button class="action-btn">🔖</button>
+                                <button class="action-btn">공유</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="discussion-item">
+                        <div class="discussion-header">
+                            <div class="discussion-meta">
+                                <div class="user-avatar">박</div>
+                                <div class="user-info">
+                                    <div class="user-name">박성훈</div>
+                                    <div class="post-time">1일 전</div>
+                                </div>
+                            </div>
+                            <div class="discussion-type discussion">토론</div>
+                        </div>
+                        <h3 class="discussion-title">사도행전 15장 예루살렘 공의회의 현대적 의미</h3>
+                        <div class="discussion-content">
+                            초대교회가 복잡한 신학적 문제를 어떻게 해결했는지 보면서, 
+                            오늘날 교회의 갈등 해결 방식에 대해 배울 점이 많습니다. 
+                            이단 문제, 문화적 차이, 전통과의 충돌 등은 여전히 현실적인 문제입니다. 
+                            예루살렘 공의회의 과정과 결과를 통해 우리가 어떻게 해야 할지 생각해봅시다.
+                        </div>
+                        <div class="discussion-tags">
+                            <span class="tag">사도행전</span>
+                            <span class="tag">토론</span>
+                            <span class="tag">교회론</span>
+                            <span class="tag">공의회</span>
+                        </div>
+                        <div class="discussion-footer">
+                            <div class="discussion-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">👍</span>
+                                    <span>15</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">💬</span>
+                                    <span>12</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">👁️</span>
+                                    <span>234</span>
+                                </div>
+                            </div>
+                            <div class="discussion-actions">
+                                <button class="action-btn bookmarked">🔖</button>
+                                <button class="action-btn">공유</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="discussion-item">
+                        <div class="discussion-header">
+                            <div class="discussion-meta">
+                                <div class="user-avatar">최</div>
+                                <div class="user-info">
+                                    <div class="user-name">최영희</div>
+                                    <div class="post-time">2일 전</div>
+                                </div>
+                            </div>
+                            <div class="discussion-type analysis">원어분석</div>
+                        </div>
+                        <h3 class="discussion-title">시편 15편 "여호와의 산에 거할 자" 히브리어 분석</h3>
+                        <div class="discussion-content">
+                            시편 15편의 히브리어 원문을 분석해보니, '거할'이라는 단어 '구르'가 
+                            단순한 거주가 아니라 '기거하다, 머물다'의 의미로 사용되었습니다. 
+                            이는 하나님과의 친밀한 관계를 나타내는 중요한 단어입니다. 
+                            또한 '정직하게 행하는 자'의 '정직'은 히브리어로 '타밈'인데, 
+                            이는 '완전한, 흠이 없는'의 의미로 사용됩니다.
+                        </div>
+                        <div class="discussion-tags">
+                            <span class="tag">시편</span>
+                            <span class="tag">원어분석</span>
+                            <span class="tag">히브리어</span>
+                            <span class="tag">시편 15편</span>
+                        </div>
+                        <div class="discussion-footer">
+                            <div class="discussion-stats">
+                                <div class="stat">
+                                    <span class="stat-icon">👍</span>
+                                    <span>9</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">💬</span>
+                                    <span>6</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-icon">👁️</span>
+                                    <span>178</span>
+                                </div>
+                            </div>
+                            <div class="discussion-actions">
+                                <button class="action-btn">🔖</button>
+                                <button class="action-btn">공유</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pagination">
+                    <button class="page-btn" disabled>‹ 이전</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn">5</button>
+                    <button class="page-btn">다음 ›</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 필터 옵션 토글
+        document.querySelectorAll('.filter-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const group = this.closest('.filter-group');
+                const isMultiple = group.querySelectorAll('.filter-option').length > 1;
+                
+                if (isMultiple) {
+                    // 단일 선택 그룹
+                    group.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                } else {
+                    // 다중 선택 그룹
+                    this.classList.toggle('active');
+                }
+            });
+        });
+
+        // 통계 클릭 이벤트
+        document.querySelectorAll('.stat').forEach(stat => {
+            stat.addEventListener('click', function() {
+                const icon = this.querySelector('.stat-icon').textContent;
+                const count = this.querySelector('span:last-child').textContent;
+                
+                if (icon === '👍') {
+                    // 좋아요 토글
+                    const newCount = parseInt(count) + (this.classList.contains('liked') ? -1 : 1);
+                    this.querySelector('span:last-child').textContent = newCount;
+                    this.classList.toggle('liked');
+                }
+            });
+        });
+
+        // 북마크 토글
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            if (btn.textContent.includes('🔖')) {
+                btn.addEventListener('click', function() {
+                    this.classList.toggle('bookmarked');
+                });
+            }
+        });
+
+        // 검색 제안 클릭
+        document.querySelectorAll('.suggestion-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const searchInput = document.querySelector('.search-input');
+                searchInput.value = this.textContent;
+                searchInput.focus();
+            });
+        });
+
+        // 페이지네이션
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                
+                document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 글쓰기 버튼
+        document.querySelector('.write-btn').addEventListener('click', function() {
+            alert('글쓰기 페이지로 이동합니다.');
+        });
+
+        // 토론 아이템 클릭
+        document.querySelectorAll('.discussion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const title = this.querySelector('.discussion-title').textContent;
+                console.log('토론 열기:', title);
+            });
+        });
+    </script>
+</body>
+</html>

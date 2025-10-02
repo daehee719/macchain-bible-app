@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통계 대시보드 - 맥체인 성경통독</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #60a5fa;
+            --primary-blue-light: #93c5fd;
+            --primary-blue-dark: #3b82f6;
+            --secondary-gold: #fcd34d;
+            --accent-green: #6ee7b7;
+            --accent-red: #fca5a5;
+            --neutral-50: #000000;
+            --neutral-100: #0a0a0a;
+            --neutral-200: #1a1a1a;
+            --neutral-300: #2a2a2a;
+            --neutral-400: #3a3a3a;
+            --neutral-500: #4a4a4a;
+            --neutral-600: #6a6a6a;
+            --neutral-700: #8a8a8a;
+            --neutral-800: #e0e0e0;
+            --neutral-900: #ffffff;
+            --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+            color: var(--neutral-800);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: var(--neutral-800);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: "📊";
+            font-size: 2rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+        }
+
+        .period-selector {
+            display: flex;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .period-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .period-btn.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--accent-green) 100%);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--neutral-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.blue {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .stat-icon.green {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .stat-icon.gold {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--secondary-gold);
+        }
+
+        .stat-icon.red {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            color: var(--accent-green);
+        }
+
+        .stat-change.negative {
+            color: var(--accent-red);
+        }
+
+        .stat-change.neutral {
+            color: var(--neutral-500);
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .progress-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .progress-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--neutral-50);
+            border-radius: 0.5rem;
+        }
+
+        .progress-label {
+            font-weight: 500;
+            color: var(--neutral-700);
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: var(--neutral-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.blue {
+            background: var(--primary-blue);
+        }
+
+        .progress-fill.green {
+            background: var(--accent-green);
+        }
+
+        .progress-fill.gold {
+            background: var(--secondary-gold);
+        }
+
+        .progress-percentage {
+            font-weight: 600;
+            color: var(--neutral-900);
+            min-width: 3rem;
+            text-align: right;
+        }
+
+        .achievements-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .achievements-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .achievement-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--neutral-50);
+            border-radius: 0.75rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .achievement-item.earned {
+            background: linear-gradient(135deg, var(--secondary-gold) 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .achievement-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .achievement-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .achievement-desc {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .achievement-item.earned .achievement-desc {
+            opacity: 0.9;
+        }
+
+        .recent-activity {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--neutral-200);
+            margin-top: 2rem;
+        }
+
+        .activity-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 1.5rem;
+        }
+
+        .activity-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--neutral-50);
+            border-radius: 0.5rem;
+        }
+
+        .activity-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .activity-icon.blue {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .activity-icon.green {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .activity-icon.gold {
+            background: var(--secondary-gold);
+            color: white;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-weight: 500;
+            color: var(--neutral-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.875rem;
+            color: var(--neutral-500);
+        }
+
+        .activity-value {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        @media (max-width: 1024px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .achievements-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">통계 대시보드</div>
+            <nav class="nav">
+                <a href="#" class="nav-item">통독</a>
+                <a href="#" class="nav-item">플랜</a>
+                <a href="#" class="nav-item">원어분석</a>
+                <a href="#" class="nav-item">토론</a>
+                <a href="#" class="nav-item active">통계</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">나의 통독 통계</h1>
+            <div class="period-selector">
+                <button class="period-btn active">이번 주</button>
+                <button class="period-btn">이번 달</button>
+                <button class="period-btn">올해</button>
+                <button class="period-btn">전체</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">연속 읽기</div>
+                    <div class="stat-icon blue">🔥</div>
+                </div>
+                <div class="stat-value">15</div>
+                <div class="stat-change positive">
+                    <span>↗</span>
+                    <span>+3일</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">완료한 챕터</div>
+                    <div class="stat-icon green">📖</div>
+                </div>
+                <div class="stat-value">56</div>
+                <div class="stat-change positive">
+                    <span>↗</span>
+                    <span>+4개</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">전체 진행률</div>
+                    <div class="stat-icon gold">📊</div>
+                </div>
+                <div class="stat-value">4.1%</div>
+                <div class="stat-change positive">
+                    <span>↗</span>
+                    <span>+0.3%</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">평균 읽기 시간</div>
+                    <div class="stat-icon red">⏱️</div>
+                </div>
+                <div class="stat-value">23분</div>
+                <div class="stat-change neutral">
+                    <span>→</span>
+                    <span>변화없음</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">읽기 진행 추이</h3>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--primary-blue);"></div>
+                            <span>완료</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--secondary-gold);"></div>
+                            <span>부분 완료</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="progressChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">성경별 진행률</h3>
+                </div>
+                <div class="progress-chart">
+                    <div class="progress-item">
+                        <span class="progress-label">구약</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill blue" style="width: 8%"></div>
+                        </div>
+                        <span class="progress-percentage">8%</span>
+                    </div>
+                    <div class="progress-item">
+                        <span class="progress-label">신약</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" style="width: 12%"></div>
+                        </div>
+                        <span class="progress-percentage">12%</span>
+                    </div>
+                    <div class="progress-item">
+                        <span class="progress-label">시편</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill gold" style="width: 15%"></div>
+                        </div>
+                        <span class="progress-percentage">15%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="achievements-section">
+            <div class="achievements-header">
+                <h3 class="achievements-title">🏆 성취 배지</h3>
+            </div>
+            <div class="achievements-grid">
+                <div class="achievement-item earned">
+                    <div class="achievement-icon">🎯</div>
+                    <div class="achievement-name">첫 걸음</div>
+                    <div class="achievement-desc">첫 번째 챕터 완료</div>
+                </div>
+                <div class="achievement-item earned">
+                    <div class="achievement-icon">🔥</div>
+                    <div class="achievement-name">연속 읽기</div>
+                    <div class="achievement-desc">7일 연속 읽기</div>
+                </div>
+                <div class="achievement-item earned">
+                    <div class="achievement-icon">📚</div>
+                    <div class="achievement-name">독서가</div>
+                    <div class="achievement-desc">50개 챕터 완료</div>
+                </div>
+                <div class="achievement-item">
+                    <div class="achievement-icon">💎</div>
+                    <div class="achievement-name">다이아몬드</div>
+                    <div class="achievement-desc">30일 연속 읽기</div>
+                </div>
+                <div class="achievement-item">
+                    <div class="achievement-icon">👑</div>
+                    <div class="achievement-name">왕관</div>
+                    <div class="achievement-desc">100일 연속 읽기</div>
+                </div>
+                <div class="achievement-item">
+                    <div class="achievement-icon">🌟</div>
+                    <div class="achievement-name">별</div>
+                    <div class="achievement-desc">전체 통독 완료</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recent-activity">
+            <h3 class="activity-title">최근 활동</h3>
+            <div class="activity-list">
+                <div class="activity-item">
+                    <div class="activity-icon blue">📖</div>
+                    <div class="activity-content">
+                        <div class="activity-text">창세기 15장 완료</div>
+                        <div class="activity-time">2시간 전</div>
+                    </div>
+                    <div class="activity-value">+1</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon green">💬</div>
+                    <div class="activity-content">
+                        <div class="activity-text">토론에 참여</div>
+                        <div class="activity-time">5시간 전</div>
+                    </div>
+                    <div class="activity-value">+5</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon gold">🔍</div>
+                    <div class="activity-content">
+                        <div class="activity-text">원어 분석 완료</div>
+                        <div class="activity-time">1일 전</div>
+                    </div>
+                    <div class="activity-value">+3</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon blue">📖</div>
+                    <div class="activity-content">
+                        <div class="activity-text">시편 15편 완료</div>
+                        <div class="activity-time">1일 전</div>
+                    </div>
+                    <div class="activity-value">+1</div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon green">🏆</div>
+                    <div class="activity-content">
+                        <div class="activity-text">독서가 배지 획득</div>
+                        <div class="activity-time">2일 전</div>
+                    </div>
+                    <div class="activity-value">+10</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 간단한 차트 그리기 (Canvas 사용)
+        function drawProgressChart() {
+            const canvas = document.getElementById('progressChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 캔버스 크기 설정
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // 데이터
+            const data = [
+                { day: '1/1', completed: 4, partial: 0 },
+                { day: '1/2', completed: 4, partial: 0 },
+                { day: '1/3', completed: 4, partial: 0 },
+                { day: '1/4', completed: 4, partial: 0 },
+                { day: '1/5', completed: 4, partial: 0 },
+                { day: '1/6', completed: 4, partial: 0 },
+                { day: '1/7', completed: 4, partial: 0 },
+                { day: '1/8', completed: 4, partial: 0 },
+                { day: '1/9', completed: 4, partial: 0 },
+                { day: '1/10', completed: 4, partial: 0 },
+                { day: '1/11', completed: 4, partial: 0 },
+                { day: '1/12', completed: 4, partial: 0 },
+                { day: '1/13', completed: 4, partial: 0 },
+                { day: '1/14', completed: 4, partial: 0 },
+                { day: '1/15', completed: 2, partial: 2 }
+            ];
+            
+            const maxValue = 4;
+            const chartWidth = canvas.width - 80;
+            const chartHeight = canvas.height - 60;
+            const barWidth = chartWidth / data.length;
+            
+            // 배경 그리기
+            ctx.fillStyle = '#f9fafb';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 그리드 그리기
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = 30 + (chartHeight / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(40, y);
+                ctx.lineTo(canvas.width - 40, y);
+                ctx.stroke();
+            }
+            
+            // 데이터 그리기
+            data.forEach((item, index) => {
+                const x = 40 + index * barWidth;
+                const barHeight = (item.completed / maxValue) * chartHeight;
+                const partialHeight = (item.partial / maxValue) * chartHeight;
+                
+                // 완료된 부분
+                ctx.fillStyle = '#2563eb';
+                ctx.fillRect(x + 2, 30 + chartHeight - barHeight, barWidth - 4, barHeight);
+                
+                // 부분 완료된 부분
+                if (item.partial > 0) {
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(x + 2, 30 + chartHeight - barHeight - partialHeight, barWidth - 4, partialHeight);
+                }
+            });
+            
+            // Y축 레이블
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '12px Pretendard';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const y = 30 + (chartHeight / 4) * i;
+                ctx.fillText(i.toString(), 35, y + 4);
+            }
+            
+            // X축 레이블
+            ctx.textAlign = 'center';
+            data.forEach((item, index) => {
+                if (index % 3 === 0) { // 3일마다 표시
+                    const x = 40 + index * barWidth + barWidth / 2;
+                    ctx.fillText(item.day, x, canvas.height - 10);
+                }
+            });
+        }
+
+        // 기간 선택
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 실제로는 여기서 데이터를 다시 로드
+                console.log('기간 변경:', this.textContent);
+            });
+        });
+
+        // 페이지 로드 시 차트 그리기
+        window.addEventListener('load', () => {
+            drawProgressChart();
+        });
+
+        // 창 크기 변경 시 차트 다시 그리기
+        window.addEventListener('resize', () => {
+            drawProgressChart();
+        });
+
+        // 통계 카드 애니메이션
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
