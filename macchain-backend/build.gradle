@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.2.0'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'checkstyle'
+    id 'org.owasp.dependencycheck' version '8.4.3'
 }
 
 group = 'com.macchain'
@@ -74,5 +75,29 @@ tasks.named('checkstyleTest') {
     reports {
         xml.required = false
         html.required = true
+    }
+}
+
+dependencyCheck {
+    format = 'ALL'
+    suppressionFile = 'config/dependency-check/suppressions.xml'
+    failBuildOnCVSS = 7
+    analyzers {
+        assemblyEnabled = false
+        msbuildEnabled = false
+        nuspecEnabled = false
+        nodeEnabled = false
+        nodeAuditEnabled = false
+        retirejsEnabled = false
+        rubygemsEnabled = false
+        swiftEnabled = false
+        cocoapodsEnabled = false
+        autoconfEnabled = false
+        cmakeEnabled = false
+        composerEnabled = false
+        nuspecEnabled = false
+        nugetconfEnabled = false
+        nexusEnabled = false
+        ossIndexEnabled = false
     }
 }

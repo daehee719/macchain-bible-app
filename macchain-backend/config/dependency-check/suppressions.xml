@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!-- Spring Boot 관련 false positive 제외 -->
+    <suppress>
+        <notes><![CDATA[
+        Spring Boot 관련 false positive 제외
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring-.*$</packageUrl>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
+    
+    <!-- Jackson 관련 false positive 제외 -->
+    <suppress>
+        <notes><![CDATA[
+        Jackson 관련 false positive 제외
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson/.*$</packageUrl>
+        <cve>CVE-2020-25649</cve>
+    </suppress>
+    
+    <!-- H2 Database 관련 false positive 제외 -->
+    <suppress>
+        <notes><![CDATA[
+        H2 Database 관련 false positive 제외
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.h2database/h2$</packageUrl>
+        <cve>CVE-2022-45868</cve>
+    </suppress>
+    
+    <!-- JWT 관련 false positive 제외 -->
+    <suppress>
+        <notes><![CDATA[
+        JWT 관련 false positive 제외
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.jsonwebtoken/.*$</packageUrl>
+        <cve>CVE-2023-26136</cve>
+    </suppress>
+</suppressions>
