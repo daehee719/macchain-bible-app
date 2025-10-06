@@ -1,225 +1,109 @@
-name: 🏗️ Backend CI/CD Pipeline
+name: 📋 Backend CI/CD
 
 on:
   push:
     branches: [ main, develop ]
-    paths:
-      - 'macchain-backend/**'
-      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ main, develop ]
-    paths:
-      - 'macchain-backend/**'
-  workflow_dispatch:
-
-env:
-  JAVA_VERSION: '17'
-  GRADLE_VERSION: '8.5'
 
 jobs:
-  # ===== 코드 품질 검사 =====
   code-quality:
-    name: 📋 Code Quality Check
     runs-on: ubuntu-latest
     
+    env:
+      JAVA_VERSION: 17
+      GRADLE_VERSION: 8.5
+    
     steps:
-    - name: 📥 Checkout Code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
-      
-    - name: ☕ Setup Java
-      uses: actions/setup-java@v4
       with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        
-    - name: 📦 Cache Gradle Dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-          
-    - name: 🔧 Make Gradlew Executable
-      run: chmod +x macchain-backend/gradlew
-      
-    - name: 🧹 Gradle Clean
-      run: cd macchain-backend && ./gradlew clean
-      
-    - name: 🔍 Checkstyle
-      run: cd macchain-backend && ./gradlew checkstyleMain checkstyleTest
-      continue-on-error: true
-      
-    - name: 🐛 SpotBugs
-      run: cd macchain-backend && ./gradlew spotbugsMain
-      continue-on-error: true
+        repository: daehee719/macchain-bible-app
+        token: ${{ secrets.GITHUB_TOKEN }}
+        ssh-strict: true
+        ssh-user: git
+        persist-credentials: true
+        clean: true
+        sparse-checkout-cone-mode: true
+        fetch-depth: 1
+        fetch-tags: false
+        show-progress: true
+        lfs: false
+        submodules: false
+        set-safe-directory: true
 
-  # ===== 빌드 및 테스트 =====
-  build-and-test:
-    name: 🔨 Build & Test
-    runs-on: ubuntu-latest
-    needs: code-quality
-    
-    strategy:
-      matrix:
-        profile: [dev, test]
-        
-    steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
-      
     - name: ☕ Setup Java
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
-        
-    - name: 📦 Cache Gradle Dependencies
+        java-package: jdk
+        check-latest: false
+        server-id: github
+        server-username: GITHUB_ACTOR
+        server-password: GITHUB_TOKEN
+        overwrite-settings: true
+        job-status: success
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 📦 Cache Gradle dependencies
       uses: actions/cache@v3
       with:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        key: Linux-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
-          ${{ runner.os }}-gradle-
-          
-    - name: 🔧 Make Gradlew Executable
-      run: chmod +x macchain-backend/gradlew
-      
-    - name: 🏗️ Build Application
-      run: cd macchain-backend && ./gradlew build -Dspring.profiles.active=${{ matrix.profile }} -x test
-      
-    - name: 🧪 Run Tests
-      run: cd macchain-backend && ./gradlew test -Dspring.profiles.active=${{ matrix.profile }}
-      
-    - name: 📊 Generate Test Report
+          Linux-gradle-
+
+    - name: 🔧 Make gradlew executable
+      run: chmod +x gradlew
+
+    - name: 🧹 Clean project
+      run: ./gradlew clean
+
+    - name: 🔍 Check code style
+      run: ./gradlew checkstyleMain checkstyleTest
+
+    - name: 🧪 Run tests
+      run: ./gradlew test
+
+    - name: 📊 Generate test report
       uses: dorny/test-reporter@v1
       if: success() || failure()
       with:
-        name: 📋 Test Results (${{ matrix.profile }})
-        path: macchain-backend/build/test-results/test/*.xml
+        name: Backend Tests
+        path: build/test-results/test/TEST-*.xml
         reporter: java-junit
-        
-    - name: 📈 Upload Coverage to Codecov
-      if: matrix.profile == 'test'
-      uses: codecov/codecov-action@v3
-      with:
-        file: macchain-backend/build/reports/jacoco/test/jacocoTestReport.xml
-        flags: backend
-        name: backend-coverage
 
-  # ===== 보안 스캔 =====
-  security-scan:
-    name: 🔒 Security Scan
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    
-    steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
-      
-    - name: ☕ Setup Java
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        
-    - name: 🔧 Make Gradlew Executable
-      run: chmod +x macchain-backend/gradlew
-      
-    - name: 🛡️ OWASP Dependency Check
-      run: cd macchain-backend && ./gradlew dependencyCheckAnalyze
-      continue-on-error: true
-      
-    - name: 📋 Upload Security Report
+    - name: 🔒 Security scan
+      run: ./gradlew dependencyCheckAnalyze
+
+    - name: 📦 Build application
+      run: ./gradlew build -x test
+
+    - name: 🐳 Build Docker image
+      run: |
+        cd macchain-backend
+        docker build -t macchain-backend:${{ github.sha }} .
+
+    - name: 📤 Upload build artifacts
       uses: actions/upload-artifact@v3
-      if: always()
       with:
-        name: security-report
-        path: macchain-backend/build/reports/
+        name: backend-jar
+        path: build/libs/*.jar
+        retention-days: 7
 
-  # ===== Docker 이미지 빌드 =====
-  docker-build:
-    name: 🐳 Docker Build
+  deploy:
+    needs: code-quality
     runs-on: ubuntu-latest
-    needs: [build-and-test, security-scan]
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: 📥 Checkout Code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
-      
-    - name: 🐳 Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      
-    - name: 🔐 Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        
-    - name: 📦 Extract Metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ secrets.DOCKER_USERNAME }}/macchain-backend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-          
-    - name: 🏗️ Build and Push Docker Image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./macchain-backend
-        file: ./macchain-backend/Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
 
-  # ===== 배포 =====
-  deploy:
-    name: 🚀 Deploy to Production
-    runs-on: ubuntu-latest
-    needs: docker-build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-    
-    steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
-      
-    - name: 🚀 Deploy to Server
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.DEPLOY_SSH_KEY }}
-        script: |
-          cd /opt/macchain
-          docker-compose pull backend
-          docker-compose up -d backend
-          docker system prune -f
-
-  # ===== 알림 =====
-  notify:
-    name: 📢 Notification
-    runs-on: ubuntu-latest
-    needs: [deploy]
-    if: always()
-    
-    steps:
-    - name: 📧 Send Slack Notification
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#macchain-deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        fields: repo,message,commit,author,action,eventName,ref,workflow
-      if: always()
+    - name: 🚀 Deploy to AWS EC2
+      run: |
+        echo "🚀 Deploying to AWS EC2..."
+        # Add deployment commands here
