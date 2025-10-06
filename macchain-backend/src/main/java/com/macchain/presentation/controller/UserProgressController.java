@@ -8,6 +8,7 @@ import com.macchain.domain.valueobject.ReadingProgress;
 import com.macchain.presentation.dto.UserProgressResponse;
 import com.macchain.presentation.dto.ReadingProgressResponse;
 import com.macchain.presentation.mapper.UserProgressResponseMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,6 +27,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3003"})
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod", matchIfMissing = false)
 public class UserProgressController {
     
     private final GetUserProgressUseCase getUserProgressUseCase;

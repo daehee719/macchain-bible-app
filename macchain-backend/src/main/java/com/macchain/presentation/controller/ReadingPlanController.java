@@ -7,6 +7,7 @@ import com.macchain.presentation.mapper.ReadingPlanResponseMapper;
 import com.macchain.infrastructure.repository.McCheynePlanJpaRepository;
 import com.macchain.infrastructure.entity.McCheynePlanJpaEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/mccheyne")
 @CrossOrigin(origins = {"http://localhost:3000"})
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod", matchIfMissing = false)
 public class ReadingPlanController {
     
     private final GetTodayPlanUseCase getTodayPlanUseCase;

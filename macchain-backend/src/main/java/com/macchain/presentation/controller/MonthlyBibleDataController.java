@@ -4,6 +4,7 @@ import com.macchain.application.usecase.MonthlyBibleDataService;
 import com.macchain.domain.entity.MonthlyBibleData;
 import com.macchain.infrastructure.scheduler.MonthlyDataScheduler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/monthly-bible")
 @CrossOrigin(origins = "http://localhost:3000")
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod", matchIfMissing = false)
 public class MonthlyBibleDataController {
     
     private final MonthlyBibleDataService monthlyBibleDataService;

@@ -7,6 +7,7 @@ import com.macchain.presentation.dto.UserRequest;
 import com.macchain.presentation.dto.UserResponse;
 import com.macchain.presentation.mapper.UserResponseMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @RequestMapping("/api/users")
 @CrossOrigin(origins = {"http://localhost:3000"})
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod", matchIfMissing = false)
 public class UserController {
     
     private final RegisterUserUseCase registerUserUseCase;
