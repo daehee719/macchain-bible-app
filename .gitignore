@@ -5,8 +5,6 @@ macchain-backend/target/
 macchain-backend/build/
 macchain-backend/.gradle/
 macchain-backend/gradle/wrapper/gradle-wrapper.jar
-macchain-backend/gradlew
-macchain-backend/gradlew.bat
 macchain-backend/out/
 macchain-backend/bin/
 macchain-backend/.settings/
