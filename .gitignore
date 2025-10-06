@@ -86,6 +86,5 @@ bun.lock
 smithery.yaml
 DRAGME.md
 scripts/
-Dockerfile
 tsconfig.json
 tsup.config.ts
