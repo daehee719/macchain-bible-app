@@ -70,11 +70,12 @@ jobs:
 
     - name: 📊 Generate test report
       uses: dorny/test-reporter@v1
-      if: success() || failure()
+      if: always()
       with:
         name: Backend Tests
         path: macchain-backend/build/test-results/test/TEST-*.xml
         reporter: java-junit
+        fail-on-empty: false
 
     - name: 🔒 Security scan
       run: cd macchain-backend && ./gradlew dependencyCheckAnalyze
