@@ -45,6 +45,7 @@ devdb.*
 .env.development
 .env.test
 .env.production
+env.example
 environment.properties
 application-local.yml
 
