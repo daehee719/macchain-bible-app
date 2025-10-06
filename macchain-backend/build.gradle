@@ -88,14 +88,12 @@ dependencyCheck {
         nuspecEnabled = false
         nodeEnabled = false
         nodeAuditEnabled = false
-        retirejsEnabled = false
         rubygemsEnabled = false
         swiftEnabled = false
         cocoapodsEnabled = false
         autoconfEnabled = false
         cmakeEnabled = false
         composerEnabled = false
-        nuspecEnabled = false
         nugetconfEnabled = false
         nexusEnabled = false
         ossIndexEnabled = false
