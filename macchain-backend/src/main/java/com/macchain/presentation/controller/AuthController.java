@@ -36,7 +36,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody UserRequest request) {
         try {
-            User user = registerUserUseCase.execute(request);
+            User user = registerUserUseCase.execute(
+                request.getEmail(), 
+                request.getPassword(), 
+                request.getName(), 
+                request.getNickname()
+            );
             UserResponse userResponse = userResponseMapper.toResponse(user);
             String token = jwtUtil.generateToken(user.getEmail(), user.getId());
             
@@ -117,7 +122,7 @@ public class AuthController {
                         true,
                         "토큰이 유효합니다.",
                         token,
-                        new UserResponse(userId, email, null, null, true, null, null)
+                        new UserResponse(userId, email, null, null, null, null, true)
                     );
                     
                     return ResponseEntity.ok(response);
