@@ -57,30 +57,30 @@ jobs:
           Linux-gradle-
 
     - name: 🔧 Make gradlew executable
-      run: chmod +x gradlew
+      run: chmod +x macchain-backend/gradlew
 
     - name: 🧹 Clean project
-      run: ./gradlew clean
+      run: cd macchain-backend && ./gradlew clean
 
     - name: 🔍 Check code style
-      run: ./gradlew checkstyleMain checkstyleTest
+      run: cd macchain-backend && ./gradlew checkstyleMain checkstyleTest
 
     - name: 🧪 Run tests
-      run: ./gradlew test
+      run: cd macchain-backend && ./gradlew test
 
     - name: 📊 Generate test report
       uses: dorny/test-reporter@v1
       if: success() || failure()
       with:
         name: Backend Tests
-        path: build/test-results/test/TEST-*.xml
+        path: macchain-backend/build/test-results/test/TEST-*.xml
         reporter: java-junit
 
     - name: 🔒 Security scan
-      run: ./gradlew dependencyCheckAnalyze
+      run: cd macchain-backend && ./gradlew dependencyCheckAnalyze
 
     - name: 📦 Build application
-      run: ./gradlew build -x test
+      run: cd macchain-backend && ./gradlew build -x test
 
     - name: 🐳 Build Docker image
       run: |
@@ -91,7 +91,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: backend-jar
-        path: build/libs/*.jar
+        path: macchain-backend/build/libs/*.jar
         retention-days: 7
 
   deploy:
