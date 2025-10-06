@@ -1,5 +1,5 @@
 # Multi-stage build for Spring Boot application
-FROM openjdk:17-jdk-slim as builder
+FROM eclipse-temurin:17-jdk-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -18,7 +18,10 @@ COPY src/ src/
 RUN ./gradlew build -x test -x checkstyleMain -x checkstyleTest
 
 # Runtime stage
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre-alpine
+
+# Install curl for health check
+RUN apk add --no-cache curl
 
 # Set working directory
 WORKDIR /app
