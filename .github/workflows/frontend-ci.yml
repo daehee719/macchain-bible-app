@@ -1,10 +1,12 @@
-name: 🎨 Frontend CI/CD
+name: 🎨 Frontend CI/CD (Disabled)
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  # Disabled until frontend files are restored
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
   code-quality:
