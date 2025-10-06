@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.0'
     id 'io.spring.dependency-management' version '1.1.4'
+    id 'checkstyle'
 }
 
 group = 'com.macchain'
@@ -53,4 +54,25 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
+    maxWarnings = 0
+}
+
+tasks.named('checkstyleMain') {
+    reports {
+        xml.required = false
+        html.required = true
+    }
+}
+
+tasks.named('checkstyleTest') {
+    reports {
+        xml.required = false
+        html.required = true
+    }
 }
