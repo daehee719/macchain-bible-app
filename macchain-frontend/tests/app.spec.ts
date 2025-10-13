@@ -30,8 +30,9 @@ test.describe('MacChain Frontend', () => {
     // Should redirect to login or show login form
     const loginForm = page.locator('form');
     const isLoginPage = await page.url().includes('/login');
+    const isFormVisible = await loginForm.isVisible();
     
-    expect(loginForm.isVisible() || isLoginPage).toBeTruthy();
+    expect(isFormVisible || isLoginPage).toBeTruthy();
   });
 
   test('should be responsive on mobile', async ({ page }) => {
