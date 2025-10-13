@@ -1,0 +1,140 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  height: 80px;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: color 0.2s;
+}
+
+.logo:hover {
+  color: #667eea;
+}
+
+.nav {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #666;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  color: #667eea;
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.nav-link.active {
+  color: #667eea;
+  background-color: rgba(102, 126, 234, 0.15);
+}
+
+.auth-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.login-btn, .logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.login-btn {
+  background-color: #667eea;
+  color: white;
+  text-decoration: none;
+}
+
+.login-btn:hover {
+  background-color: #5a67d8;
+}
+
+.logout-btn {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.logout-btn:hover {
+  background-color: #c53030;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .header {
+    height: 60px;
+  }
+  
+  .header-container {
+    padding: 0 1rem;
+  }
+  
+  .nav {
+    gap: 1rem;
+  }
+  
+  .nav-link {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .logo span {
+    display: none;
+  }
+  
+  .user-name {
+    display: none;
+  }
+}

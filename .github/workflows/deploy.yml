@@ -2,7 +2,7 @@ name: 🚀 Full Stack Deployment
 
 on:
   workflow_run:
-    workflows: ["📋 Backend CI/CD"]  # 프론트엔드 워크플로우 제거
+    workflows: ["📋 Backend CI/CD", "⚛️ Frontend CI/CD Pipeline"]
     branches: [main]
     types: [completed]
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
         fi
         
         echo "backend-image=${{ secrets.DOCKER_USERNAME }}/macchain-backend:latest" >> $GITHUB_OUTPUT
-        # echo "frontend-image=${{ secrets.DOCKER_USERNAME }}/macchain-frontend:latest" >> $GITHUB_OUTPUT  # 프론트엔드 비활성화
+        echo "frontend-image=${{ secrets.DOCKER_USERNAME }}/macchain-frontend:latest" >> $GITHUB_OUTPUT
 
   # ===== 인프라 배포 =====
   deploy-infrastructure:
@@ -132,7 +132,7 @@ jobs:
         cat > .env << EOF
         ENVIRONMENT=${{ needs.prepare-deployment.outputs.environment }}
         BACKEND_IMAGE=${{ needs.prepare-deployment.outputs.backend-image }}
-        # FRONTEND_IMAGE=${{ needs.prepare-deployment.outputs.frontend-image }}  # 프론트엔드 비활성화
+        FRONTEND_IMAGE=${{ needs.prepare-deployment.outputs.frontend-image }}
         
         # Database
         POSTGRES_HOST=${{ secrets.DB_HOST }}
@@ -201,17 +201,17 @@ jobs:
           sleep 10
         done
         
-    # - name: 🏥 Health Check - Frontend  # 프론트엔드 비활성화
-    #   run: |
-    #     echo "🔍 프론트엔드 헬스 체크 중..."
-    #     for i in {1..30}; do
-    #       if curl -f ${{ secrets.FRONTEND_URL }}; then
-    #         echo "✅ 프론트엔드가 정상적으로 실행 중입니다!"
-    #         break
-    #       fi
-    #       echo "⏳ 프론트엔드 시작 대기 중... ($i/30)"
-    #       sleep 10
-    #     done
+    - name: 🏥 Health Check - Frontend
+      run: |
+        echo "🔍 프론트엔드 헬스 체크 중..."
+        for i in {1..30}; do
+          if curl -f ${{ secrets.FRONTEND_URL }}; then
+            echo "✅ 프론트엔드가 정상적으로 실행 중입니다!"
+            break
+          fi
+          echo "⏳ 프론트엔드 시작 대기 중... ($i/30)"
+          sleep 10
+        done
         
     - name: 🧪 Smoke Tests
       run: |
@@ -221,8 +221,8 @@ jobs:
         curl -f ${{ secrets.BACKEND_URL }}/api/mccheyne/today
         curl -f ${{ secrets.BACKEND_URL }}/api/health
         
-        # 프론트엔드 페이지 테스트 (비활성화)
-        # curl -f ${{ secrets.FRONTEND_URL }}/
+        # 프론트엔드 페이지 테스트
+        curl -f ${{ secrets.FRONTEND_URL }}/
         
         echo "✅ 모든 스모크 테스트가 통과했습니다!"
 

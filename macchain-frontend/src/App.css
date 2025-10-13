@@ -1,0 +1,47 @@
+.App {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.main-content {
+  padding-top: 80px;
+  min-height: calc(100vh - 80px);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+}
+
+/* 로딩 애니메이션 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* 에러 메시지 */
+.error {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #fcc;
+  margin: 1rem 0;
+}
+
+/* 성공 메시지 */
+.success {
+  background-color: #efe;
+  color: #363;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #cfc;
+  margin: 1rem 0;
+}
