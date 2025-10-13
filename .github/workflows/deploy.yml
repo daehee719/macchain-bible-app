@@ -76,43 +76,143 @@ jobs:
     - name: ⏭️ Database Migration Skipped
       run: echo "데이터베이스 마이그레이션이 비활성화되어 있습니다. DB 설정이 필요합니다."
 
-  # ===== 애플리케이션 배포 (현재 비활성화) =====
-  deploy-application:
-    name: 🚀 Deploy Application (Skipped)
+  # ===== Docker 이미지 빌드 =====
+  build-images:
+    name: 🐳 Build Docker Images
     runs-on: ubuntu-latest
-    needs: [prepare-deployment, database-migration]
-    if: false  # 배포 설정이 없어서 비활성화
+    needs: prepare-deployment
     
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: ⏭️ Application Deployment Skipped
-      run: |
-        echo "애플리케이션 배포가 비활성화되어 있습니다."
-        echo "다음 설정이 필요합니다:"
-        echo "- Docker Hub 시크릿 (DOCKER_USERNAME)"
-        echo "- SSH 배포 설정 (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY)"
-        echo "- 데이터베이스 시크릿 (DB_HOST, DB_USERNAME, DB_PASSWORD 등)"
-        echo "- 기타 환경 변수 시크릿"
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 🔐 Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: 🏗️ Build and Push Backend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./macchain-backend
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/macchain-backend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: 🎨 Build and Push Frontend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./macchain-frontend
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/macchain-frontend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-  # ===== 배포 검증 (현재 비활성화) =====
+  # ===== 애플리케이션 배포 =====
+  deploy-application:
+    name: 🚀 Deploy Application
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, build-images]
+    if: ${{ secrets.DEPLOY_HOST != '' }}
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 📋 Copy Deployment Files
+      run: |
+        mkdir -p deployment
+        cp docker-compose.prod.yml deployment/
+        cp scripts/deploy.sh deployment/
+        
+    - name: 🚀 Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.DEPLOY_HOST }}
+        username: ${{ secrets.DEPLOY_USER }}
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        script: |
+          # 배포 디렉토리 생성
+          sudo mkdir -p /opt/macchain
+          sudo chown $USER:$USER /opt/macchain
+          cd /opt/macchain
+          
+          # Git 저장소 클론 (처음만)
+          if [ ! -d ".git" ]; then
+            git clone https://github.com/${{ github.repository }}.git .
+          fi
+          
+          # 최신 코드 가져오기
+          git fetch origin
+          git reset --hard origin/${{ github.ref_name }}
+          
+          # 배포 파일 복사
+          cp deployment/docker-compose.prod.yml .
+          cp deployment/deploy.sh .
+          chmod +x deploy.sh
+          
+          # 환경 변수 설정
+          export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/macchain-backend:latest
+          export FRONTEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/macchain-frontend:latest
+          export FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          export JWT_SECRET=${{ secrets.JWT_SECRET }}
+          
+          # 배포 실행
+          ./deploy.sh
+
+  # ===== 배포 검증 =====
   verify-deployment:
-    name: ✅ Verify Deployment (Skipped)
+    name: ✅ Verify Deployment
     runs-on: ubuntu-latest
     needs: [prepare-deployment, deploy-application]
-    if: false  # 배포가 비활성화되어서 검증도 비활성화
+    if: ${{ secrets.DEPLOY_HOST != '' }}
     
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: ⏭️ Deployment Verification Skipped
+    - name: 🏥 Health Check - Backend
       run: |
-        echo "배포 검증이 비활성화되어 있습니다."
-        echo "배포가 활성화되면 다음 URL들을 확인합니다:"
-        echo "- Backend: \${{ secrets.BACKEND_URL }}/api/health"
-        echo "- Frontend: \${{ secrets.FRONTEND_URL }}"
+        echo "🔍 백엔드 헬스 체크 중..."
+        for i in {1..30}; do
+          if curl -f ${{ secrets.BACKEND_URL }}/actuator/health; then
+            echo "✅ 백엔드가 정상적으로 실행 중입니다!"
+            break
+          fi
+          echo "⏳ 백엔드 시작 대기 중... ($i/30)"
+          sleep 10
+        done
+        
+    - name: 🏥 Health Check - Frontend
+      run: |
+        echo "🔍 프론트엔드 헬스 체크 중..."
+        for i in {1..30}; do
+          if curl -f ${{ secrets.FRONTEND_URL }}; then
+            echo "✅ 프론트엔드가 정상적으로 실행 중입니다!"
+            break
+          fi
+          echo "⏳ 프론트엔드 시작 대기 중... ($i/30)"
+          sleep 10
+        done
+        
+    - name: 🧪 Smoke Tests
+      run: |
+        echo "🧪 스모크 테스트 실행 중..."
+        
+        # API 엔드포인트 테스트
+        curl -f ${{ secrets.BACKEND_URL }}/api/health
+        curl -f ${{ secrets.BACKEND_URL }}/api/mccheyne/today
+        
+        # 프론트엔드 페이지 테스트
+        curl -f ${{ secrets.FRONTEND_URL }}/
+        
+        echo "✅ 모든 스모크 테스트가 통과했습니다!"
 
   # ===== 롤백 준비 (현재 비활성화) =====
   prepare-rollback:
