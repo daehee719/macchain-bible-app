@@ -12,7 +12,18 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
-  projects: [
+  projects: process.env.CI ? [
+    // CI 환경에서는 주요 브라우저만 테스트
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+  ] : [
+    // 로컬 환경에서는 모든 브라우저 테스트
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },

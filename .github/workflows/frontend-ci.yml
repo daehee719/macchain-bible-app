@@ -90,6 +90,11 @@ jobs:
         cd macchain-frontend
         npm run build
 
+    - name: 🎭 Install Playwright browsers
+      run: |
+        cd macchain-frontend
+        npx playwright install --with-deps
+
     - name: 🧪 Run E2E tests
       run: |
         cd macchain-frontend
