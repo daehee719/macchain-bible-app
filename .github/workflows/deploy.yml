@@ -3,7 +3,7 @@ name: 🚀 Full Stack Deployment
 on:
   workflow_run:
     workflows: ["📋 Backend CI/CD", "⚛️ Frontend CI/CD Pipeline"]
-    branches: [main]
+    branches: [main, develop]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -48,251 +48,92 @@ jobs:
         echo "backend-image=${{ secrets.DOCKER_USERNAME }}/macchain-backend:latest" >> $GITHUB_OUTPUT
         echo "frontend-image=${{ secrets.DOCKER_USERNAME }}/macchain-frontend:latest" >> $GITHUB_OUTPUT
 
-  # ===== 인프라 배포 =====
+  # ===== 인프라 배포 (현재 비활성화) =====
   deploy-infrastructure:
-    name: 🏗️ Deploy Infrastructure
+    name: 🏗️ Deploy Infrastructure (Skipped)
     runs-on: ubuntu-latest
     needs: prepare-deployment
-    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    if: false  # 인프라 설정이 없어서 비활성화
     
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: 🔧 Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.0
-        
-    - name: 🏗️ Terraform Init
-      run: |
-        cd infrastructure/terraform
-        terraform init
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        
-    - name: 📋 Terraform Plan
-      run: |
-        cd infrastructure/terraform
-        terraform plan -var="environment=${{ needs.prepare-deployment.outputs.environment }}"
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        
-    - name: 🚀 Terraform Apply
-      if: needs.prepare-deployment.outputs.environment == 'production'
-      run: |
-        cd infrastructure/terraform
-        terraform apply -auto-approve -var="environment=${{ needs.prepare-deployment.outputs.environment }}"
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: ⏭️ Infrastructure Deployment Skipped
+      run: echo "인프라 배포가 비활성화되어 있습니다. AWS/Terraform 설정이 필요합니다."
 
-  # ===== 데이터베이스 마이그레이션 =====
+  # ===== 데이터베이스 마이그레이션 (현재 비활성화) =====
   database-migration:
-    name: 🗄️ Database Migration
+    name: 🗄️ Database Migration (Skipped)
     runs-on: ubuntu-latest
     needs: [prepare-deployment, deploy-infrastructure]
-    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    if: false  # 데이터베이스 설정이 없어서 비활성화
     
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: ☕ Setup Java
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: 🗄️ Run Database Migration
-      run: |
-        cd macchain-backend
-        ./gradlew flywayMigrate -Dspring.profiles.active=prod
-      env:
-        DB_HOST: ${{ secrets.DB_HOST }}
-        DB_USERNAME: ${{ secrets.DB_USERNAME }}
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+    - name: ⏭️ Database Migration Skipped
+      run: echo "데이터베이스 마이그레이션이 비활성화되어 있습니다. DB 설정이 필요합니다."
 
-  # ===== 애플리케이션 배포 =====
+  # ===== 애플리케이션 배포 (현재 비활성화) =====
   deploy-application:
-    name: 🚀 Deploy Application
+    name: 🚀 Deploy Application (Skipped)
     runs-on: ubuntu-latest
     needs: [prepare-deployment, database-migration]
-    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    if: false  # 배포 설정이 없어서 비활성화
     
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: 🐳 Setup Docker Compose
+    - name: ⏭️ Application Deployment Skipped
       run: |
-        # Docker Compose 환경 변수 설정
-        cat > .env << EOF
-        ENVIRONMENT=${{ needs.prepare-deployment.outputs.environment }}
-        BACKEND_IMAGE=${{ needs.prepare-deployment.outputs.backend-image }}
-        FRONTEND_IMAGE=${{ needs.prepare-deployment.outputs.frontend-image }}
-        
-        # Database
-        POSTGRES_HOST=${{ secrets.DB_HOST }}
-        POSTGRES_DB=${{ secrets.DB_NAME }}
-        POSTGRES_USER=${{ secrets.DB_USERNAME }}
-        POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
-        
-        # MongoDB
-        MONGODB_HOST=${{ secrets.MONGODB_HOST }}
-        MONGODB_PORT=${{ secrets.MONGODB_PORT }}
-        MONGODB_DB=${{ secrets.MONGODB_DB }}
-        
-        # Redis
-        REDIS_HOST=${{ secrets.REDIS_HOST }}
-        REDIS_PORT=${{ secrets.REDIS_PORT }}
-        
-        # OpenAI
-        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-        
-        # JWT
-        JWT_SECRET=${{ secrets.JWT_SECRET }}
-        EOF
-        
-    - name: 🚀 Deploy via SSH
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.DEPLOY_SSH_KEY }}
-        script: |
-          # 배포 디렉토리로 이동
-          cd /opt/macchain
-          
-          # 최신 코드 가져오기
-          git pull origin main
-          
-          # Docker 이미지 업데이트
-          docker-compose pull
-          
-          # 애플리케이션 재시작
-          docker-compose down
-          docker-compose up -d
-          
-          # 불필요한 이미지 정리
-          docker system prune -f
+        echo "애플리케이션 배포가 비활성화되어 있습니다."
+        echo "다음 설정이 필요합니다:"
+        echo "- Docker Hub 시크릿 (DOCKER_USERNAME)"
+        echo "- SSH 배포 설정 (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY)"
+        echo "- 데이터베이스 시크릿 (DB_HOST, DB_USERNAME, DB_PASSWORD 등)"
+        echo "- 기타 환경 변수 시크릿"
 
-  # ===== 배포 검증 =====
+  # ===== 배포 검증 (현재 비활성화) =====
   verify-deployment:
-    name: ✅ Verify Deployment
+    name: ✅ Verify Deployment (Skipped)
     runs-on: ubuntu-latest
     needs: [prepare-deployment, deploy-application]
+    if: false  # 배포가 비활성화되어서 검증도 비활성화
     
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: 🏥 Health Check - Backend
+    - name: ⏭️ Deployment Verification Skipped
       run: |
-        echo "🔍 백엔드 헬스 체크 중..."
-        for i in {1..30}; do
-          if curl -f ${{ secrets.BACKEND_URL }}/api/health; then
-            echo "✅ 백엔드가 정상적으로 실행 중입니다!"
-            break
-          fi
-          echo "⏳ 백엔드 시작 대기 중... ($i/30)"
-          sleep 10
-        done
-        
-    - name: 🏥 Health Check - Frontend
-      run: |
-        echo "🔍 프론트엔드 헬스 체크 중..."
-        for i in {1..30}; do
-          if curl -f ${{ secrets.FRONTEND_URL }}; then
-            echo "✅ 프론트엔드가 정상적으로 실행 중입니다!"
-            break
-          fi
-          echo "⏳ 프론트엔드 시작 대기 중... ($i/30)"
-          sleep 10
-        done
-        
-    - name: 🧪 Smoke Tests
-      run: |
-        echo "🧪 스모크 테스트 실행 중..."
-        
-        # API 엔드포인트 테스트
-        curl -f ${{ secrets.BACKEND_URL }}/api/mccheyne/today
-        curl -f ${{ secrets.BACKEND_URL }}/api/health
-        
-        # 프론트엔드 페이지 테스트
-        curl -f ${{ secrets.FRONTEND_URL }}/
-        
-        echo "✅ 모든 스모크 테스트가 통과했습니다!"
+        echo "배포 검증이 비활성화되어 있습니다."
+        echo "배포가 활성화되면 다음 URL들을 확인합니다:"
+        echo "- Backend: \${{ secrets.BACKEND_URL }}/api/health"
+        echo "- Frontend: \${{ secrets.FRONTEND_URL }}"
 
-  # ===== 롤백 준비 =====
+  # ===== 롤백 준비 (현재 비활성화) =====
   prepare-rollback:
-    name: 🔄 Prepare Rollback
+    name: 🔄 Prepare Rollback (Skipped)
     runs-on: ubuntu-latest
     needs: [verify-deployment]
-    if: failure()
+    if: false  # 배포가 비활성화되어서 롤백도 비활성화
     
     steps:
-    - name: 🚨 Deployment Failed - Preparing Rollback
-      run: |
-        echo "❌ 배포가 실패했습니다. 롤백을 준비합니다..."
-        
-    - name: 🔄 Execute Rollback
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.DEPLOY_SSH_KEY }}
-        script: |
-          cd /opt/macchain
-          
-          # 이전 버전으로 롤백
-          docker-compose down
-          git checkout HEAD~1
-          docker-compose up -d
-          
-          echo "🔄 롤백이 완료되었습니다."
+    - name: ⏭️ Rollback Skipped
+      run: echo "롤백이 비활성화되어 있습니다. 배포가 활성화되면 자동 롤백이 가능합니다."
 
-  # ===== 배포 완료 알림 =====
+  # ===== 배포 완료 알림 (현재 비활성화) =====
   notify-completion:
-    name: 📢 Deployment Notification
+    name: 📢 Deployment Notification (Skipped)
     runs-on: ubuntu-latest
     needs: [prepare-deployment, verify-deployment]
-    if: always()
+    if: false  # 배포가 비활성화되어서 알림도 비활성화
     
     steps:
-    - name: 📧 Send Success Notification
-      if: needs.verify-deployment.result == 'success'
-      uses: 8398a7/action-slack@v3
-      with:
-        status: success
-        channel: '#macchain-deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        fields: repo,message,commit,author,action,eventName,ref,workflow
-        text: |
-          🎉 **MacChain 배포 성공!**
-          
-          **환경**: ${{ needs.prepare-deployment.outputs.environment }}
-          **백엔드**: ${{ needs.prepare-deployment.outputs.backend-image }}
-          **프론트엔드**: ${{ needs.prepare-deployment.outputs.frontend-image }}
-          
-          **URL**: 
-          - 🌐 Frontend: ${{ secrets.FRONTEND_URL }}
-          - 🔧 Backend: ${{ secrets.BACKEND_URL }}
-          
-    - name: 📧 Send Failure Notification
-      if: needs.verify-deployment.result == 'failure'
-      uses: 8398a7/action-slack@v3
-      with:
-        status: failure
-        channel: '#macchain-deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        fields: repo,message,commit,author,action,eventName,ref,workflow
-        text: |
-          🚨 **MacChain 배포 실패!**
-          
-          **환경**: ${{ needs.prepare-deployment.outputs.environment }}
-          **실패 단계**: 배포 검증
-          
-          롤백이 자동으로 실행되었습니다. 로그를 확인해주세요.
+    - name: ⏭️ Notification Skipped
+      run: |
+        echo "배포 알림이 비활성화되어 있습니다."
+        echo "Slack 웹훅 설정이 필요합니다: SLACK_WEBHOOK"
