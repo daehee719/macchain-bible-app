@@ -34,7 +34,24 @@ export default {
       let response;
 
       // 라우팅
-      if (path.startsWith('/api/health')) {
+      if (path === '/' || path === '/api') {
+        response = new Response(JSON.stringify({ 
+          message: 'MacChain API Server',
+          version: '1.0.0',
+          status: 'running',
+          endpoints: [
+            '/api/health',
+            '/api/auth/login',
+            '/api/auth/register',
+            '/api/users/profile',
+            '/api/mccheyne/today',
+            '/api/statistics/user'
+          ]
+        }), { 
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      } else if (path.startsWith('/api/health')) {
         response = await handleHealth(request, env);
       } else if (path.startsWith('/api/auth')) {
         response = await handleAuth(request, env);
@@ -47,7 +64,15 @@ export default {
       } else {
         response = new Response(JSON.stringify({ 
           error: 'Not Found',
-          message: 'API endpoint not found' 
+          message: 'API endpoint not found',
+          availableEndpoints: [
+            '/api/health',
+            '/api/auth/login',
+            '/api/auth/register',
+            '/api/users/profile',
+            '/api/mccheyne/today',
+            '/api/statistics/user'
+          ]
         }), { 
           status: 404,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
