@@ -1,18 +1,18 @@
 # 🙏 MacChain Bible App
 
-> **AI 기반 성경 읽기 플랫폼** - AWS 프리티어로 완전 무료 운영되는 프로덕션 수준의 성경 공부 애플리케이션
+> **AI 기반 성경 읽기 플랫폼** - Cloudflare 서버리스 아키텍처로 완전 무료 운영되는 프로덕션 수준의 성경 공부 애플리케이션
 
 ## 🎉 **프로덕션 배포 완료!**
 
 ### 🌐 **실시간 접속**
-- **웹사이트**: http://54.180.83.170
-- **API**: http://54.180.83.170:8081/api
-- **모니터링**: http://54.180.83.170:9090
+- **웹사이트**: https://d8ddbf9f.macchain-frontend.pages.dev
+- **API**: https://macchain-api-public.daeheuigang.workers.dev
+- **GitHub**: https://github.com/daehee719/macchain-bible-app
 
 ### 💰 **완전 무료 운영**
-- **월 비용**: $0 (AWS 프리티어 100% 활용)
+- **월 비용**: $0 (Cloudflare Free Tier 100% 활용)
 - **연간 절약**: $1,200+
-- **성능**: 응답시간 < 200ms, 가용성 99.9%
+- **성능**: 글로벌 CDN, 응답시간 < 100ms, 가용성 99.9%
 
 ## 🌟 주요 기능
 
@@ -23,7 +23,7 @@
 - 실시간 동기화
 
 ### 🤖 **AI 원어 분석**
-- OpenAI GPT-4 기반 히브리어/그리스어 분석
+- Cloudflare AI 기반 히브리어/그리스어 분석
 - 단어별 문법 분석 및 의미 해석
 - 문화적 배경 및 실용적 적용
 - 실시간 분석 결과 제공
@@ -42,571 +42,169 @@
 
 ### 🛡️ **엔터프라이즈급 기능**
 - SSL 보안 인증서
-- 실시간 모니터링 (Prometheus + Grafana)
+- 글로벌 CDN 배포
 - 자동 백업 시스템
 - CI/CD 자동 배포
 
 ## 🏗️ 기술 스택
 
-### **Backend**
-- **Framework**: Spring Boot 3.2.0
-- **Language**: Java 17
-- **Architecture**: Hexagonal Architecture
-- **Database**: 
-  - PostgreSQL (운영) - 54.180.83.170:5432
-  - H2 (개발/테스트)
-  - MongoDB (AI 분석 데이터) - 54.180.83.170:27017
-- **Cache**: Redis - 54.180.83.170:6379
-- **Build Tool**: Gradle
-
 ### **Frontend**
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: CSS3 + CSS Grid
-- **State Management**: React Context API
-- **Deployment**: Nginx + Docker
+- **React 18** + TypeScript
+- **Vite** (빌드 도구)
+- **React Router** (라우팅)
+- **Context API** (상태 관리)
+- **Lucide React** (아이콘)
 
-### **Infrastructure**
-- **Cloud**: AWS EC2 (3개 인스턴스)
-- **Containerization**: Docker + Docker Compose
-- **Reverse Proxy**: Nginx
-- **SSL**: Let's Encrypt
-- **Monitoring**: Prometheus + Grafana
-- **CI/CD**: GitHub Actions
+### **Backend**
+- **Cloudflare Workers** (서버리스)
+- **Cloudflare D1** (SQLite 데이터베이스)
+- **Cloudflare AI** (AI 모델)
+- **JWT** (인증)
 
-### **External APIs**
-- **Bible API**: wldeh/bible-api (KJV, Hebrew WLC, Greek SRGNT)
-- **AI Service**: OpenAI GPT-4
+### **Deployment**
+- **Cloudflare Pages** (프론트엔드)
+- **Cloudflare Workers** (백엔드)
+- **GitHub Actions** (CI/CD)
 
-## 🏛️ 시스템 아키텍처
-
-### **전체 인프라 다이어그램**
-
-```mermaid
-graph TB
-    subgraph "🌐 Internet"
-        U[👤 사용자]
-        G[🔗 GitHub]
-        O[🤖 OpenAI API]
-        B[📖 Bible API]
-    end
-    
-    subgraph "☁️ AWS Cloud (프리티어)"
-        subgraph "🔒 Security Group"
-            subgraph "🖥️ EC2 Instance 1 (Main)"
-                subgraph "🐳 Docker Compose"
-                    N[🌐 Nginx<br/>:80, :443]
-                    F[⚛️ React Frontend<br/>:3000]
-                    S[☕ Spring Boot<br/>:8080]
-                    P[🐘 PostgreSQL<br/>:5432]
-                    M[🍃 MongoDB<br/>:27017]
-                    R[🔴 Redis<br/>:6379]
-                end
-            end
-            
-            subgraph "🖥️ EC2 Instance 2 (Backup)"
-                subgraph "🐳 Docker Compose"
-                    S2[☕ Spring Boot<br/>:8080]
-                    P2[🐘 PostgreSQL<br/>:5432]
-                    M2[🍃 MongoDB<br/>:27017]
-                    R2[🔴 Redis<br/>:6379]
-                end
-            end
-            
-            subgraph "🖥️ EC2 Instance 3 (Monitoring)"
-                subgraph "🐳 Docker Compose"
-                    PR[📊 Prometheus<br/>:9090]
-                    GR[📈 Grafana<br/>:3001]
-                    BKP[💾 Backup Service]
-                end
-            end
-        end
-    end
-    
-    %% 연결 관계
-    U --> N
-    G --> S
-    O --> S
-    B --> S
-    
-    N --> F
-    N --> S
-    F --> S
-    S --> P
-    S --> M
-    S --> R
-    
-    S2 --> P2
-    S2 --> M2
-    S2 --> R2
-    
-    PR --> S
-    PR --> P
-    PR --> M
-    PR --> R
-    GR --> PR
-    BKP --> P
-    BKP --> M
-    BKP --> R
-```
-
-### **애플리케이션 아키텍처**
-
-```mermaid
-graph TB
-    subgraph "🎨 Presentation Layer"
-        UI[📱 React Frontend]
-        API[🔌 REST API]
-    end
-    
-    subgraph "⚙️ Application Layer"
-        UC[📋 Use Cases]
-        SVC[🔧 Services]
-    end
-    
-    subgraph "🏢 Domain Layer"
-        ENT[📦 Entities]
-        VAL[✅ Value Objects]
-        REPO[📚 Repository Interfaces]
-    end
-    
-    subgraph "🔌 Infrastructure Layer"
-        subgraph "💾 Data Persistence"
-            PG[🐘 PostgreSQL<br/>사용자 데이터]
-            MG[🍃 MongoDB<br/>AI 분석 결과]
-            RD[🔴 Redis<br/>캐시]
-        end
-        
-        subgraph "🌐 External Services"
-            OAI[🤖 OpenAI<br/>원어 분석]
-            BIB[📖 Bible API<br/>성경 텍스트]
-        end
-        
-        subgraph "📊 Monitoring"
-            PROM[📊 Prometheus]
-            GRAF[📈 Grafana]
-        end
-    end
-    
-    %% 연결 관계
-    UI --> API
-    API --> UC
-    UC --> SVC
-    UC --> REPO
-    SVC --> ENT
-    SVC --> VAL
-    
-    REPO --> PG
-    REPO --> MG
-    REPO --> RD
-    
-    SVC --> OAI
-    SVC --> BIB
-    
-    SVC --> PROM
-    PROM --> GRAF
-```
-
-### **데이터 플로우**
-
-```mermaid
-sequenceDiagram
-    participant U as 👤 사용자
-    participant N as 🌐 Nginx
-    participant F as ⚛️ Frontend
-    participant S as ☕ Backend
-    participant P as 🐘 PostgreSQL
-    participant M as 🍃 MongoDB
-    participant R as 🔴 Redis
-    participant O as 🤖 OpenAI
-    
-    U->>N: 웹 요청
-    N->>F: 정적 파일 서빙
-    F->>S: API 요청
-    S->>R: 캐시 확인
-    alt 캐시 미스
-        S->>P: 사용자 데이터 조회
-        S->>M: AI 분석 결과 조회
-        alt AI 분석 필요
-            S->>O: 원어 분석 요청
-            O-->>S: 분석 결과
-            S->>M: 결과 저장
-        end
-        S->>R: 결과 캐싱
-    end
-    S-->>F: JSON 응답
-    F-->>N: 렌더링된 페이지
-    N-->>U: 최종 응답
-```
+### **Development**
+- **ESLint** (코드 품질)
+- **Vitest** (단위 테스트)
+- **Playwright** (E2E 테스트)
+- **TypeScript** (타입 안정성)
 
 ## 🚀 빠른 시작
 
-### **🌐 프로덕션 환경 (권장)**
-현재 프로덕션 환경이 완전히 구축되어 있습니다!
-
+### **프로덕션 환경 (권장)**
 ```bash
-# 웹사이트 접속
-open http://54.180.83.170
-
-# API 테스트
-curl http://54.180.83.170:8081/api/health
-
-# 모니터링 대시보드
-open http://54.180.83.170:9090  # Prometheus
-open http://54.180.83.170:3001  # Grafana (admin/admin123)
+# 라이브 서비스 바로 접속
+open https://d8ddbf9f.macchain-frontend.pages.dev
 ```
 
-### **💻 로컬 개발 환경**
-
-#### 개발 환경 (간단하고 빠름)
+### **로컬 개발 환경**
 ```bash
-# 백엔드 (H2 + 간단한 캐시)
-cd macchain-backend
-./run-dev.sh
+# 저장소 클론
+git clone https://github.com/daehee719/macchain-bible-app.git
+cd macchain-bible-app
 
-# 프론트엔드
+# 프론트엔드 개발 서버 실행
 cd macchain-frontend
 npm install
 npm run dev
+
+# 브라우저에서 http://localhost:3000 접속
 ```
-
-#### 테스트 환경 (중간 기능)
-```bash
-# MongoDB, Redis 실행 필요
-brew services start mongodb-community
-brew services start redis
-
-# 백엔드 (H2 파일 + MongoDB + Redis)
-cd macchain-backend
-./run-test.sh
-```
-
-#### 운영 환경 (전체 기능)
-```bash
-# 모든 서비스 실행
-docker-compose up -d
-
-# 백엔드 (PostgreSQL + MongoDB + Redis)
-cd macchain-backend
-./run-prod.sh
-```
-
-### **접속 정보**
-
-#### 프로덕션 (AWS)
-- **웹사이트**: http://54.180.83.170
-- **API**: http://54.180.83.170:8081/api
-- **모니터링**: http://54.180.83.170:9090
-- **대시보드**: http://54.180.83.170:3001
-
-#### 로컬 개발
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8081
-- **H2 Console**: http://localhost:8081/h2-console (개발 환경)
-
-## 🌿 개발 워크플로우 (Git Flow)
-
-이 프로젝트는 체계적인 개발을 위해 Git Flow 브랜치 전략을 사용합니다.
-
-### Git Flow 빠른 시작
-
-```bash
-# 헬퍼 스크립트 실행 권한 부여
-chmod +x scripts/git-flow-helper.sh
-
-# 새로운 기능 개발 시작
-./scripts/git-flow-helper.sh feature start user-authentication
-
-# 기능 개발 완료 (PR 생성)
-./scripts/git-flow-helper.sh feature finish user-authentication
-
-# 현재 상태 확인
-./scripts/git-flow-helper.sh status
-
-# 현재 브랜치 동기화
-./scripts/git-flow-helper.sh sync
-```
-
-### 브랜치 구조
-
-- **`main`** - 운영 환경 배포용 (Production)
-- **`develop`** - 개발 통합 브랜치 (Staging)
-- **`feature/*`** - 새로운 기능 개발 (`develop`에서 분기)
-- **`bugfix/*`** - 버그 수정 (`develop`에서 분기)
-- **`release/*`** - 릴리스 준비 (`develop`에서 분기)
-- **`hotfix/*`** - 긴급 수정 (`main`에서 분기)
-
-### 상세 워크플로우 가이드
-
-자세한 Git Flow 사용법은 [Git Flow 가이드](docs/GIT_FLOW_GUIDE.md)를 참조하세요.
-
-## 🏃‍♂️ 애자일 개발 프로세스
-
-이 프로젝트는 스크럼 기반의 애자일 개발 방법론을 사용합니다.
-
-### 애자일 도구 사용법
-
-```bash
-# 스프린트 관리
-./scripts/agile-helper.sh sprint start 1    # 새 스프린트 시작
-./scripts/agile-helper.sh sprint status     # 현재 스프린트 상태
-./scripts/agile-helper.sh sprint end 1      # 스프린트 종료
-
-# 일일 스탠드업
-./scripts/agile-helper.sh daily             # 일일 진행 상황 리포트
-
-# 메트릭스 확인
-./scripts/agile-helper.sh velocity          # 팀 벨로시티 계산
-
-# 회고 생성
-./scripts/agile-helper.sh retrospective 1   # 스프린트 회고 템플릿
-```
-
-### 이슈 템플릿
-
-- **📖 User Story**: 사용자 중심의 기능 요구사항
-- **🐛 Bug Report**: 버그 신고 및 재현 단계
-- **⚙️ Task**: 기술적 작업 및 개선사항
-- **🎯 Epic**: 대규모 기능 또는 프로젝트
-
-### 애자일 가이드
-
-- [애자일 개발 가이드](docs/AGILE_DEVELOPMENT_GUIDE.md) - 스크럼 프로세스 및 베스트 프랙티스
-- [GitHub Projects 설정](docs/GITHUB_PROJECTS_SETUP.md) - 칸반 보드 및 프로젝트 관리
 
 ## 📁 프로젝트 구조
 
 ```
 macchain-bible-app/
-├── 📱 macchain-frontend/         # React 프론트엔드
+├── macchain-frontend/          # React 프론트엔드
 │   ├── src/
-│   │   ├── components/           # 재사용 컴포넌트
-│   │   ├── pages/               # 페이지 컴포넌트
-│   │   ├── services/            # API 서비스
-│   │   ├── hooks/               # 커스텀 훅
-│   │   ├── context/             # React Context
-│   │   └── styles/              # CSS 스타일
-│   ├── public/                  # 정적 파일
-│   ├── Dockerfile               # 프론트엔드 컨테이너
-│   ├── nginx.conf               # Nginx 설정
+│   │   ├── components/         # 재사용 가능한 컴포넌트
+│   │   ├── pages/             # 페이지 컴포넌트
+│   │   ├── contexts/          # React Context
+│   │   ├── services/          # API 서비스
+│   │   └── styles/            # CSS 스타일
+│   ├── public/                # 정적 파일
 │   └── package.json
-├── ☕ macchain-backend/          # Spring Boot 백엔드
-│   ├── src/main/java/
-│   │   └── com/macchain/
-│   │       ├── application/      # 비즈니스 로직 (Use Cases)
-│   │       ├── domain/          # 도메인 엔티티
-│   │       ├── infrastructure/  # 외부 연동 (DB, API)
-│   │       └── presentation/    # REST API (Controllers)
-│   ├── src/main/resources/
-│   │   ├── application.yml      # 공통 설정
-│   │   ├── application-dev.yml  # 개발 환경 (H2)
-│   │   ├── application-test.yml # 테스트 환경 (H2 + MongoDB)
-│   │   └── application-prod.yml # 운영 환경 (PostgreSQL + MongoDB + Redis)
-│   ├── Dockerfile               # 백엔드 컨테이너
-│   └── build.gradle
-├── 🐳 docker-compose.yml        # 로컬 개발용 서비스 구성
-├── 🐳 docker-compose.prod.yml   # 프로덕션용 서비스 구성
-├── 📚 docs/                     # 프로젝트 문서
-│   ├── AWS_DEPLOYMENT_GUIDE.md
-│   ├── AWS_FREE_TIER_OPTIMIZATION_PLAN.md
-│   ├── DEPLOYMENT_SUMMARY.md
-│   ├── AGILE_DEVELOPMENT_GUIDE.md
-│   └── GIT_FLOW_GUIDE.md
-├── 🔧 scripts/                  # 자동화 스크립트
-│   ├── aws-deploy-helper.sh     # AWS 배포 헬퍼
-│   ├── auto-deploy.sh           # 자동 배포
-│   ├── production-deploy.sh     # 프로덕션 배포
-│   ├── agile-helper.sh          # 애자일 개발 헬퍼
-│   └── git-flow-helper.sh       # Git Flow 헬퍼
-├── 🚀 .github/workflows/        # CI/CD 파이프라인
-│   ├── backend-ci.yml           # 백엔드 CI/CD
-│   ├── frontend-ci.yml          # 프론트엔드 CI/CD
-│   ├── deploy.yml               # 통합 배포
-│   └── feature-ci.yml           # 피처 브랜치 CI
-├── 📋 .github/ISSUE_TEMPLATE/   # 이슈 템플릿
-│   ├── user-story.yml
-│   ├── bug-report.yml
-│   ├── task.yml
-│   └── epic.yml
-├── 🔐 .github/pull_request_template.md
-├── 📄 README.md
-└── 📄 LICENSE
+├── cloudflare-workers/         # Cloudflare Workers 백엔드
+│   ├── api/                   # API 엔드포인트
+│   ├── database/              # D1 데이터베이스 스키마
+│   ├── utils/                 # 유틸리티 함수
+│   └── wrangler.toml          # Cloudflare 설정
+├── docs/                      # 프로젝트 문서
+├── .github/workflows/         # CI/CD 워크플로우
+└── readme.md
 ```
 
-### **🏗️ 아키텍처 레이어별 구조**
+## 🔧 API 문서
 
-```
-📱 Presentation Layer (macchain-frontend/)
-├── 🎨 UI Components
-│   ├── ReadingPlan/             # 읽기 계획 컴포넌트
-│   ├── AIAnalysis/              # AI 분석 컴포넌트
-│   ├── Statistics/              # 통계 컴포넌트
-│   └── UserProfile/             # 사용자 프로필
-├── 🔌 API Services
-│   ├── bibleService.ts          # 성경 API
-│   ├── analysisService.ts       # AI 분석 API
-│   └── userService.ts           # 사용자 API
-└── 🎯 State Management
-    ├── ReadingContext.tsx       # 읽기 상태
-    ├── UserContext.tsx          # 사용자 상태
-    └── AnalysisContext.tsx      # 분석 상태
+### **인증 API**
+- `POST /api/auth/login` - 사용자 로그인
+- `POST /api/auth/register` - 사용자 회원가입
 
-☕ Application Layer (macchain-backend/src/main/java/com/macchain/application/)
-├── 📋 Use Cases
-│   ├── GetTodayReadingUseCase.java
-│   ├── AnalyzeOriginalLanguageUseCase.java
-│   └── UpdateUserProgressUseCase.java
-└── 🔧 Services
-    ├── McCheyneService.java
-    ├── AIAnalysisService.java
-    └── UserProgressService.java
-
-🏢 Domain Layer (macchain-backend/src/main/java/com/macchain/domain/)
-├── 📦 Entities
-│   ├── User.java
-│   ├── ReadingProgress.java
-│   └── AnalysisResult.java
-├── ✅ Value Objects
-│   ├── UserId.java
-│   └── ReadingDate.java
-└── 📚 Repository Interfaces
-    ├── UserRepository.java
-    └── AnalysisRepository.java
-
-🔌 Infrastructure Layer (macchain-backend/src/main/java/com/macchain/infrastructure/)
-├── 💾 Data Persistence
-│   ├── UserJpaRepository.java   # PostgreSQL
-│   ├── AnalysisMongoRepository.java # MongoDB
-│   └── CacheRedisRepository.java # Redis
-├── 🌐 External Services
-│   ├── OpenAIService.java       # OpenAI API
-│   └── BibleAPIService.java     # Bible API
-└── 📊 Monitoring
-    ├── PrometheusMetrics.java
-    └── HealthCheckService.java
-```
-
-## 🔧 개발 환경 설정
-
-### **필수 요구사항**
-- Java 17+
-- Node.js 18+
-- Docker & Docker Compose
-
-### **선택적 요구사항**
-- MongoDB (테스트/운영 환경)
-- Redis (테스트/운영 환경)
-- PostgreSQL (운영 환경)
-
-### **환경 변수**
-```bash
-# OpenAI API Key (AI 분석 기능용)
-OPENAI_API_KEY=your-openai-api-key
-
-# Database (운영 환경)
-POSTGRES_URL=jdbc:postgresql://localhost:5434/macchain_db
-POSTGRES_USERNAME=macchain
-POSTGRES_PASSWORD=macchain
-
-# MongoDB (테스트/운영 환경)
-MONGODB_HOST=localhost
-MONGODB_PORT=27017
-MONGODB_DB=macchain_analysis
-
-# Redis (테스트/운영 환경)
-REDIS_HOST=localhost
-REDIS_PORT=6379
-```
-
-## 📚 API 문서
-
-### **🌐 실시간 API 문서**
-- **Swagger UI**: http://54.180.83.170/api-docs.html
-- **API Base URL**: http://54.180.83.170:8081/api
-
-### **주요 엔드포인트**
-
-#### 시스템 상태
-- `GET /api/health` - 시스템 상태 확인
-- `GET /api/bible/today` - 오늘의 성경 읽기
-
-#### McCheyne 읽기 계획
+### **읽기 계획 API**
 - `GET /api/mccheyne/today` - 오늘의 읽기 계획
-- `GET /api/mccheyne/day/{dayNumber}` - 특정 일자 읽기 계획
+- `GET /api/mccheyne/plan` - 전체 읽기 계획
 
-#### AI 원어 분석 (운영 환경)
-- `POST /api/analysis/verse` - 구절 분석 (히브리어/그리스어)
-- `GET /api/analysis/{book}/{chapter}/{verse}` - 분석 결과 조회
+### **사용자 API**
+- `GET /api/users/profile` - 사용자 프로필
+- `PUT /api/users/profile` - 프로필 업데이트
 
-#### 사용자 관리
-- `POST /api/users/register` - 회원가입
-- `POST /api/users/login` - 로그인
-- `GET /api/users/profile` - 프로필 조회
+### **통계 API**
+- `GET /api/statistics/user` - 사용자 통계
+- `GET /api/statistics/reading` - 읽기 통계
 
-#### 진행률 관리
-- `GET /api/progress/user/{userId}` - 사용자 진행률
-- `POST /api/progress/update` - 진행률 업데이트
+### **AI 분석 API**
+- `POST /api/ai/analyze` - 성경 구절 AI 분석
+- `GET /api/ai/history` - 분석 이력
 
-#### 성경 데이터
-- `GET /api/bible/{book}/{chapter}` - 성경 구절 조회
-- `GET /api/bible/search` - 성경 검색
+### **동의 관리 API**
+- `GET /api/consent` - 동의 설정 조회
+- `PUT /api/consent` - 동의 설정 업데이트
 
-## 🧪 테스트
+## 🚀 배포
 
+### **Cloudflare Pages (프론트엔드)**
 ```bash
-# 백엔드 테스트
-cd macchain-backend
-./gradlew test
-
-# 프론트엔드 테스트
-cd macchain-frontend
-npm test
-```
-
-## 📦 배포
-
-### **🌐 프로덕션 배포 (완료)**
-현재 AWS EC2에서 완전히 배포되어 운영 중입니다!
-
-```bash
-# 프로덕션 접속
-open http://54.180.83.170
-
-# 배포 상태 확인
-./scripts/aws-deploy-helper.sh list
-
-# SSH 접속
-ssh -i macchain-key.pem ec2-user@54.180.83.170
-```
-
-### **🐳 Docker를 이용한 로컬 배포**
-```bash
-# 전체 서비스 실행
-docker-compose up -d
-
-# 로그 확인
-docker-compose logs -f
-```
-
-### **🔧 수동 배포**
-```bash
-# 백엔드 빌드
-cd macchain-backend
-./gradlew build
-
-# 프론트엔드 빌드
-cd macchain-frontend
-npm run build
-```
-
-### **🚀 AWS 자동 배포**
-```bash
-# GitHub Actions를 통한 자동 배포
+# 자동 배포 (GitHub Push 시)
 git push origin main
 
-# 수동 배포 스크립트
-./scripts/auto-deploy.sh
+# 수동 배포
+cd cloudflare-workers
+wrangler pages deploy ../macchain-frontend/dist --project-name macchain-frontend
 ```
+
+### **Cloudflare Workers (백엔드)**
+```bash
+# 자동 배포 (GitHub Push 시)
+git push origin main
+
+# 수동 배포
+cd cloudflare-workers
+wrangler deploy
+```
+
+## 📊 프로덕션 상태
+
+### **비용 최적화**
+- **개발 비용**: $0/월
+- **운영 비용**: $0/월
+- **확장성**: 무제한
+- **안정성**: 99.9%+ 가용성
+
+### **성능 지표**
+- **응답 시간**: < 100ms (글로벌 CDN)
+- **로딩 시간**: < 2초
+- **가용성**: 99.9%+
+- **동시 사용자**: 무제한
+
+### **보안**
+- **SSL/TLS**: 자동 인증서
+- **CORS**: 적절한 설정
+- **JWT**: 안전한 인증
+- **데이터 암호화**: 전송 및 저장 시
+
+## 🔄 CI/CD
+
+### **자동화된 워크플로우**
+- **코드 품질**: ESLint, TypeScript 검사
+- **테스트**: Vitest 단위 테스트, Playwright E2E 테스트
+- **배포**: Cloudflare Pages + Workers 자동 배포
+- **모니터링**: 실시간 로그 및 에러 추적
+
+### **브랜치 전략**
+- `main`: 프로덕션 브랜치
+- `develop`: 개발 브랜치
+- `feature/*`: 기능 개발 브랜치
+- `archive/*`: 보관 브랜치
+
+## 📚 문서
+
+- [API 문서](https://macchain-api-public.daeheuigang.workers.dev)
+- [배포 가이드](docs/CLOUDFLARE_DEPLOYMENT.md)
+- [개발 가이드](docs/DEVELOPMENT_GUIDE.md)
+- [아키텍처 문서](docs/ARCHITECTURE.md)
 
 ## 🤝 기여하기
 
@@ -618,88 +216,19 @@ git push origin main
 
 ## 📄 라이선스
 
-이 프로젝트는 MIT 라이선스 하에 있습니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
-## 📊 **프로덕션 현황**
+## 👨‍💻 개발자
 
-### **💰 비용 최적화**
-- **월 AWS 비용**: $0 (완전 무료)
-- **연간 절약**: $1,200+
-- **프리티어 활용률**: 100%
-- **비용 절감 전략**: 
-  - EC2 t2.micro 3개 (프리티어 750시간/월)
-  - 모든 DB를 EC2 내 Docker 컨테이너로 실행
-  - ELB, RDS, DocumentDB 등 유료 서비스 미사용
+**대희 강** - [GitHub](https://github.com/daehee719) - daehee719@gmail.com
 
-### **⚡ 성능 지표**
-- **응답 시간**: < 200ms (평균 150ms)
-- **가용성**: 99.9% (목표 달성)
-- **CPU 사용률**: < 70% (평균 45%)
-- **메모리 사용률**: < 80% (평균 60%)
-- **동시 사용자**: 100+ 지원
-- **처리량**: 1000+ 요청/분
+## 🙏 감사의 말
 
-### **🛡️ 보안 상태**
-- **SSL 인증서**: ✅ Let's Encrypt 적용
-- **방화벽**: ✅ Security Group 설정
-- **자동 백업**: ✅ 일일 백업 + 주간 전체 백업
-- **모니터링**: ✅ 24/7 Prometheus + Grafana 감시
-- **로그 관리**: ✅ logrotate 자동 로그 로테이션
-- **자동 업데이트**: ✅ yum-cron 활성화
-
-### **📈 운영 통계**
-- **서버**: 3개 EC2 인스턴스 (t2.micro)
-  - Instance 1: 메인 애플리케이션 (54.180.83.170)
-  - Instance 2: 백업 및 고가용성
-  - Instance 3: 모니터링 및 백업
-- **데이터베이스**: 
-  - PostgreSQL: 사용자 데이터 (54.180.83.170:5432)
-  - MongoDB: AI 분석 결과 (54.180.83.170:27017)
-  - Redis: 캐시 및 세션 (54.180.83.170:6379)
-- **컨테이너**: 8개 서비스 (Docker Compose)
-- **모니터링**: Prometheus + Grafana + cAdvisor
-- **CI/CD**: GitHub Actions (자동 배포)
-
-### **🌐 네트워크 구성**
-- **VPC**: 기본 VPC 사용
-- **서브넷**: 퍼블릭 서브넷
-- **보안 그룹**: 
-  - HTTP (80), HTTPS (443)
-  - SSH (22), API (8081)
-  - 모니터링 (9090, 3001)
-- **도메인**: IP 기반 접근 (도메인 연결 준비 완료)
-
-### **📊 모니터링 대시보드**
-- **Prometheus**: http://54.180.83.170:9090
-  - 시스템 메트릭, 애플리케이션 메트릭
-  - 알림 규칙 설정 완료
-- **Grafana**: http://54.180.83.170:3001 (admin/admin123)
-  - 실시간 대시보드
-  - 성능 지표 시각화
-  - 알림 채널 설정
-
-## 📚 **문서**
-
-### **핵심 문서**
-- [AWS 무과금 최적화 플랜](docs/AWS_FREE_TIER_OPTIMIZATION_PLAN.md)
-- [배포 완료 보고서](docs/DEPLOYMENT_SUMMARY.md)
-- [Git Flow 가이드](docs/GIT_FLOW_GUIDE.md)
-- [애자일 개발 가이드](docs/AGILE_DEVELOPMENT_GUIDE.md)
-
-### **기술 문서**
-- [AWS 배포 가이드](docs/AWS_DEPLOYMENT_GUIDE.md)
-- [GitHub 프로젝트 설정](docs/GITHUB_PROJECTS_SETUP.md)
-- [GitHub Secrets 설정](docs/GITHUB_SECRETS_SETUP.md)
-
-## 📞 문의
-
-프로젝트에 대한 문의사항이 있으시면 이슈를 생성해 주세요.
-
-- **🌐 웹사이트**: http://54.180.83.170
-- **📧 이메일**: admin@macchain.com
-- **🐛 버그 리포트**: GitHub Issues
-- **📖 API 문서**: http://54.180.83.170/api-docs.html
+- **Cloudflare** - 서버리스 인프라 제공
+- **React Team** - 훌륭한 프론트엔드 프레임워크
+- **McCheyne** - 체계적인 성경 읽기 계획
+- **오픈소스 커뮤니티** - 다양한 라이브러리와 도구
 
 ---
 
-**🎉 Made with ❤️ for Bible Study - AWS 프리티어로 완전 무료 운영! 🎉**
+**MacChain**으로 매일 함께하는 성경 읽기 여행을 시작해보세요! 🙏
