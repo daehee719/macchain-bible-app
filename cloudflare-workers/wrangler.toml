@@ -1,6 +1,7 @@
 name = "macchain-api"
 main = "api/index.js"
 compatibility_date = "2024-01-01"
+workers_dev = false
 
 # 환경 변수
 [vars]
@@ -10,12 +11,12 @@ ENVIRONMENT = "production"
 [[d1_databases]]
 binding = "DB"
 database_name = "macchain-db"
-database_id = "your-database-id-here"
+database_id = "cada0c31-d223-4bc9-9839-f9955c59bd32"
 
-# KV 네임스페이스 (캐시용)
-[[kv_namespaces]]
-binding = "CACHE"
-id = "your-kv-namespace-id-here"
+# KV 네임스페이스 (캐시용) - 선택사항
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your-kv-namespace-id-here"
 
 # 시크릿 (wrangler secret put으로 설정)
 # JWT_SECRET
