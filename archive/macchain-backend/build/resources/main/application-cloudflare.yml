@@ -1,0 +1,82 @@
+# Cloudflare Containers용 설정
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: macchain-backend-cloudflare
+  
+  # Cloudflare D1 데이터베이스 설정 (Workers에서 처리)
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: false
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  
+  # MongoDB 설정 (로컬 메모리)
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/macchain
+  
+  # Redis 설정 (로컬 메모리)
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+# 로깅 설정
+logging:
+  level:
+    com.macchain: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Cloudflare 특화 설정
+cloudflare:
+  workers:
+    url: "https://macchain-api.daeheuigang.workers.dev"
+  d1:
+    database-id: "cada0c31-d223-4bc9-9839-f9955c59bd32"
+
+# OpenAI API 설정 (환경변수에서 주입)
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: "gpt-3.5-turbo"
+  max-tokens: 1000
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET:macchain-secret-key-for-cloudflare}
+  expiration: 86400000 # 24시간
+
+# 관리 엔드포인트
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

@@ -17,17 +17,26 @@ macchain-backend/logs/
 macchain-backend/testdb.*
 
 # ===== Frontend (React/Node.js) =====
-macchain-frontend/node_modules/
-macchain-frontend/dist/
-macchain-frontend/build/
-macchain-frontend/.vite/
-macchain-frontend/.env.local
-macchain-frontend/.env.development.local
-macchain-frontend/.env.test.local
-macchain-frontend/.env.production.local
-macchain-frontend/npm-debug.log*
-macchain-frontend/yarn-debug.log*
-macchain-frontend/yarn-error.log*
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# ===== Backend (Cloudflare Workers) =====
+backend/cloudflare-workers/node_modules/
+backend/cloudflare-workers/.wrangler/
+backend/cloudflare-workers/dist/
+backend/cloudflare-workers/.env.local
+backend/cloudflare-workers/.env.development.local
+backend/cloudflare-workers/.env.test.local
+backend/cloudflare-workers/.env.production.local
 
 # ===== Database Files =====
 *.db

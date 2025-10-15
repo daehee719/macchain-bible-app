@@ -1,0 +1,6 @@
+-- 개발용 McCheyne Plan 데이터 (5일만)
+INSERT INTO mccheyne_plan (day_number, reading1_book, reading1_chapter, reading2_book, reading2_chapter, reading3_book, reading3_chapter, reading4_book, reading4_chapter, created_at) VALUES (1, 'genesis', 1, 'ezra', 1, 'matthew', 1, 'acts', 1, CURRENT_TIMESTAMP);
+INSERT INTO mccheyne_plan (day_number, reading1_book, reading1_chapter, reading2_book, reading2_chapter, reading3_book, reading3_chapter, reading4_book, reading4_chapter, created_at) VALUES (2, 'genesis', 2, 'ezra', 2, 'matthew', 2, 'acts', 2, CURRENT_TIMESTAMP);
+INSERT INTO mccheyne_plan (day_number, reading1_book, reading1_chapter, reading2_book, reading2_chapter, reading3_book, reading3_chapter, reading4_book, reading4_chapter, created_at) VALUES (3, 'genesis', 3, 'ezra', 3, 'matthew', 3, 'acts', 3, CURRENT_TIMESTAMP);
+INSERT INTO mccheyne_plan (day_number, reading1_book, reading1_chapter, reading2_book, reading2_chapter, reading3_book, reading3_chapter, reading4_book, reading4_chapter, created_at) VALUES (4, 'genesis', 4, 'ezra', 4, 'matthew', 4, 'acts', 4, CURRENT_TIMESTAMP);
+INSERT INTO mccheyne_plan (day_number, reading1_book, reading1_chapter, reading2_book, reading2_chapter, reading3_book, reading3_chapter, reading4_book, reading4_chapter, created_at) VALUES (5, 'genesis', 5, 'ezra', 5, 'matthew', 5, 'acts', 5, CURRENT_TIMESTAMP);

@@ -1,0 +1,61 @@
+# Cloudflare Containers 환경 설정
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  profiles:
+    active: cloudflare
+  
+  # Cloudflare D1 데이터베이스 설정 (SQLite)
+  datasource:
+    url: jdbc:sqlite::memory:
+    driver-class-name: org.sqlite.JDBC
+    username: 
+    password: 
+  
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLiteDialect
+        format_sql: true
+  
+  # H2 콘솔 비활성화 (Cloudflare에서는 불필요)
+  h2:
+    console:
+      enabled: false
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# 로깅 설정
+logging:
+  level:
+    com.macchain: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# MacChain 애플리케이션 설정
+macchain:
+  reading-plan:
+    default-plan: mccheyne
+  ai:
+    enabled: false  # Cloudflare에서는 AI 기능 비활성화
+  security:
+    jwt:
+      secret: ${JWT_SECRET:macchain-cloudflare-secret-key}
+      expiration: 86400000  # 24시간
