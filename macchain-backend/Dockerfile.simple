@@ -1,0 +1,25 @@
+# 간단한 Spring Boot Dockerfile (이미 빌드된 JAR 사용)
+FROM alpine:latest
+
+# Java 설치
+RUN apk add --no-cache openjdk17-jre curl
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 빌드된 JAR 파일 복사
+COPY build/libs/macchain-backend-1.0.0.jar app.jar
+
+# 포트 노출
+EXPOSE 8080
+
+# 환경 변수 설정
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+ENV SPRING_PROFILES_ACTIVE=cloudflare
+
+# 헬스체크
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# 애플리케이션 실행
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
