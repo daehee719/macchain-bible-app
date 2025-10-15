@@ -13,6 +13,11 @@ const Login: React.FC = () => {
     name: '',
     nickname: ''
   })
+  const [agreements, setAgreements] = useState({
+    privacy: false,
+    marketing: false,
+    age: false
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
@@ -57,6 +62,13 @@ const Login: React.FC = () => {
     }))
   }
 
+  const handleAgreementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAgreements(prev => ({
+      ...prev,
+      [e.target.name]: e.target.checked
+    }))
+  }
+
   const toggleMode = () => {
     setIsLogin(!isLogin)
     setError('')
@@ -65,6 +77,11 @@ const Login: React.FC = () => {
       password: '',
       name: '',
       nickname: ''
+    })
+    setAgreements({
+      privacy: false,
+      marketing: false,
+      age: false
     })
   }
 
@@ -148,6 +165,62 @@ const Login: React.FC = () => {
                 className="form-input"
               />
             </div>
+
+            {!isLogin && (
+              <div className="agreements-section">
+                <div className="agreement-item required">
+                  <label className="agreement-label">
+                    <input
+                      type="checkbox"
+                      name="privacy"
+                      checked={agreements.privacy}
+                      onChange={handleAgreementChange}
+                      required
+                      className="agreement-checkbox"
+                    />
+                    <span className="checkmark"></span>
+                    <span className="agreement-text">
+                      <a href="/privacy" target="_blank" className="agreement-link">
+                        개인정보 처리방침
+                      </a>에 동의합니다 (필수)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="agreement-item">
+                  <label className="agreement-label">
+                    <input
+                      type="checkbox"
+                      name="marketing"
+                      checked={agreements.marketing}
+                      onChange={handleAgreementChange}
+                      className="agreement-checkbox"
+                    />
+                    <span className="checkmark"></span>
+                    <span className="agreement-text">
+                      마케팅 정보 수신에 동의합니다 (선택)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="agreement-item required">
+                  <label className="agreement-label">
+                    <input
+                      type="checkbox"
+                      name="age"
+                      checked={agreements.age}
+                      onChange={handleAgreementChange}
+                      required
+                      className="agreement-checkbox"
+                    />
+                    <span className="checkmark"></span>
+                    <span className="agreement-text">
+                      만 14세 이상입니다 (필수)
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="error-message">

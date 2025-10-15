@@ -1,5 +1,5 @@
 // Cloudflare Workers API 서비스
-const API_BASE_URL = 'https://macchain-api.daeheuigang.workers.dev';
+const API_BASE_URL = 'https://macchain-api-public.daeheuigang.workers.dev';
 
 export interface ReadingPlan {
   id: number;

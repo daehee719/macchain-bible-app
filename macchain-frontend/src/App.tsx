@@ -8,6 +8,7 @@ import ReadingPlan from './pages/ReadingPlan'
 import AIAnalysis from './pages/AIAnalysis'
 import Community from './pages/Community'
 import Statistics from './pages/Statistics'
+import Settings from './pages/Settings'
 import Login from './pages/Login'
 import './App.css'
 
@@ -35,6 +36,11 @@ function App() {
               <Route path="/statistics" element={
                 <ProtectedRoute>
                   <Statistics />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               } />
             </Routes>

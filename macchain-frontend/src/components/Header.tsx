@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { BookOpen, Brain, Users, BarChart3, LogIn, LogOut } from 'lucide-react'
+import { BookOpen, Brain, Users, BarChart3, Settings, LogIn, LogOut } from 'lucide-react'
 import './Header.css'
 
 const Header: React.FC = () => {
@@ -59,6 +59,13 @@ const Header: React.FC = () => {
         <div className="auth-section">
           {isLoggedIn ? (
             <div className="user-info">
+              <Link 
+                to="/settings" 
+                className={`nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
+              >
+                <Settings size={16} />
+                설정
+              </Link>
               <span className="user-name">{user?.name || user?.email}</span>
               <button onClick={logout} className="logout-btn">
                 <LogOut size={16} />
