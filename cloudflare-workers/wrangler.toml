@@ -1,0 +1,37 @@
+name = "macchain-api"
+main = "api/index.js"
+compatibility_date = "2024-01-01"
+
+# 환경 변수
+[vars]
+ENVIRONMENT = "production"
+
+# D1 데이터베이스 바인딩
+[[d1_databases]]
+binding = "DB"
+database_name = "macchain-db"
+database_id = "your-database-id-here"
+
+# KV 네임스페이스 (캐시용)
+[[kv_namespaces]]
+binding = "CACHE"
+id = "your-kv-namespace-id-here"
+
+# 시크릿 (wrangler secret put으로 설정)
+# JWT_SECRET
+# OPENAI_API_KEY
+
+# 라우트 설정 (도메인이 있는 경우)
+# routes = [
+#   { pattern = "api.your-domain.com/*", zone_name = "your-domain.com" }
+# ]
+
+# 개발 환경 설정
+[env.development]
+name = "macchain-api-dev"
+vars = { ENVIRONMENT = "development" }
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "macchain-db-dev"
+database_id = "your-dev-database-id-here"
