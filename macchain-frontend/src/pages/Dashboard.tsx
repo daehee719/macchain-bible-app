@@ -1,22 +1,33 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
 import { BookOpen, Brain, Users, BarChart3, Calendar, TrendingUp } from 'lucide-react'
+import { apiService, TodayPlanResponse } from '../services/api'
 import './Dashboard.css'
 
 const Dashboard: React.FC = () => {
   const { isLoggedIn } = useAuth()
+  const [todayReading, setTodayReading] = useState<TodayPlanResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const todayReading = {
-    date: new Date().toLocaleDateString('ko-KR'),
-    passages: [
-      { book: '창세기', chapter: 1, verse: '1-31' },
-      { book: '마태복음', chapter: 1, verse: '1-17' },
-      { book: '에스라', chapter: 1, verse: '1-11' },
-      { book: '사도행전', chapter: 1, verse: '1-26' }
-    ]
-  }
+  useEffect(() => {
+    const fetchTodayPlan = async () => {
+      try {
+        setLoading(true)
+        const plan = await apiService.getTodayPlan()
+        setTodayReading(plan)
+      } catch (err) {
+        setError('오늘의 읽기 계획을 불러오는데 실패했습니다.')
+        console.error('Error fetching today plan:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTodayPlan()
+  }, [])
 
   const stats = {
     totalDays: 45,
@@ -36,23 +47,35 @@ const Dashboard: React.FC = () => {
           {/* 오늘의 읽기 계획 */}
           <Card
             title="오늘의 읽기 계획"
-            description={`${todayReading.date} - McCheyne 읽기 계획`}
+            description={loading ? "로딩 중..." : error ? "오류 발생" : `${todayReading?.date} - McCheyne 읽기 계획`}
             icon={<Calendar size={24} />}
             className="today-reading"
           >
-            <div className="reading-list">
-              {todayReading.passages.map((passage, index) => (
-                <div key={index} className="reading-item">
-                  <span className="passage">{passage.book} {passage.chapter}:{passage.verse}</span>
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: '0%' }}></div>
-                  </div>
+            {loading ? (
+              <div className="loading">읽기 계획을 불러오는 중...</div>
+            ) : error ? (
+              <div className="error">{error}</div>
+            ) : todayReading ? (
+              <>
+                <div className="reading-list">
+                  {todayReading.readings.map((reading) => (
+                    <div key={reading.id} className="reading-item">
+                      <span className="passage">
+                        {reading.book} {reading.chapter}:{reading.verseStart}-{reading.verseEnd}
+                      </span>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: '0%' }}></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <Link to="/reading-plan" className="view-all-btn">
-              전체 계획 보기 →
-            </Link>
+                <Link to="/reading-plan" className="view-all-btn">
+                  전체 계획 보기 →
+                </Link>
+              </>
+            ) : (
+              <div className="no-data">읽기 계획을 찾을 수 없습니다.</div>
+            )}
           </Card>
 
           {/* 읽기 통계 */}
