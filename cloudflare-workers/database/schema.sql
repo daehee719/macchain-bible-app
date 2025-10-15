@@ -133,3 +133,19 @@ CREATE TRIGGER IF NOT EXISTS update_user_stats
             updated_at = CURRENT_TIMESTAMP
         WHERE user_id = NEW.user_id;
     END;
+
+-- 사용자 동의 설정 테이블
+CREATE TABLE user_consents (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    privacy_consent BOOLEAN DEFAULT FALSE,
+    marketing_consent BOOLEAN DEFAULT FALSE,
+    notification_consent BOOLEAN DEFAULT FALSE,
+    age_consent BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 사용자 동의 설정 인덱스
+CREATE INDEX IF NOT EXISTS idx_user_consents_user_id ON user_consents(user_id);

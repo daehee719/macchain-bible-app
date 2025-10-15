@@ -8,6 +8,7 @@ import { handleReadingPlan } from './reading-plan.js';
 import { handleAuth } from './auth.js';
 import { handleStatistics } from './statistics.js';
 import { handleHealth } from './health.js';
+import { handleConsent } from './consent.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -45,7 +46,8 @@ export default {
             '/api/auth/register',
             '/api/users/profile',
             '/api/mccheyne/today',
-            '/api/statistics/user'
+            '/api/statistics/user',
+            '/api/consent'
           ]
         }), { 
           status: 200,
@@ -61,6 +63,8 @@ export default {
         response = await handleReadingPlan(request, env);
       } else if (path.startsWith('/api/statistics')) {
         response = await handleStatistics(request, env);
+      } else if (path.startsWith('/api/consent')) {
+        response = await handleConsent(request, env);
       } else {
         response = new Response(JSON.stringify({ 
           error: 'Not Found',
@@ -71,7 +75,8 @@ export default {
             '/api/auth/register',
             '/api/users/profile',
             '/api/mccheyne/today',
-            '/api/statistics/user'
+            '/api/statistics/user',
+            '/api/consent'
           ]
         }), { 
           status: 404,
