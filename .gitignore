@@ -97,3 +97,4 @@ DRAGME.md
 scripts/
 tsconfig.json
 tsup.config.tsmcp-notion-server/
+.cursor/

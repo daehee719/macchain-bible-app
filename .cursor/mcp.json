@@ -5,6 +5,44 @@
       "args": [
         "cursor-talk-to-figma-mcp@latest"
       ]
+    },
+    "GitHub": {
+      "command": "node",
+      "args": [
+        "./mcp-servers/github/build/index.js"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "YOUR_GITHUB_TOKEN",
+        "GITHUB_REPOSITORY": "daehee719/macchain-bible-app"
+      }
+    },
+    "Cloudflare": {
+      "command": "node",
+      "args": [
+        "./mcp-servers/cloudflare/build/index.js"
+      ],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "YOUR_CF_API_TOKEN",
+        "CLOUDFLARE_ACCOUNT_ID": "YOUR_CF_ACCOUNT_ID"
+      }
+    },
+    "SQLite": {
+      "command": "node",
+      "args": [
+        "./mcp-servers/sqlite/build/index.js"
+      ],
+      "env": {
+        "SQLITE_DB_PATH": "./dev.db"
+      }
+    },
+    "Notion": {
+      "command": "node",
+      "args": [
+        "./mcp-notion-server/build/index.js"
+      ],
+      "env": {
+        "NOTION_API_TOKEN": "YOUR_NOTION_TOKEN"
+      }
     }
   }
 }
