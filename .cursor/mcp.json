@@ -12,19 +12,23 @@
         "./mcp-servers/github/build/index.js"
       ],
       "env": {
-        "GITHUB_TOKEN": "YOUR_GITHUB_TOKEN",
+        "GITHUB_TOKEN": "3rBpYHIi7sCAWlRI9ZUCa8xUiqDSuC2hv4N8U0KX",
         "GITHUB_REPOSITORY": "daehee719/macchain-bible-app"
       }
     },
-    "Cloudflare": {
-      "command": "node",
+    "GitHub-Remote": {
+      "command": "npx",
       "args": [
-        "./mcp-servers/cloudflare/build/index.js"
-      ],
-      "env": {
-        "CLOUDFLARE_API_TOKEN": "YOUR_CF_API_TOKEN",
-        "CLOUDFLARE_ACCOUNT_ID": "YOUR_CF_ACCOUNT_ID"
-      }
+        "mcp-remote",
+        "https://github-remote.daeheuigang.workers.dev/sse"
+      ]
+    },
+    "Cloudflare": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://cloudflare-remote.daeheuigang.workers.dev/sse"
+      ]
     },
     "SQLite": {
       "command": "node",

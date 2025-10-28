@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
-import { LogIn, UserPlus, Mail, Lock, User, Loader } from 'lucide-react'
+import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen } from 'lucide-react'
 import './Login.css'
 
 const Login: React.FC = () => {
@@ -89,10 +89,21 @@ const Login: React.FC = () => {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <h1>MacChain</h1>
-          <p>성경 읽기와 함께하는 영적 여정</p>
+          <div className="login-header-left">
+            <BookOpen size={24} />
+            <div>
+              <h1>MacChain</h1>
+              <p>성경 읽기와 함께하는 영적 여정</p>
+            </div>
+          </div>
+          <div className="login-nav">
+            <Link to="/">대시보드</Link>
+            <Link to="/reading-plan">읽기 계획</Link>
+            <Link to="/login" className="active">→ 로그인</Link>
+          </div>
         </div>
 
+        <div style={{ maxWidth: '500px', margin: '0 auto' }}>
         <Card className="login-card">
           <div className="login-card-header">
             <h2>
@@ -263,20 +274,21 @@ const Login: React.FC = () => {
             </div>
           </div>
         </Card>
+        </div>
 
         <div className="login-features">
-          <div className="feature">
+          <button type="button" className="feature">
             <h3>AI 성경 분석</h3>
             <p>읽은 구절에 대한 AI의 깊이 있는 분석을 받아보세요</p>
-          </div>
-          <div className="feature">
+          </button>
+          <button type="button" className="feature">
             <h3>커뮤니티</h3>
             <p>다른 성도들과 성경 읽기 경험을 공유하세요</p>
-          </div>
-          <div className="feature">
+          </button>
+          <button type="button" className="feature">
             <h3>상세 통계</h3>
             <p>나의 성경 읽기 여정을 통계로 확인하세요</p>
-          </div>
+          </button>
         </div>
       </div>
     </div>
