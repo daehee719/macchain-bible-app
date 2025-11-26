@@ -1,3 +1,4 @@
+import Button from 'src/components/ui/Button';
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
@@ -10,7 +11,9 @@ import Community from './pages/Community'
 import Statistics from './pages/Statistics'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
+import PrototypeHome from './pages/PrototypeHome'
 import './App.css'
+import './styles/tailwind.css'
 
 function App() {
   return (
@@ -23,6 +26,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
               <Route path="/reading-plan" element={<ReadingPlan />} />
+              <Route path="/prototype" element={<PrototypeHome />} />
               <Route path="/ai-analysis" element={
                 <ProtectedRoute>
                   <AIAnalysis />

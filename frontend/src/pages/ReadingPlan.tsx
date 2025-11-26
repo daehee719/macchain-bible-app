@@ -1,3 +1,4 @@
+import Button from 'src/components/ui/Button';
 import React, { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight } from 'lucide-react'
@@ -120,26 +121,19 @@ const ReadingPlan: React.FC = () => {
         </div>
 
         <div className="week-navigation">
-          <button 
+          <Button
             onClick={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
-            disabled={currentWeek === 0}
-            className="nav-btn"
-          >
-            <ArrowLeft size={20} />
-            이전 주
-          </button>
+            disabled={currentWeek === 0}>
+            <ArrowLeft size={20} />이전 주
+                      </Button>
           
           <span className="week-label">
             {currentWeek + 1}주차
           </span>
           
-          <button 
-            onClick={() => setCurrentWeek(currentWeek + 1)}
-            className="nav-btn"
-          >
-            다음 주
-            <ArrowRight size={20} />
-          </button>
+          <Button onClick={() => setCurrentWeek(currentWeek + 1)}>다음 주
+                        <ArrowRight size={20} />
+          </Button>
         </div>
 
         <div className="reading-days">
@@ -191,7 +185,7 @@ const ReadingPlan: React.FC = () => {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default ReadingPlan

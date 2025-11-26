@@ -1,3 +1,4 @@
+import Button from 'src/components/ui/Button';
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
@@ -154,9 +155,8 @@ const Settings: React.FC = () => {
                   <h3>계정 보안</h3>
                   <p>비밀번호 변경 및 보안 설정을 관리하세요.</p>
                 </div>
-                <button className="security-btn">
-                  보안 설정
-                </button>
+                <Button>보안 설정
+                                  </Button>
               </div>
             </div>
           </Card>
@@ -164,11 +164,7 @@ const Settings: React.FC = () => {
 
         {/* 저장 버튼 */}
         <div className="settings-actions">
-          <button 
-            onClick={handleSave}
-            disabled={loading}
-            className={`save-btn ${saved ? 'saved' : ''}`}
-          >
+          <Button onClick={handleSave} disabled={loading} className='save-btn '>
             {loading ? (
               <>
                 <SettingsIcon size={20} className="spinning" />
@@ -185,11 +181,11 @@ const Settings: React.FC = () => {
                 설정 저장
               </>
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Settings

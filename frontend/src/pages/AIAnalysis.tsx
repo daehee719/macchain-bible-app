@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Card from '../components/Card'
+import Button from '../components/ui/Button'
 import { Brain, Send, Loader, Lightbulb, BookOpen, MessageCircle } from 'lucide-react'
 import './AIAnalysis.css'
 
@@ -81,11 +82,7 @@ const AIAnalysis: React.FC = () => {
                 className="passage-input"
                 rows={3}
               />
-              <button 
-                onClick={handleAnalyze}
-                disabled={!inputPassage.trim() || isAnalyzing}
-                className="analyze-btn"
-              >
+              <Button onClick={handleAnalyze} disabled={!inputPassage.trim() || isAnalyzing} variant="primary">
                 {isAnalyzing ? (
                   <>
                     <Loader size={16} className="spinning" />
@@ -97,7 +94,7 @@ const AIAnalysis: React.FC = () => {
                     분석 시작
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           </Card>
         </div>

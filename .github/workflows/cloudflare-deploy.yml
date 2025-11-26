@@ -116,7 +116,11 @@ jobs:
       run: |
         cd macchain-frontend
         npm run test || echo "Tests skipped"
-        
+    - name: 🏗️ Build CSS
+      run: |
+        cd macchain-frontend
+        npm run css:build
+
     - name: 🏗️ Build Application
       run: |
         cd macchain-frontend

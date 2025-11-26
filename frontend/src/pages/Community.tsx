@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Card from '../components/Card'
+import Button from '../components/ui/Button'
 import { MessageCircle, Heart, Share2, Send, User, Calendar, TrendingUp } from 'lucide-react'
 import './Community.css'
 
@@ -168,14 +169,10 @@ const Community: React.FC = () => {
                 placeholder="관련 성경 구절 (선택사항)"
                 className="passage-input"
               />
-              <button 
-                onClick={handleCreatePost}
-                disabled={!newPost.trim()}
-                className="create-btn"
-              >
+              <Button onClick={handleCreatePost} disabled={!newPost.trim()} variant="primary">
                 <Send size={16} />
                 글 올리기
-              </button>
+              </Button>
             </div>
           </Card>
         </div>
@@ -240,21 +237,23 @@ const Community: React.FC = () => {
                   </div>
 
                   <div className="post-actions">
-                    <button 
+                    <Button
                       onClick={() => handleLike(post.id)}
-                      className={`action-btn like-btn ${post.isLiked ? 'liked' : ''}`}
+                      variant="ghost"
+                      className={`${post.isLiked ? 'text-red-600' : 'text-gray-600'}`}
+                      aria-pressed={post.isLiked}
                     >
                       <Heart size={16} />
                       {post.likes}
-                    </button>
-                    <button className="action-btn comment-btn">
+                    </Button>
+                    <Button variant="ghost" className="text-gray-600">
                       <MessageCircle size={16} />
                       {post.comments}
-                    </button>
-                    <button className="action-btn share-btn">
+                    </Button>
+                    <Button variant="ghost" className="text-gray-600">
                       <Share2 size={16} />
                       공유
-                    </button>
+                    </Button>
                   </div>
 
                   {/* 댓글 섹션 */}
@@ -281,13 +280,9 @@ const Community: React.FC = () => {
                         placeholder="댓글을 입력하세요..."
                         className="comment-input"
                       />
-                      <button 
-                        onClick={() => handleAddComment(post.id)}
-                        disabled={!newComments[post.id]?.trim()}
-                        className="comment-submit"
-                      >
+                      <Button onClick={() => handleAddComment(post.id)} disabled={!newComments[post.id]?.trim()} variant="secondary" size="sm">
                         <Send size={14} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </Card>

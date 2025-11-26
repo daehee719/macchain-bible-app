@@ -1,3 +1,4 @@
+import Button from 'src/components/ui/Button';
 import React, { useState } from 'react'
 import Card from '../components/Card'
 import { BarChart3, Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star } from 'lucide-react'
@@ -143,24 +144,12 @@ const Statistics: React.FC = () => {
 
           <Card title="월별 진행률" className="progress-card">
             <div className="time-range-selector">
-              <button 
-                className={`time-btn ${timeRange === 'week' ? 'active' : ''}`}
-                onClick={() => setTimeRange('week')}
-              >
-                주간
-              </button>
-              <button 
-                className={`time-btn ${timeRange === 'month' ? 'active' : ''}`}
-                onClick={() => setTimeRange('month')}
-              >
-                월간
-              </button>
-              <button 
-                className={`time-btn ${timeRange === 'year' ? 'active' : ''}`}
-                onClick={() => setTimeRange('year')}
-              >
-                연간
-              </button>
+              <Button variant='ghost' onClick={() => setTimeRange('week')}>주간
+                              </Button>
+              <Button variant='ghost' onClick={() => setTimeRange('month')}>월간
+                              </Button>
+              <Button variant='ghost' onClick={() => setTimeRange('year')}>연간
+                              </Button>
             </div>
             
             <div className="progress-chart">
@@ -255,7 +244,7 @@ const Statistics: React.FC = () => {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Statistics

@@ -51,6 +51,7 @@ jobs:
     - name: 🏗️ Build application
       run: |
         cd macchain-frontend
+        npm run css:build
         npm run build
 
     - name: 🐳 Build Docker image
@@ -88,6 +89,7 @@ jobs:
     - name: 🏗️ Build application
       run: |
         cd macchain-frontend
+        npm run css:build
         npm run build
 
     - name: 🎭 Install Playwright browsers

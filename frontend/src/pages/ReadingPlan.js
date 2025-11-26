@@ -1,3 +1,4 @@
+import Button from 'src/components/ui/Button';
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import Card from '../components/Card';

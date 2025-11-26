@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MacChain - Prototype Analysis</title>
+  <link rel="stylesheet" href="../frontend/src/styles/design-tokens.css" />
+  <style>
+    body { font-family: Inter, system-ui, -apple-system; background: var(--color-bg); padding: 16px }
+    .frame { max-width: 375px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 16px }
+    .card { background: var(--color-surface); border-radius: 8px; padding: 12px; margin-bottom: 12px }
+    textarea { width: 100%; min-height: 120px; padding: 8px; border-radius: 8px; border: 1px solid var(--color-border) }
+    .btn { background: var(--color-primary); color: white; padding: 8px 12px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <h3>AI 원어 분석</h3>
+    <div class="card">
+      <label>구절 또는 텍스트</label>
+      <textarea placeholder="여기에 구절을 붙여넣으세요"></textarea>
+      <div style="margin-top:8px;text-align:right"><button class="btn">분석 요청</button></div>
+    </div>
+
+    <div class="card">
+      <h4>분석 결과</h4>
+      <p style="color:var(--color-muted)">분석 결과가 여기에 표시됩니다. (예시) 주요 메시지, 원어 의미, 적용 제안</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import Button from 'src/components/ui/Button';
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -239,11 +240,7 @@ const Login: React.FC = () => {
               </div>
             )}
 
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="submit-btn"
-            >
+            <Button type="submit" disabled={loading}>
               {loading ? (
                 <>
                   <Loader size={20} className="spinning" />
@@ -252,19 +249,15 @@ const Login: React.FC = () => {
               ) : (
                 isLogin ? '로그인' : '회원가입'
               )}
-            </button>
+            </Button>
           </form>
 
           <div className="login-footer">
             <p>
               {isLogin ? '아직 계정이 없으신가요?' : '이미 계정이 있으신가요?'}
-              <button 
-                type="button" 
-                onClick={toggleMode}
-                className="toggle-btn"
-              >
+              <Button type="button" onClick={toggleMode}>
                 {isLogin ? '회원가입' : '로그인'}
-              </button>
+              </Button>
             </p>
             
             <div className="demo-info">
@@ -277,22 +270,22 @@ const Login: React.FC = () => {
         </div>
 
         <div className="login-features">
-          <button type="button" className="feature">
+          <Button type="button">
             <h3>AI 성경 분석</h3>
             <p>읽은 구절에 대한 AI의 깊이 있는 분석을 받아보세요</p>
-          </button>
-          <button type="button" className="feature">
+          </Button>
+          <Button type="button">
             <h3>커뮤니티</h3>
             <p>다른 성도들과 성경 읽기 경험을 공유하세요</p>
-          </button>
-          <button type="button" className="feature">
+          </Button>
+          <Button type="button">
             <h3>상세 통계</h3>
             <p>나의 성경 읽기 여정을 통계로 확인하세요</p>
-          </button>
+          </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Login

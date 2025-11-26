@@ -1,0 +1,2510 @@
+Processing 37 files... 
+Spawning 7 workers...
+Running in dry mode, no files will be written! 
+Sending 6 files to free worker...
+Sending 6 files to free worker...
+Sending 6 files to free worker...
+Sending 6 files to free worker...
+Sending 6 files to free worker...
+Sending 6 files to free worker...
+Sending 1 files to free worker...
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const Card = ({ title, description, icon, onClick, className = '', children }) => {
+    const base = "bg-white rounded-xl p-6 border border-gray-100 shadow-sm transition-transform duration-150";
+    const hover = onClick ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:bg-slate-50" : "hover:shadow-md";
+    return (_jsxs("div", { className: `${base} ${hover} ${className}`.trim(), onClick: onClick, children: [icon && _jsx("div", { className: "flex items-center justify-center w-12 h-12 rounded-lg text-white mb-4 bg-gradient-to-br from-indigo-500 to-purple-600", children: icon }), _jsxs("div", { className: "flex-1", children: [title && _jsx("h3", { className: "text-lg font-semibold text-gray-800 mb-2", children: title }), description && _jsx("p", { className: "text-sm text-gray-600 mb-4", children: description }), children] })] }));
+};
+export default Card;
+
+import Button from 'src/components/ui/Button';
+import { render, screen } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import App from './App'
+
+describe('App', () => {
+  it('renders without crashing', () => {
+    render(<App />)
+    expect(document.body).toBeInTheDocument()
+  })
+})
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+
+type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+}
+
+export default function Button({ variant = 'primary', size = 'md', children, className = '', disabled, ...rest }: Props) {
+  const sizeCls = size === 'sm' ? 'px-2 py-1 text-sm' : size === 'lg' ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm'
+
+  const variantCls =
+    variant === 'primary'
+      ? 'bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-60'
+      : variant === 'secondary'
+      ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:opacity-60'
+      : 'bg-transparent text-gray-700 hover:bg-gray-100 disabled:opacity-60'
+
+  const classes = `${variantCls} ${sizeCls} rounded-md inline-flex items-center gap-2 ${className}`.trim()
+
+  return (
+    <Button disabled={disabled}>
+      {children}
+    </Button>
+  );
+}
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+
+type Props = {
+  title?: string
+  children?: React.ReactNode
+}
+
+export default function Card({ title, children }: Props) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-3 mb-3" role="region">
+      {title && <h3 className="text-base font-semibold mb-2">{title}</h3>}
+      <div>{children}</div>
+    </div>
+  )
+}
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from 'react';
+import Card from '../components/Card';
+import { MessageCircle, Heart, Share2, Send, TrendingUp } from 'lucide-react';
+import './Community.css';
+const Community = () => {
+    const [newPost, setNewPost] = useState('');
+    const [selectedPassage, setSelectedPassage] = useState('');
+    const [posts, setPosts] = useState([
+        {
+            id: '1',
+            author: {
+                name: '김성도',
+                avatar: '👨‍💼'
+            },
+            content: '오늘 창세기 1장을 읽으며 하나님의 창조 섭리에 감탄했습니다. "하나님이 보시기에 좋았더라"는 표현이 매번 나올 때마다 마음이 따뜻해집니다.',
+            passage: '창세기 1:1-31',
+            likes: 12,
+            comments: 3,
+            timestamp: new Date('2025-01-06T14:30:00'),
+            isLiked: false
+        },
+        {
+            id: '2',
+            author: {
+                name: '이은혜',
+                avatar: '👩‍🎓'
+            },
+            content: '마태복음 5장의 산상수훈을 읽으며 참된 행복이 무엇인지 다시 생각해봤습니다. 세상이 추구하는 것과는 정반대의 가치관이네요.',
+            passage: '마태복음 5:1-12',
+            likes: 8,
+            comments: 5,
+            timestamp: new Date('2025-01-06T11:15:00'),
+            isLiked: true
+        }
+    ]);
+    const [comments, setComments] = useState({
+        '1': [
+            {
+                id: '1-1',
+                author: { name: '박믿음', avatar: '👨‍🎨' },
+                content: '정말 공감됩니다! 창조의 아름다움이 매번 새롭게 느껴져요.',
+                timestamp: new Date('2025-01-06T15:00:00')
+            }
+        ]
+    });
+    const [newComments, setNewComments] = useState({});
+    const handleCreatePost = () => {
+        if (!newPost.trim())
+            return;
+        const post = {
+            id: Date.now().toString(),
+            author: {
+                name: '나',
+                avatar: '👤'
+            },
+            content: newPost,
+            passage: selectedPassage || undefined,
+            likes: 0,
+            comments: 0,
+            timestamp: new Date(),
+            isLiked: false
+        };
+        setPosts(prev => [post, ...prev]);
+        setNewPost('');
+        setSelectedPassage('');
+    };
+    const handleLike = (postId) => {
+        setPosts(prev => prev.map(post => post.id === postId
+            ? {
+                ...post,
+                isLiked: !post.isLiked,
+                likes: post.isLiked ? post.likes - 1 : post.likes + 1
+            }
+            : post));
+    };
+    const handleAddComment = (postId) => {
+        const commentText = newComments[postId];
+        if (!commentText?.trim())
+            return;
+        const comment = {
+            id: Date.now().toString(),
+            author: {
+                name: '나',
+                avatar: '👤'
+            },
+            content: commentText,
+            timestamp: new Date()
+        };
+        setComments(prev => ({
+            ...prev,
+            [postId]: [...(prev[postId] || []), comment]
+        }));
+        setNewComments(prev => ({ ...prev, [postId]: '' }));
+        setPosts(prev => prev.map(post => post.id === postId
+            ? { ...post, comments: post.comments + 1 }
+            : post));
+    };
+    const formatTimestamp = (date) => {
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        if (hours < 1)
+            return '방금 전';
+        if (hours < 24)
+            return `${hours}시간 전`;
+        return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+    };
+    return (_jsx("div", { className: "community", children: _jsxs("div", { className: "container", children: [_jsxs("header", { className: "page-header", children: [_jsx("h1", { children: "\uC131\uACBD \uC77D\uAE30 \uCEE4\uBBA4\uB2C8\uD2F0" }), _jsx("p", { children: "\uB2E4\uB978 \uC131\uB3C4\uB4E4\uACFC \uD568\uAED8 \uB098\uB204\uB294 \uC131\uACBD \uC77D\uAE30 \uACBD\uD5D8" })] }), _jsx("div", { className: "create-post", children: _jsx(Card, { title: "\uC0C8 \uAE00 \uC791\uC131", icon: _jsx(MessageCircle, { size: 24 }), children: _jsxs("div", { className: "post-form", children: [_jsx("textarea", { value: newPost, onChange: (e) => setNewPost(e.target.value), placeholder: "\uC624\uB298 \uC77D\uC740 \uC131\uACBD \uAD6C\uC808\uC5D0 \uB300\uD55C \uC0DD\uAC01\uC744 \uACF5\uC720\uD574\uBCF4\uC138\uC694...", className: "post-input", rows: 4 }), _jsx("input", { type: "text", value: selectedPassage, onChange: (e) => setSelectedPassage(e.target.value), placeholder: "\uAD00\uB828 \uC131\uACBD \uAD6C\uC808 (\uC120\uD0DD\uC0AC\uD56D)", className: "passage-input" }), _jsxs("button", { onClick: handleCreatePost, disabled: !newPost.trim(), className: "create-btn", children: [_jsx(Send, { size: 16 }), "\uAE00 \uC62C\uB9AC\uAE30"] })] }) }) }), _jsx("div", { className: "community-stats", children: _jsx(Card, { title: "\uCEE4\uBBA4\uB2C8\uD2F0 \uD604\uD669", className: "stats-card", children: _jsxs("div", { className: "stats-grid", children: [_jsxs("div", { className: "stat", children: [_jsx(TrendingUp, { size: 24 }), _jsx("span", { className: "stat-number", children: posts.length }), _jsx("span", { className: "stat-label", children: "\uCD1D \uAC8C\uC2DC\uAE00" })] }), _jsxs("div", { className: "stat", children: [_jsx(Heart, { size: 24 }), _jsx("span", { className: "stat-number", children: posts.reduce((acc, post) => acc + post.likes, 0) }), _jsx("span", { className: "stat-label", children: "\uCD1D \uC88B\uC544\uC694" })] }), _jsxs("div", { className: "stat", children: [_jsx(MessageCircle, { size: 24 }), _jsx("span", { className: "stat-number", children: posts.reduce((acc, post) => acc + post.comments, 0) }), _jsx("span", { className: "stat-label", children: "\uCD1D \uB313\uAE00" })] })] }) }) }), _jsxs("div", { className: "posts-feed", children: [_jsx("h2", { children: "\uCD5C\uC2E0 \uAE00" }), posts.length === 0 ? (_jsx(Card, { className: "empty-state", children: _jsxs("div", { className: "empty-content", children: [_jsx(MessageCircle, { size: 48, className: "empty-icon" }), _jsx("h3", { children: "\uC544\uC9C1 \uAC8C\uC2DC\uAE00\uC774 \uC5C6\uC2B5\uB2C8\uB2E4" }), _jsx("p", { children: "\uCCAB \uBC88\uC9F8 \uAE00\uC744 \uC791\uC131\uD574\uBCF4\uC138\uC694!" })] }) })) : (_jsx("div", { className: "posts-list", children: posts.map((post) => (_jsxs(Card, { className: "post-card", children: [_jsx("div", { className: "post-header", children: _jsxs("div", { className: "author-info", children: [_jsx("span", { className: "author-avatar", children: post.author.avatar }), _jsxs("div", { className: "author-details", children: [_jsx("span", { className: "author-name", children: post.author.name }), _jsx("span", { className: "post-time", children: formatTimestamp(post.timestamp) })] })] }) }), _jsxs("div", { className: "post-content", children: [_jsx("p", { children: post.content }), post.passage && (_jsxs("div", { className: "passage-reference", children: ["\uD83D\uDCD6 ", post.passage] }))] }), _jsxs("div", { className: "post-actions", children: [_jsxs("button", { onClick: () => handleLike(post.id), className: `action-btn like-btn ${post.isLiked ? 'liked' : ''}`, children: [_jsx(Heart, { size: 16 }), post.likes] }), _jsxs("button", { className: "action-btn comment-btn", children: [_jsx(MessageCircle, { size: 16 }), post.comments] }), _jsxs("button", { className: "action-btn share-btn", children: [_jsx(Share2, { size: 16 }), "\uACF5\uC720"] })] }), _jsxs("div", { className: "comments-section", children: [comments[post.id]?.map((comment) => (_jsxs("div", { className: "comment", children: [_jsxs("div", { className: "comment-author", children: [_jsx("span", { className: "comment-avatar", children: comment.author.avatar }), _jsx("span", { className: "comment-name", children: comment.author.name }), _jsx("span", { className: "comment-time", children: formatTimestamp(comment.timestamp) })] }), _jsx("p", { className: "comment-content", children: comment.content })] }, comment.id))), _jsxs("div", { className: "add-comment", children: [_jsx("input", { type: "text", value: newComments[post.id] || '', onChange: (e) => setNewComments(prev => ({
+                                                            ...prev,
+                                                            [post.id]: e.target.value
+                                                        })), placeholder: "\uB313\uAE00\uC744 \uC785\uB825\uD558\uC138\uC694...", className: "comment-input" }), _jsx("button", { onClick: () => handleAddComment(post.id), disabled: !newComments[post.id]?.trim(), className: "comment-submit", children: _jsx(Send, { size: 14 }) })] })] })] }, post.id))) }))] })] }) }));
+};
+export default Community;
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { BookOpen, Brain, Users, BarChart3, Settings, LogIn, LogOut } from 'lucide-react'
+
+const Header: React.FC = () => {
+  const { user, isLoggedIn, logout } = useAuth()
+  const location = useLocation()
+
+  return (
+    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur border-b border-gray-100 z-50 h-20">
+      <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-full">
+        <Link to="/" className="flex items-center gap-2 text-gray-800 text-xl font-bold no-underline">
+          <BookOpen size={24} />
+          <span className="hidden sm:inline">MacChain</span>
+        </Link>
+
+        <nav className="flex gap-6 items-center">
+          <Link to="/" className={`flex items-center gap-2 px-3 py-1 rounded-lg font-medium ${location.pathname === '/' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+            대시보드
+          </Link>
+          <Link to="/reading-plan" className={`flex items-center gap-2 px-3 py-1 rounded-lg font-medium ${location.pathname === '/reading-plan' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+            읽기 계획
+          </Link>
+          {isLoggedIn && (
+            <>
+              <Link to="/ai-analysis" className={`flex items-center gap-2 px-3 py-1 rounded-lg font-medium ${location.pathname === '/ai-analysis' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <Brain size={16} />
+                <span className="hidden sm:inline">AI 분석</span>
+              </Link>
+              <Link to="/community" className={`flex items-center gap-2 px-3 py-1 rounded-lg font-medium ${location.pathname === '/community' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <Users size={16} />
+                <span className="hidden sm:inline">커뮤니티</span>
+              </Link>
+              <Link to="/statistics" className={`flex items-center gap-2 px-3 py-1 rounded-lg font-medium ${location.pathname === '/statistics' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <BarChart3 size={16} />
+                <span className="hidden sm:inline">통계</span>
+              </Link>
+            </>
+          )}
+        </nav>
+
+        <div className="flex items-center gap-4">
+          {isLoggedIn ? (
+            <div className="flex items-center gap-4">
+              <Link to="/settings" className={`flex items-center gap-2 px-3 py-1 rounded-lg font-medium ${location.pathname === '/settings' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <Settings size={16} />
+                <span className="hidden sm:inline">설정</span>
+              </Link>
+              <span className="text-gray-800 font-medium hidden sm:inline">{user?.name || user?.email}</span>
+              <Button onClick={logout}>
+                <LogOut size={16} />
+                <span className="hidden sm:inline">로그아웃</span>
+              </Button>
+            </div>
+          ) : (
+            <Link to="/login" className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-indigo-600 text-white font-medium hover:bg-indigo-500 no-underline">
+              <LogIn size={16} />
+              <span className="hidden sm:inline">로그인</span>
+            </Link>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default Header
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Header from './components/Header'
+import Dashboard from './pages/Dashboard'
+import ReadingPlan from './pages/ReadingPlan'
+import AIAnalysis from './pages/AIAnalysis'
+import Community from './pages/Community'
+import Statistics from './pages/Statistics'
+import Settings from './pages/Settings'
+import Login from './pages/Login'
+import PrototypeHome from './pages/PrototypeHome'
+import './App.css'
+import './styles/tailwind.css'
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Header />
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/reading-plan" element={<ReadingPlan />} />
+              <Route path="/prototype" element={<PrototypeHome />} />
+              <Route path="/ai-analysis" element={
+                <ProtectedRoute>
+                  <AIAnalysis />
+                </ProtectedRoute>
+              } />
+              <Route path="/community" element={
+                <ProtectedRoute>
+                  <Community />
+                </ProtectedRoute>
+              } />
+              <Route path="/statistics" element={
+                <ProtectedRoute>
+                  <Statistics />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </AuthProvider>
+  )
+}
+
+export default App
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx } from "react/jsx-runtime";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+ReactDOM.createRoot(document.getElementById('root')).render(_jsx(React.StrictMode, { children: _jsx(App, {}) }));
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+const ProtectedRoute = ({ children }) => {
+    const { isLoggedIn, loading } = useAuth();
+    if (loading) {
+        return (_jsx("div", { className: "loading-container", children: _jsxs("div", { className: "loading-spinner", children: [_jsx("div", { className: "spinner" }), _jsx("p", { children: "\uB85C\uB529 \uC911..." })] }) }));
+    }
+    if (!isLoggedIn) {
+        return _jsx(Navigate, { to: "/login", replace: true });
+    }
+    return _jsx(_Fragment, { children: children });
+};
+export default ProtectedRoute;
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Header from './components/Header';
+import Dashboard from './pages/Dashboard';
+import ReadingPlan from './pages/ReadingPlan';
+import AIAnalysis from './pages/AIAnalysis';
+import Community from './pages/Community';
+import Statistics from './pages/Statistics';
+import Settings from './pages/Settings';
+import Login from './pages/Login';
+import './App.css';
+function App() {
+    return (_jsx(AuthProvider, { children: _jsx(Router, { children: _jsxs("div", { className: "App", children: [_jsx(Header, {}), _jsx("main", { className: "main-content", children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(Dashboard, {}) }), _jsx(Route, { path: "/login", element: _jsx(Login, {}) }), _jsx(Route, { path: "/reading-plan", element: _jsx(ReadingPlan, {}) }), _jsx(Route, { path: "/ai-analysis", element: _jsx(ProtectedRoute, { children: _jsx(AIAnalysis, {}) }) }), _jsx(Route, { path: "/community", element: _jsx(ProtectedRoute, { children: _jsx(Community, {}) }) }), _jsx(Route, { path: "/statistics", element: _jsx(ProtectedRoute, { children: _jsx(Statistics, {}) }) }), _jsx(Route, { path: "/settings", element: _jsx(ProtectedRoute, { children: _jsx(Settings, {}) }) })] }) })] }) }) }));
+}
+export default App;
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx } from "react/jsx-runtime";
+import { render } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import App from './App';
+describe('App', () => {
+    it('renders without crashing', () => {
+        render(_jsx(App, {}));
+        expect(document.body).toBeInTheDocument();
+    });
+});
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+
+interface ProtectedRouteProps {
+  children: React.ReactNode
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isLoggedIn, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>로딩 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+}
+
+export default ProtectedRoute
+
+import Button from 'src/components/ui/Button';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+
+interface User {
+  id: string
+  email: string
+  name: string
+  nickname?: string
+  isActive: boolean
+}
+
+interface AuthContextType {
+  user: User | null
+  token: string | null
+  isLoggedIn: boolean
+  login: (email: string, password: string) => Promise<boolean>
+  register: (email: string, password: string, name: string, nickname?: string) => Promise<boolean>
+  logout: () => void
+  loading: boolean
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // 페이지 로드 시 저장된 토큰 확인
+    const savedToken = localStorage.getItem('authToken')
+    const savedUser = localStorage.getItem('user')
+    
+    if (savedToken && savedUser) {
+      try {
+        const userData = JSON.parse(savedUser)
+        setToken(savedToken)
+        setUser(userData)
+      } catch (error) {
+        console.error('Failed to parse saved user data:', error)
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('user')
+      }
+    }
+    
+    setLoading(false)
+  }, [])
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      setLoading(true)
+      
+      // 실제 API 호출
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error('로그인 실패')
+      }
+
+      const data = await response.json()
+      
+      if (data.success && data.token && data.user) {
+        setToken(data.token)
+        setUser(data.user)
+        
+        // 로컬 스토리지에 저장
+        localStorage.setItem('authToken', data.token)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        
+        return true
+      }
+      
+      return false
+    } catch (error) {
+      console.error('Login error:', error)
+      
+      // Mock 로그인 (개발용)
+      if (email === 'test@example.com' && password === 'password') {
+        const mockUser: User = {
+          id: '1',
+          email: 'test@example.com',
+          name: '테스트 사용자',
+          nickname: '테스터',
+          isActive: true
+        }
+        
+        const mockToken = 'mock-jwt-token'
+        
+        setToken(mockToken)
+        setUser(mockUser)
+        
+        localStorage.setItem('authToken', mockToken)
+        localStorage.setItem('user', JSON.stringify(mockUser))
+        
+        return true
+      }
+      
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const register = async (
+    email: string, 
+    password: string, 
+    name: string, 
+    nickname?: string
+  ): Promise<boolean> => {
+    try {
+      setLoading(true)
+      
+      // 실제 API 호출
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name, 
+          nickname: nickname || name 
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('회원가입 실패')
+      }
+
+      const data = await response.json()
+      
+      if (data.success && data.token && data.user) {
+        setToken(data.token)
+        setUser(data.user)
+        
+        // 로컬 스토리지에 저장
+        localStorage.setItem('authToken', data.token)
+        localStorage.setItem('user', JSON.stringify(data.user))
+        
+        return true
+      }
+      
+      return false
+    } catch (error) {
+      console.error('Register error:', error)
+      
+      // Mock 회원가입 (개발용)
+      const mockUser: User = {
+        id: Date.now().toString(),
+        email,
+        name,
+        nickname: nickname || name,
+        isActive: true
+      }
+      
+      const mockToken = 'mock-jwt-token'
+      
+      setToken(mockToken)
+      setUser(mockUser)
+      
+      localStorage.setItem('authToken', mockToken)
+      localStorage.setItem('user', JSON.stringify(mockUser))
+      
+      return true
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const logout = () => {
+    setUser(null)
+    setToken(null)
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+  }
+
+  const value: AuthContextType = {
+    user,
+    token,
+    isLoggedIn: !!user && !!token,
+    login,
+    register,
+    logout,
+    loading
+  }
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useState } from 'react';
+import Card from '../components/Card';
+import { Brain, Send, Loader, Lightbulb, BookOpen, MessageCircle } from 'lucide-react';
+import './AIAnalysis.css';
+const AIAnalysis = () => {
+    const [inputPassage, setInputPassage] = useState('');
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysisResults, setAnalysisResults] = useState([
+        {
+            id: '1',
+            passage: '창세기 1:1-3',
+            analysis: '하나님이 천지를 창조하신 과정에서 말씀의 중요성이 강조됩니다. "하나님이 이르시되"라는 표현이 반복되며, 하나님의 말씀이 곧 창조의 동력임을 보여줍니다.',
+            insights: [
+                '말씀의 창조적 능력',
+                '삼위일체 하나님의 협력',
+                '빛의 상징적 의미'
+            ],
+            timestamp: new Date('2025-01-06T10:30:00')
+        }
+    ]);
+    const handleAnalyze = async () => {
+        if (!inputPassage.trim())
+            return;
+        setIsAnalyzing(true);
+        // Mock API call - 실제로는 백엔드 API 호출
+        setTimeout(() => {
+            const newAnalysis = {
+                id: Date.now().toString(),
+                passage: inputPassage,
+                analysis: `${inputPassage}에 대한 AI 분석 결과입니다. 이 구절은 성경의 핵심 메시지를 담고 있으며, 오늘날 우리의 삶에 중요한 교훈을 제공합니다.`,
+                insights: [
+                    '구절의 핵심 메시지',
+                    '현대적 적용점',
+                    '영적 교훈'
+                ],
+                timestamp: new Date()
+            };
+            setAnalysisResults(prev => [newAnalysis, ...prev]);
+            setInputPassage('');
+            setIsAnalyzing(false);
+        }, 2000);
+    };
+    const formatTimestamp = (date) => {
+        return date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+    return (_jsx("div", { className: "ai-analysis", children: _jsxs("div", { className: "container", children: [_jsxs("header", { className: "page-header", children: [_jsx("h1", { children: "AI \uC131\uACBD \uBD84\uC11D" }), _jsx("p", { children: "AI\uAC00 \uB3C4\uC640\uC8FC\uB294 \uAE4A\uC774 \uC788\uB294 \uC131\uACBD \uAD6C\uC808 \uBD84\uC11D" })] }), _jsx("div", { className: "analysis-input", children: _jsx(Card, { title: "\uAD6C\uC808 \uBD84\uC11D \uC694\uCCAD", icon: _jsx(Brain, { size: 24 }), children: _jsxs("div", { className: "input-section", children: [_jsx("textarea", { value: inputPassage, onChange: (e) => setInputPassage(e.target.value), placeholder: "\uBD84\uC11D\uD558\uACE0 \uC2F6\uC740 \uC131\uACBD \uAD6C\uC808\uC744 \uC785\uB825\uD558\uC138\uC694 (\uC608: \uC694\uD55C\uBCF5\uC74C 3:16)", className: "passage-input", rows: 3 }), _jsx("button", { onClick: handleAnalyze, disabled: !inputPassage.trim() || isAnalyzing, className: "analyze-btn", children: isAnalyzing ? (_jsxs(_Fragment, { children: [_jsx(Loader, { size: 16, className: "spinning" }), "\uBD84\uC11D \uC911..."] })) : (_jsxs(_Fragment, { children: [_jsx(Send, { size: 16 }), "\uBD84\uC11D \uC2DC\uC791"] })) })] }) }) }), _jsxs("div", { className: "analysis-results", children: [_jsx("h2", { children: "\uBD84\uC11D \uACB0\uACFC" }), analysisResults.length === 0 ? (_jsx(Card, { className: "empty-state", children: _jsxs("div", { className: "empty-content", children: [_jsx(BookOpen, { size: 48, className: "empty-icon" }), _jsx("h3", { children: "\uC544\uC9C1 \uBD84\uC11D\uB41C \uAD6C\uC808\uC774 \uC5C6\uC2B5\uB2C8\uB2E4" }), _jsx("p", { children: "\uC704\uC758 \uC785\uB825\uB780\uC5D0 \uC131\uACBD \uAD6C\uC808\uC744 \uC785\uB825\uD558\uACE0 \uBD84\uC11D\uC744 \uC2DC\uC791\uD574\uBCF4\uC138\uC694." })] }) })) : (_jsx("div", { className: "results-grid", children: analysisResults.map((result) => (_jsxs(Card, { className: "analysis-result", children: [_jsxs("div", { className: "result-header", children: [_jsx("h3", { className: "passage-title", children: result.passage }), _jsx("span", { className: "timestamp", children: formatTimestamp(result.timestamp) })] }), _jsxs("div", { className: "analysis-content", children: [_jsxs("div", { className: "analysis-text", children: [_jsxs("h4", { children: [_jsx(Lightbulb, { size: 16 }), "\uBD84\uC11D \uB0B4\uC6A9"] }), _jsx("p", { children: result.analysis })] }), _jsxs("div", { className: "insights", children: [_jsxs("h4", { children: [_jsx(MessageCircle, { size: 16 }), "\uD575\uC2EC \uC778\uC0AC\uC774\uD2B8"] }), _jsx("ul", { children: result.insights.map((insight, index) => (_jsx("li", { children: insight }, index))) })] })] })] }, result.id))) }))] }), _jsx("div", { className: "analysis-tips", children: _jsx(Card, { title: "\uBD84\uC11D \uD301", className: "tips-card", children: _jsxs("div", { className: "tips-content", children: [_jsxs("div", { className: "tip", children: [_jsx("h4", { children: "\uAD6C\uCCB4\uC801\uC778 \uAD6C\uC808 \uC785\uB825" }), _jsx("p", { children: "\uC7A5\uACFC \uC808\uC744 \uBA85\uD655\uD788 \uC9C0\uC815\uD558\uBA74 \uB354 \uC815\uD655\uD55C \uBD84\uC11D\uC744 \uBC1B\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4." })] }), _jsxs("div", { className: "tip", children: [_jsx("h4", { children: "\uB9E5\uB77D \uACE0\uB824" }), _jsx("p", { children: "\uC55E\uB4A4 \uAD6C\uC808\uC758 \uB9E5\uB77D\uC744 \uD568\uAED8 \uACE0\uB824\uD558\uC5EC \uBD84\uC11D\uD558\uBA74 \uB354 \uAE4A\uC774 \uC788\uB294 \uC774\uD574\uB97C \uC5BB\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4." })] }), _jsxs("div", { className: "tip", children: [_jsx("h4", { children: "\uC815\uAE30\uC801 \uD65C\uC6A9" }), _jsx("p", { children: "\uB9E4\uC77C \uC77D\uB294 \uC131\uACBD \uAD6C\uC808\uC5D0 \uB300\uD574 AI \uBD84\uC11D\uC744 \uBC1B\uC544\uBCF4\uC138\uC694." })] })] }) }) })] }) }));
+};
+export default AIAnalysis;
+
+import Button from 'src/components/ui/Button';
+import '@testing-library/jest-dom';
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { BookOpen, Brain, Users, BarChart3, Settings, LogIn, LogOut } from 'lucide-react';
+import './Header.css';
+const Header = () => {
+    const { user, isLoggedIn, logout } = useAuth();
+    const location = useLocation();
+    return (_jsx("header", { className: "header", children: _jsxs("div", { className: "header-container", children: [_jsxs(Link, { to: "/", className: "logo", children: [_jsx(BookOpen, { size: 24 }), _jsx("span", { children: "MacChain" })] }), _jsxs("nav", { className: "nav", children: [_jsx(Link, { to: "/", className: `nav-link ${location.pathname === '/' ? 'active' : ''}`, children: "\uB300\uC2DC\uBCF4\uB4DC" }), _jsx(Link, { to: "/reading-plan", className: `nav-link ${location.pathname === '/reading-plan' ? 'active' : ''}`, children: "\uC77D\uAE30 \uACC4\uD68D" }), isLoggedIn && (_jsxs(_Fragment, { children: [_jsxs(Link, { to: "/ai-analysis", className: `nav-link ${location.pathname === '/ai-analysis' ? 'active' : ''}`, children: [_jsx(Brain, { size: 16 }), "AI \uBD84\uC11D"] }), _jsxs(Link, { to: "/community", className: `nav-link ${location.pathname === '/community' ? 'active' : ''}`, children: [_jsx(Users, { size: 16 }), "\uCEE4\uBBA4\uB2C8\uD2F0"] }), _jsxs(Link, { to: "/statistics", className: `nav-link ${location.pathname === '/statistics' ? 'active' : ''}`, children: [_jsx(BarChart3, { size: 16 }), "\uD1B5\uACC4"] })] }))] }), _jsx("div", { className: "auth-section", children: isLoggedIn ? (_jsxs("div", { className: "user-info", children: [_jsxs(Link, { to: "/settings", className: `nav-link ${location.pathname === '/settings' ? 'active' : ''}`, children: [_jsx(Settings, { size: 16 }), "\uC124\uC815"] }), _jsx("span", { className: "user-name", children: user?.name || user?.email }), _jsxs("button", { onClick: logout, className: "logout-btn", children: [_jsx(LogOut, { size: 16 }), "\uB85C\uADF8\uC544\uC6C3"] })] })) : (_jsxs(Link, { to: "/login", className: "login-btn", children: [_jsx(LogIn, { size: 16 }), "\uB85C\uADF8\uC778"] })) })] }) }));
+};
+export default Header;
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+
+type Props = {
+  title?: string
+  open: boolean
+  onClose: () => void
+  children?: React.ReactNode
+}
+
+export default function Modal({ title, open, onClose, children }: Props) {
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="w-[92%] max-w-2xl bg-white rounded-lg p-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold m-0">{title}</h3>
+          <Button onClick={onClose} aria-label="Close">✕</Button>
+        </div>
+        <div className="mt-3">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+import './Card.css'
+
+interface CardProps {
+  title?: string
+  description?: string
+  icon?: React.ReactNode
+  onClick?: () => void
+  className?: string
+  children?: React.ReactNode
+}
+
+const Card: React.FC<CardProps> = ({
+  title,
+  description,
+  icon,
+  onClick,
+  className = '',
+  children
+}) => {
+  return (
+    <div 
+      className={`card ${onClick ? 'clickable' : ''} ${className}`}
+      onClick={onClick}
+    >
+      {icon && <div className="card-icon">{icon}</div>}
+      <div className="card-content">
+        {title && <h3 className="card-title">{title}</h3>}
+        {description && <p className="card-description">{description}</p>}
+        {children}
+      </div>
+    </div>
+  )
+}
+
+export default Card
+
+import Button from 'src/components/ui/Button';
+// Cloudflare Workers API 서비스
+const API_BASE_URL = 'https://macchain-api-public.daeheuigang.workers.dev';
+
+export interface ReadingPlan {
+  id: number;
+  book: string;
+  chapter: number;
+  verseStart: number;
+  verseEnd: number;
+}
+
+export interface TodayPlanResponse {
+  success: boolean;
+  date: string;
+  readings: ReadingPlan[];
+}
+
+export interface HealthResponse {
+  status: string;
+  timestamp: string;
+  environment: string;
+}
+
+class ApiService {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${API_BASE_URL}${endpoint}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  // 헬스체크
+  async getHealth(): Promise<HealthResponse> {
+    return this.request<HealthResponse>('/api/health');
+  }
+
+  // 오늘의 읽기 계획
+  async getTodayPlan(): Promise<TodayPlanResponse> {
+    return this.request<TodayPlanResponse>('/api/mccheyne/today');
+  }
+
+  // 사용자 로그인
+  async login(email: string, password: string) {
+    return this.request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  // 사용자 회원가입
+  async register(email: string, password: string, name: string, nickname: string) {
+    return this.request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name, nickname }),
+    });
+  }
+
+  // 사용자 프로필
+  async getUserProfile(token: string) {
+    return this.request('/api/users/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  // 통계
+  async getUserStatistics(token: string) {
+    return this.request('/api/statistics/user', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+}
+
+export const apiService = new ApiService();
+
+import Button from 'src/components/ui/Button';
+// Cloudflare Workers API 서비스
+const API_BASE_URL = 'https://macchain-api-public.daeheuigang.workers.dev';
+class ApiService {
+    async request(endpoint, options = {}) {
+        const url = `${API_BASE_URL}${endpoint}`;
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+            ...options,
+        });
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+    }
+    // 헬스체크
+    async getHealth() {
+        return this.request('/api/health');
+    }
+    // 오늘의 읽기 계획
+    async getTodayPlan() {
+        return this.request('/api/mccheyne/today');
+    }
+    // 사용자 로그인
+    async login(email, password) {
+        return this.request('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password }),
+        });
+    }
+    // 사용자 회원가입
+    async register(email, password, name, nickname) {
+        return this.request('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ email, password, name, nickname }),
+        });
+    }
+    // 사용자 프로필
+    async getUserProfile(token) {
+        return this.request('/api/users/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+    }
+    // 통계
+    async getUserStatistics(token) {
+        return this.request('/api/statistics/user', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+    }
+}
+export const apiService = new ApiService();
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from 'react';
+import Card from '../components/Card';
+import { Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star } from 'lucide-react';
+import './Statistics.css';
+const Statistics = () => {
+    const [timeRange, setTimeRange] = useState('month');
+    const stats = {
+        totalDays: 156,
+        currentStreak: 12,
+        longestStreak: 45,
+        completionRate: 78,
+        totalChapters: 1247,
+        totalTime: 2340,
+        favoriteBook: '시편',
+        monthlyProgress: [
+            { month: '1월', days: 28 },
+            { month: '2월', days: 31 },
+            { month: '3월', days: 30 },
+            { month: '4월', days: 25 },
+            { month: '5월', days: 31 },
+            { month: '6월', days: 11 }
+        ]
+    };
+    const formatTime = (minutes) => {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        if (hours > 0) {
+            return `${hours}시간 ${mins}분`;
+        }
+        return `${mins}분`;
+    };
+    const getStreakStatus = (streak) => {
+        if (streak >= 30)
+            return { level: '🔥', message: '놀라운 열정!' };
+        if (streak >= 14)
+            return { level: '⭐', message: '훌륭한 습관!' };
+        if (streak >= 7)
+            return { level: '💪', message: '잘하고 있어요!' };
+        return { level: '🌱', message: '시작이 좋아요!' };
+    };
+    const getCompletionColor = (rate) => {
+        if (rate >= 90)
+            return '#10b981';
+        if (rate >= 70)
+            return '#3b82f6';
+        if (rate >= 50)
+            return '#f59e0b';
+        return '#ef4444';
+    };
+    return (_jsx("div", { className: "statistics", children: _jsxs("div", { className: "container", children: [_jsxs("header", { className: "page-header", children: [_jsx("h1", { children: "\uC77D\uAE30 \uD1B5\uACC4" }), _jsx("p", { children: "\uB098\uC758 \uC131\uACBD \uC77D\uAE30 \uC5EC\uC815\uC744 \uD55C\uB208\uC5D0 \uBCF4\uC138\uC694" })] }), _jsxs("div", { className: "main-stats", children: [_jsx(Card, { title: "\uCD1D \uC77D\uC740 \uB0A0", className: "stat-card", children: _jsxs("div", { className: "stat-content", children: [_jsx(Calendar, { size: 32, className: "stat-icon" }), _jsx("span", { className: "stat-number", children: stats.totalDays }), _jsx("span", { className: "stat-label", children: "\uC77C" })] }) }), _jsx(Card, { title: "\uD604\uC7AC \uC5F0\uC18D \uC77D\uAE30", className: "stat-card", children: _jsxs("div", { className: "stat-content", children: [_jsx(TrendingUp, { size: 32, className: "stat-icon streak" }), _jsx("span", { className: "stat-number", children: stats.currentStreak }), _jsx("span", { className: "stat-label", children: "\uC77C" }), _jsxs("div", { className: "streak-status", children: [getStreakStatus(stats.currentStreak).level, _jsx("span", { children: getStreakStatus(stats.currentStreak).message })] })] }) }), _jsx(Card, { title: "\uCD5C\uC7A5 \uC5F0\uC18D \uAE30\uB85D", className: "stat-card", children: _jsxs("div", { className: "stat-content", children: [_jsx(Award, { size: 32, className: "stat-icon award" }), _jsx("span", { className: "stat-number", children: stats.longestStreak }), _jsx("span", { className: "stat-label", children: "\uC77C" })] }) }), _jsx(Card, { title: "\uC644\uC8FC\uC728", className: "stat-card", children: _jsxs("div", { className: "stat-content", children: [_jsx(Target, { size: 32, className: "stat-icon", style: { color: getCompletionColor(stats.completionRate) } }), _jsxs("span", { className: "stat-number", children: [stats.completionRate, "%"] }), _jsx("div", { className: "progress-bar", children: _jsx("div", { className: "progress-fill", style: {
+                                                width: `${stats.completionRate}%`,
+                                                backgroundColor: getCompletionColor(stats.completionRate)
+                                            } }) })] }) })] }), _jsxs("div", { className: "detailed-stats", children: [_jsx(Card, { title: "\uC77D\uAE30 \uD65C\uB3D9", className: "activity-card", children: _jsxs("div", { className: "activity-grid", children: [_jsxs("div", { className: "activity-item", children: [_jsx(BookOpen, { size: 24 }), _jsxs("div", { className: "activity-info", children: [_jsx("span", { className: "activity-number", children: stats.totalChapters }), _jsx("span", { className: "activity-label", children: "\uCD1D \uC77D\uC740 \uC7A5" })] })] }), _jsxs("div", { className: "activity-item", children: [_jsx(Clock, { size: 24 }), _jsxs("div", { className: "activity-info", children: [_jsx("span", { className: "activity-number", children: formatTime(stats.totalTime) }), _jsx("span", { className: "activity-label", children: "\uCD1D \uC77D\uAE30 \uC2DC\uAC04" })] })] }), _jsxs("div", { className: "activity-item", children: [_jsx(Star, { size: 24 }), _jsxs("div", { className: "activity-info", children: [_jsx("span", { className: "activity-number", children: stats.favoriteBook }), _jsx("span", { className: "activity-label", children: "\uAC00\uC7A5 \uB9CE\uC774 \uC77D\uC740 \uCC45" })] })] })] }) }), _jsxs(Card, { title: "\uC6D4\uBCC4 \uC9C4\uD589\uB960", className: "progress-card", children: [_jsxs("div", { className: "time-range-selector", children: [_jsx("button", { className: `time-btn ${timeRange === 'week' ? 'active' : ''}`, onClick: () => setTimeRange('week'), children: "\uC8FC\uAC04" }), _jsx("button", { className: `time-btn ${timeRange === 'month' ? 'active' : ''}`, onClick: () => setTimeRange('month'), children: "\uC6D4\uAC04" }), _jsx("button", { className: `time-btn ${timeRange === 'year' ? 'active' : ''}`, onClick: () => setTimeRange('year'), children: "\uC5F0\uAC04" })] }), _jsx("div", { className: "progress-chart", children: stats.monthlyProgress.map((month, index) => {
+                                        const maxDays = Math.max(...stats.monthlyProgress.map(m => m.days));
+                                        const percentage = (month.days / maxDays) * 100;
+                                        return (_jsxs("div", { className: "progress-bar-item", children: [_jsx("div", { className: "bar-container", children: _jsx("div", { className: "progress-bar-fill", style: { height: `${percentage}%` } }) }), _jsx("span", { className: "bar-label", children: month.month }), _jsxs("span", { className: "bar-value", children: [month.days, "\uC77C"] })] }, month.month));
+                                    }) })] })] }), _jsx("div", { className: "achievements", children: _jsx(Card, { title: "\uC131\uCDE8 \uBC30\uC9C0", className: "achievements-card", children: _jsxs("div", { className: "badges-grid", children: [_jsxs("div", { className: "badge earned", children: [_jsx("div", { className: "badge-icon", children: "\uD83C\uDFC6" }), _jsx("span", { className: "badge-name", children: "\uCCAB \uC77D\uAE30" }), _jsx("span", { className: "badge-desc", children: "\uCCAB \uC131\uACBD \uC77D\uAE30 \uC644\uB8CC" })] }), _jsxs("div", { className: "badge earned", children: [_jsx("div", { className: "badge-icon", children: "\uD83D\uDD25" }), _jsx("span", { className: "badge-name", children: "\uC5F0\uC18D \uC77D\uAE30" }), _jsx("span", { className: "badge-desc", children: "7\uC77C \uC5F0\uC18D \uC77D\uAE30" })] }), _jsxs("div", { className: "badge earned", children: [_jsx("div", { className: "badge-icon", children: "\uD83D\uDCD6" }), _jsx("span", { className: "badge-name", children: "\uCC45 \uC644\uC8FC" }), _jsx("span", { className: "badge-desc", children: "\uCCAB \uCC45 \uC644\uC8FC" })] }), _jsxs("div", { className: "badge", children: [_jsx("div", { className: "badge-icon", children: "\uD83C\uDFAF" }), _jsx("span", { className: "badge-name", children: "\uB9C8\uB77C\uD1A4" }), _jsx("span", { className: "badge-desc", children: "100\uC77C \uC5F0\uC18D \uC77D\uAE30" })] }), _jsxs("div", { className: "badge", children: [_jsx("div", { className: "badge-icon", children: "\u2B50" }), _jsx("span", { className: "badge-name", children: "\uC644\uBCBD\uC8FC\uC758" }), _jsx("span", { className: "badge-desc", children: "1\uB144 \uC644\uC8FC\uC728 100%" })] }), _jsxs("div", { className: "badge", children: [_jsx("div", { className: "badge-icon", children: "\uD83C\uDF1F" }), _jsx("span", { className: "badge-name", children: "\uC804\uBB38\uAC00" }), _jsx("span", { className: "badge-desc", children: "\uC131\uACBD \uC804\uCCB4 \uC77D\uAE30" })] })] }) }) }), _jsx("div", { className: "goals", children: _jsxs(Card, { title: "\uBAA9\uD45C \uC124\uC815", className: "goals-card", children: [_jsxs("div", { className: "goal-item", children: [_jsxs("div", { className: "goal-header", children: [_jsx("h4", { children: "\uC77C\uC77C \uC77D\uAE30 \uBAA9\uD45C" }), _jsx("span", { className: "goal-status", children: "\uC9C4\uD589 \uC911" })] }), _jsxs("div", { className: "goal-progress", children: [_jsx("div", { className: "goal-bar", children: _jsx("div", { className: "goal-fill", style: { width: '80%' } }) }), _jsx("span", { className: "goal-text", children: "8/10 \uC77C" })] })] }), _jsxs("div", { className: "goal-item", children: [_jsxs("div", { className: "goal-header", children: [_jsx("h4", { children: "\uC6D4\uAC04 \uC644\uC8FC\uC728 \uBAA9\uD45C" }), _jsx("span", { className: "goal-status", children: "\uB2EC\uC131!" })] }), _jsxs("div", { className: "goal-progress", children: [_jsx("div", { className: "goal-bar", children: _jsx("div", { className: "goal-fill", style: { width: '100%' } }) }), _jsx("span", { className: "goal-text", children: "78/75%" })] })] })] }) })] }) }));
+};
+export default Statistics;
+
+import Button from 'src/components/ui/Button';
+import '@testing-library/jest-dom'
+
+import Button from 'src/components/ui/Button';
+import React from 'react'
+
+type Props = {
+  data: number[]
+  width?: number
+  height?: number
+}
+
+export default function SmallChart({ data, width = 120, height = 32 }: Props) {
+  if (!data || data.length === 0) return <svg width={width} height={height} />
+
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * width
+    const y = height - ((v - min) / (max - min || 1)) * height
+    return `${x},${y}`
+  }).join(' ')
+
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+      <polyline fill="none" stroke="#2563eb" strokeWidth={2} points={points} />
+    </svg>
+  )
+}
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx } from "react/jsx-runtime";
+import { createContext, useContext, useState, useEffect } from 'react';
+const AuthContext = createContext(undefined);
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        // 페이지 로드 시 저장된 토큰 확인
+        const savedToken = localStorage.getItem('authToken');
+        const savedUser = localStorage.getItem('user');
+        if (savedToken && savedUser) {
+            try {
+                const userData = JSON.parse(savedUser);
+                setToken(savedToken);
+                setUser(userData);
+            }
+            catch (error) {
+                console.error('Failed to parse saved user data:', error);
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+            }
+        }
+        setLoading(false);
+    }, []);
+    const login = async (email, password) => {
+        try {
+            setLoading(true);
+            // 실제 API 호출
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+            if (!response.ok) {
+                throw new Error('로그인 실패');
+            }
+            const data = await response.json();
+            if (data.success && data.token && data.user) {
+                setToken(data.token);
+                setUser(data.user);
+                // 로컬 스토리지에 저장
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                return true;
+            }
+            return false;
+        }
+        catch (error) {
+            console.error('Login error:', error);
+            // Mock 로그인 (개발용)
+            if (email === 'test@example.com' && password === 'password') {
+                const mockUser = {
+                    id: '1',
+                    email: 'test@example.com',
+                    name: '테스트 사용자',
+                    nickname: '테스터',
+                    isActive: true
+                };
+                const mockToken = 'mock-jwt-token';
+                setToken(mockToken);
+                setUser(mockUser);
+                localStorage.setItem('authToken', mockToken);
+                localStorage.setItem('user', JSON.stringify(mockUser));
+                return true;
+            }
+            return false;
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const register = async (email, password, name, nickname) => {
+        try {
+            setLoading(true);
+            // 실제 API 호출
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    name,
+                    nickname: nickname || name
+                }),
+            });
+            if (!response.ok) {
+                throw new Error('회원가입 실패');
+            }
+            const data = await response.json();
+            if (data.success && data.token && data.user) {
+                setToken(data.token);
+                setUser(data.user);
+                // 로컬 스토리지에 저장
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                return true;
+            }
+            return false;
+        }
+        catch (error) {
+            console.error('Register error:', error);
+            // Mock 회원가입 (개발용)
+            const mockUser = {
+                id: Date.now().toString(),
+                email,
+                name,
+                nickname: nickname || name,
+                isActive: true
+            };
+            const mockToken = 'mock-jwt-token';
+            setToken(mockToken);
+            setUser(mockUser);
+            localStorage.setItem('authToken', mockToken);
+            localStorage.setItem('user', JSON.stringify(mockUser));
+            return true;
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const logout = () => {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+    };
+    const value = {
+        user,
+        token,
+        isLoggedIn: !!user && !!token,
+        login,
+        register,
+        logout,
+        loading
+    };
+    return (_jsx(AuthContext.Provider, { value: value, children: children }));
+};
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+import Button from 'src/components/ui/Button';
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import Card from '../components/Card'
+import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen } from 'lucide-react'
+import './Login.css'
+
+const Login: React.FC = () => {
+  const [isLogin, setIsLogin] = useState(true)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    nickname: ''
+  })
+  const [agreements, setAgreements] = useState({
+    privacy: false,
+    marketing: false,
+    age: false
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  
+  const { login, register } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      let success = false
+      
+      if (isLogin) {
+        success = await login(formData.email, formData.password)
+      } else {
+        success = await register(
+          formData.email, 
+          formData.password, 
+          formData.name, 
+          formData.nickname
+        )
+      }
+
+      if (success) {
+        navigate('/')
+      } else {
+        setError(isLogin ? '로그인에 실패했습니다.' : '회원가입에 실패했습니다.')
+      }
+    } catch (err) {
+      setError('오류가 발생했습니다. 다시 시도해주세요.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const handleAgreementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAgreements(prev => ({
+      ...prev,
+      [e.target.name]: e.target.checked
+    }))
+  }
+
+  const toggleMode = () => {
+    setIsLogin(!isLogin)
+    setError('')
+    setFormData({
+      email: '',
+      password: '',
+      name: '',
+      nickname: ''
+    })
+    setAgreements({
+      privacy: false,
+      marketing: false,
+      age: false
+    })
+  }
+
+  return (
+    <div className="login-page">
+      <div className="login-container">
+        <div className="login-header">
+          <div className="login-header-left">
+            <BookOpen size={24} />
+            <div>
+              <h1>MacChain</h1>
+              <p>성경 읽기와 함께하는 영적 여정</p>
+            </div>
+          </div>
+          <div className="login-nav">
+            <Link to="/">대시보드</Link>
+            <Link to="/reading-plan">읽기 계획</Link>
+            <Link to="/login" className="active">→ 로그인</Link>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+        <Card className="login-card">
+          <div className="login-card-header">
+            <h2>
+              {isLogin ? (
+                <>
+                  <LogIn size={24} />
+                  로그인
+                </>
+              ) : (
+                <>
+                  <UserPlus size={24} />
+                  회원가입
+                </>
+              )}
+            </h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="login-form">
+            {!isLogin && (
+              <>
+                <div className="input-group">
+                  <User size={20} className="input-icon" />
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="이름"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required={!isLogin}
+                    className="form-input"
+                  />
+                </div>
+                
+                <div className="input-group">
+                  <User size={20} className="input-icon" />
+                  <input
+                    type="text"
+                    name="nickname"
+                    placeholder="닉네임 (선택사항)"
+                    value={formData.nickname}
+                    onChange={handleInputChange}
+                    className="form-input"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="input-group">
+              <Mail size={20} className="input-icon" />
+              <input
+                type="email"
+                name="email"
+                placeholder="이메일"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="form-input"
+              />
+            </div>
+
+            <div className="input-group">
+              <Lock size={20} className="input-icon" />
+              <input
+                type="password"
+                name="password"
+                placeholder="비밀번호"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                className="form-input"
+              />
+            </div>
+
+            {!isLogin && (
+              <div className="agreements-section">
+                <div className="agreement-item required">
+                  <label className="agreement-label">
+                    <input
+                      type="checkbox"
+                      name="privacy"
+                      checked={agreements.privacy}
+                      onChange={handleAgreementChange}
+                      required
+                      className="agreement-checkbox"
+                    />
+                    <span className="checkmark"></span>
+                    <span className="agreement-text">
+                      <a href="/privacy" target="_blank" className="agreement-link">
+                        개인정보 처리방침
+                      </a>에 동의합니다 (필수)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="agreement-item">
+                  <label className="agreement-label">
+                    <input
+                      type="checkbox"
+                      name="marketing"
+                      checked={agreements.marketing}
+                      onChange={handleAgreementChange}
+                      className="agreement-checkbox"
+                    />
+                    <span className="checkmark"></span>
+                    <span className="agreement-text">
+                      마케팅 정보 수신에 동의합니다 (선택)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="agreement-item required">
+                  <label className="agreement-label">
+                    <input
+                      type="checkbox"
+                      name="age"
+                      checked={agreements.age}
+                      onChange={handleAgreementChange}
+                      required
+                      className="agreement-checkbox"
+                    />
+                    <span className="checkmark"></span>
+                    <span className="agreement-text">
+                      만 14세 이상입니다 (필수)
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader size={20} className="spinning" />
+                  처리 중...
+                </>
+              ) : (
+                isLogin ? '로그인' : '회원가입'
+              )}
+            </Button>
+          </form>
+
+          <div className="login-footer">
+            <p>
+              {isLogin ? '아직 계정이 없으신가요?' : '이미 계정이 있으신가요?'}
+              <Button type="button" onClick={toggleMode}>
+                {isLogin ? '회원가입' : '로그인'}
+              </Button>
+            </p>
+            
+            <div className="demo-info">
+              <p>데모 계정으로 테스트해보세요:</p>
+              <p>이메일: test@example.com</p>
+              <p>비밀번호: password</p>
+            </div>
+          </div>
+        </Card>
+        </div>
+
+        <div className="login-features">
+          <Button type="button">
+            <h3>AI 성경 분석</h3>
+            <p>읽은 구절에 대한 AI의 깊이 있는 분석을 받아보세요</p>
+          </Button>
+          <Button type="button">
+            <h3>커뮤니티</h3>
+            <p>다른 성도들과 성경 읽기 경험을 공유하세요</p>
+          </Button>
+          <Button type="button">
+            <h3>상세 통계</h3>
+            <p>나의 성경 읽기 여정을 통계로 확인하세요</p>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Login
+
+import Button from 'src/components/ui/Button';
+import React, { useState, useEffect } from 'react'
+import Card from '../components/Card'
+import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight } from 'lucide-react'
+import './ReadingPlan.css'
+
+interface ReadingDay {
+  date: string
+  passages: {
+    book: string
+    chapter: number
+    verse: string
+    completed: boolean
+  }[]
+}
+
+const ReadingPlan: React.FC = () => {
+  const [currentWeek, setCurrentWeek] = useState(0)
+  const [readingData, setReadingData] = useState<ReadingDay[]>([])
+
+  useEffect(() => {
+    // Mock data - 실제로는 API에서 가져올 데이터
+    const mockData: ReadingDay[] = [
+      {
+        date: '2025-01-06',
+        passages: [
+          { book: '창세기', chapter: 1, verse: '1-31', completed: true },
+          { book: '마태복음', chapter: 1, verse: '1-17', completed: true },
+          { book: '에스라', chapter: 1, verse: '1-11', completed: false },
+          { book: '사도행전', chapter: 1, verse: '1-26', completed: false }
+        ]
+      },
+      {
+        date: '2025-01-07',
+        passages: [
+          { book: '창세기', chapter: 2, verse: '1-25', completed: true },
+          { book: '마태복음', chapter: 2, verse: '1-12', completed: true },
+          { book: '에스라', chapter: 2, verse: '1-35', completed: true },
+          { book: '사도행전', chapter: 2, verse: '1-13', completed: false }
+        ]
+      },
+      {
+        date: '2025-01-08',
+        passages: [
+          { book: '창세기', chapter: 3, verse: '1-24', completed: false },
+          { book: '마태복음', chapter: 2, verse: '13-23', completed: false },
+          { book: '에스라', chapter: 2, verse: '36-70', completed: false },
+          { book: '사도행전', chapter: 2, verse: '14-36', completed: false }
+        ]
+      }
+    ]
+    setReadingData(mockData)
+  }, [])
+
+  const togglePassageCompletion = (dayIndex: number, passageIndex: number) => {
+    setReadingData(prev => prev.map((day, dIndex) => 
+      dIndex === dayIndex 
+        ? {
+            ...day,
+            passages: day.passages.map((passage, pIndex) => 
+              pIndex === passageIndex 
+                ? { ...passage, completed: !passage.completed }
+                : passage
+            )
+          }
+        : day
+    ))
+  }
+
+  const getWeekData = () => {
+    const startIndex = currentWeek * 7
+    return readingData.slice(startIndex, startIndex + 7)
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ko-KR', { 
+      month: 'short', 
+      day: 'numeric',
+      weekday: 'short'
+    })
+  }
+
+  const getCompletionRate = () => {
+    const totalPassages = readingData.reduce((acc, day) => acc + day.passages.length, 0)
+    const completedPassages = readingData.reduce((acc, day) => 
+      acc + day.passages.filter(p => p.completed).length, 0
+    )
+    return totalPassages > 0 ? Math.round((completedPassages / totalPassages) * 100) : 0
+  }
+
+  return (
+    <div className="reading-plan">
+      <div className="container">
+        <header className="page-header">
+          <h1>McCheyne 읽기 계획</h1>
+          <p>1년에 성경을 두 번 읽는 체계적인 계획</p>
+        </header>
+
+        <div className="plan-stats">
+          <Card title="진행률" className="stat-card">
+            <div className="completion-rate">
+              <span className="rate-number">{getCompletionRate()}%</span>
+              <div className="progress-circle">
+                <div 
+                  className="progress-fill" 
+                  style={{ 
+                    background: `conic-gradient(#667eea ${getCompletionRate() * 3.6}deg, #e5e7eb 0deg)` 
+                  }}
+                ></div>
+              </div>
+            </div>
+          </Card>
+          
+          <Card title="연속 읽기" className="stat-card">
+            <div className="streak">
+              <span className="streak-number">12일</span>
+              <span className="streak-label">연속으로 읽고 있어요!</span>
+            </div>
+          </Card>
+        </div>
+
+        <div className="week-navigation">
+          <Button
+            onClick={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
+            disabled={currentWeek === 0}>
+            <ArrowLeft size={20} />이전 주
+                      </Button>
+          
+          <span className="week-label">
+            {currentWeek + 1}주차
+          </span>
+          
+          <Button onClick={() => setCurrentWeek(currentWeek + 1)}>다음 주
+                        <ArrowRight size={20} />
+          </Button>
+        </div>
+
+        <div className="reading-days">
+          {getWeekData().map((day, dayIndex) => (
+            <Card
+              key={day.date}
+              title={formatDate(day.date)}
+              icon={<Calendar size={20} />}
+              className="reading-day"
+            >
+              <div className="passages-list">
+                {day.passages.map((passage, passageIndex) => (
+                  <div 
+                    key={passageIndex}
+                    className={`passage-item ${passage.completed ? 'completed' : ''}`}
+                    onClick={() => togglePassageCompletion(dayIndex + currentWeek * 7, passageIndex)}
+                  >
+                    <div className="passage-check">
+                      {passage.completed ? (
+                        <CheckCircle size={20} className="check-icon completed" />
+                      ) : (
+                        <Circle size={20} className="check-icon" />
+                      )}
+                    </div>
+                    <div className="passage-text">
+                      <span className="passage-reference">
+                        {passage.book} {passage.chapter}:{passage.verse}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <div className="plan-info">
+          <Card title="McCheyne 읽기 계획이란?" className="info-card">
+            <p>
+              로버트 머레이 매케인의 읽기 계획으로, 1년에 성경을 두 번 읽을 수 있도록 
+              설계된 체계적인 읽기 계획입니다. 매일 구약 1장, 신약 1장, 시편/잠언 1장씩 읽습니다.
+            </p>
+            <ul>
+              <li>구약: 창세기부터 말라기까지 순서대로</li>
+              <li>신약: 마태복음부터 요한계시록까지 순서대로</li>
+              <li>시편/잠언: 시편 119장과 잠언을 매일 조금씩</li>
+            </ul>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ReadingPlan
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useEffect } from 'react';
+import Card from '../components/Card';
+import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight } from 'lucide-react';
+import './ReadingPlan.css';
+const ReadingPlan = () => {
+    const [currentWeek, setCurrentWeek] = useState(0);
+    const [readingData, setReadingData] = useState([]);
+    useEffect(() => {
+        // Mock data - 실제로는 API에서 가져올 데이터
+        const mockData = [
+            {
+                date: '2025-01-06',
+                passages: [
+                    { book: '창세기', chapter: 1, verse: '1-31', completed: true },
+                    { book: '마태복음', chapter: 1, verse: '1-17', completed: true },
+                    { book: '에스라', chapter: 1, verse: '1-11', completed: false },
+                    { book: '사도행전', chapter: 1, verse: '1-26', completed: false }
+                ]
+            },
+            {
+                date: '2025-01-07',
+                passages: [
+                    { book: '창세기', chapter: 2, verse: '1-25', completed: true },
+                    { book: '마태복음', chapter: 2, verse: '1-12', completed: true },
+                    { book: '에스라', chapter: 2, verse: '1-35', completed: true },
+                    { book: '사도행전', chapter: 2, verse: '1-13', completed: false }
+                ]
+            },
+            {
+                date: '2025-01-08',
+                passages: [
+                    { book: '창세기', chapter: 3, verse: '1-24', completed: false },
+                    { book: '마태복음', chapter: 2, verse: '13-23', completed: false },
+                    { book: '에스라', chapter: 2, verse: '36-70', completed: false },
+                    { book: '사도행전', chapter: 2, verse: '14-36', completed: false }
+                ]
+            }
+        ];
+        setReadingData(mockData);
+    }, []);
+    const togglePassageCompletion = (dayIndex, passageIndex) => {
+        setReadingData(prev => prev.map((day, dIndex) => dIndex === dayIndex
+            ? {
+                ...day,
+                passages: day.passages.map((passage, pIndex) => pIndex === passageIndex
+                    ? { ...passage, completed: !passage.completed }
+                    : passage)
+            }
+            : day));
+    };
+    const getWeekData = () => {
+        const startIndex = currentWeek * 7;
+        return readingData.slice(startIndex, startIndex + 7);
+    };
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR', {
+            month: 'short',
+            day: 'numeric',
+            weekday: 'short'
+        });
+    };
+    const getCompletionRate = () => {
+        const totalPassages = readingData.reduce((acc, day) => acc + day.passages.length, 0);
+        const completedPassages = readingData.reduce((acc, day) => acc + day.passages.filter(p => p.completed).length, 0);
+        return totalPassages > 0 ? Math.round((completedPassages / totalPassages) * 100) : 0;
+    };
+    return (_jsx("div", { className: "reading-plan", children: _jsxs("div", { className: "container", children: [_jsxs("header", { className: "page-header", children: [_jsx("h1", { children: "McCheyne \uC77D\uAE30 \uACC4\uD68D" }), _jsx("p", { children: "1\uB144\uC5D0 \uC131\uACBD\uC744 \uB450 \uBC88 \uC77D\uB294 \uCCB4\uACC4\uC801\uC778 \uACC4\uD68D" })] }), _jsxs("div", { className: "plan-stats", children: [_jsx(Card, { title: "\uC9C4\uD589\uB960", className: "stat-card", children: _jsxs("div", { className: "completion-rate", children: [_jsxs("span", { className: "rate-number", children: [getCompletionRate(), "%"] }), _jsx("div", { className: "progress-circle", children: _jsx("div", { className: "progress-fill", style: {
+                                                background: `conic-gradient(#667eea ${getCompletionRate() * 3.6}deg, #e5e7eb 0deg)`
+                                            } }) })] }) }), _jsx(Card, { title: "\uC5F0\uC18D \uC77D\uAE30", className: "stat-card", children: _jsxs("div", { className: "streak", children: [_jsx("span", { className: "streak-number", children: "12\uC77C" }), _jsx("span", { className: "streak-label", children: "\uC5F0\uC18D\uC73C\uB85C \uC77D\uACE0 \uC788\uC5B4\uC694!" })] }) })] }), _jsxs("div", { className: "week-navigation", children: [_jsxs("button", { onClick: () => setCurrentWeek(Math.max(0, currentWeek - 1)), disabled: currentWeek === 0, className: "nav-btn", children: [_jsx(ArrowLeft, { size: 20 }), "\uC774\uC804 \uC8FC"] }), _jsxs("span", { className: "week-label", children: [currentWeek + 1, "\uC8FC\uCC28"] }), _jsxs("button", { onClick: () => setCurrentWeek(currentWeek + 1), className: "nav-btn", children: ["\uB2E4\uC74C \uC8FC", _jsx(ArrowRight, { size: 20 })] })] }), _jsx("div", { className: "reading-days", children: getWeekData().map((day, dayIndex) => (_jsx(Card, { title: formatDate(day.date), icon: _jsx(Calendar, { size: 20 }), className: "reading-day", children: _jsx("div", { className: "passages-list", children: day.passages.map((passage, passageIndex) => (_jsxs("div", { className: `passage-item ${passage.completed ? 'completed' : ''}`, onClick: () => togglePassageCompletion(dayIndex + currentWeek * 7, passageIndex), children: [_jsx("div", { className: "passage-check", children: passage.completed ? (_jsx(CheckCircle, { size: 20, className: "check-icon completed" })) : (_jsx(Circle, { size: 20, className: "check-icon" })) }), _jsx("div", { className: "passage-text", children: _jsxs("span", { className: "passage-reference", children: [passage.book, " ", passage.chapter, ":", passage.verse] }) })] }, passageIndex))) }) }, day.date))) }), _jsx("div", { className: "plan-info", children: _jsxs(Card, { title: "McCheyne \uC77D\uAE30 \uACC4\uD68D\uC774\uB780?", className: "info-card", children: [_jsx("p", { children: "\uB85C\uBC84\uD2B8 \uBA38\uB808\uC774 \uB9E4\uCF00\uC778\uC758 \uC77D\uAE30 \uACC4\uD68D\uC73C\uB85C, 1\uB144\uC5D0 \uC131\uACBD\uC744 \uB450 \uBC88 \uC77D\uC744 \uC218 \uC788\uB3C4\uB85D \uC124\uACC4\uB41C \uCCB4\uACC4\uC801\uC778 \uC77D\uAE30 \uACC4\uD68D\uC785\uB2C8\uB2E4. \uB9E4\uC77C \uAD6C\uC57D 1\uC7A5, \uC2E0\uC57D 1\uC7A5, \uC2DC\uD3B8/\uC7A0\uC5B8 1\uC7A5\uC529 \uC77D\uC2B5\uB2C8\uB2E4." }), _jsxs("ul", { children: [_jsx("li", { children: "\uAD6C\uC57D: \uCC3D\uC138\uAE30\uBD80\uD130 \uB9D0\uB77C\uAE30\uAE4C\uC9C0 \uC21C\uC11C\uB300\uB85C" }), _jsx("li", { children: "\uC2E0\uC57D: \uB9C8\uD0DC\uBCF5\uC74C\uBD80\uD130 \uC694\uD55C\uACC4\uC2DC\uB85D\uAE4C\uC9C0 \uC21C\uC11C\uB300\uB85C" }), _jsx("li", { children: "\uC2DC\uD3B8/\uC7A0\uC5B8: \uC2DC\uD3B8 119\uC7A5\uACFC \uC7A0\uC5B8\uC744 \uB9E4\uC77C \uC870\uAE08\uC529" })] })] }) })] }) }));
+};
+export default ReadingPlan;
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import Card from '../components/Card';
+import { Brain, Users, Calendar, TrendingUp } from 'lucide-react';
+import { apiService } from '../services/api';
+import './Dashboard.css';
+const Dashboard = () => {
+    const { isLoggedIn } = useAuth();
+    const [todayReading, setTodayReading] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    useEffect(() => {
+        const fetchTodayPlan = async () => {
+            try {
+                setLoading(true);
+                const plan = await apiService.getTodayPlan();
+                setTodayReading(plan);
+            }
+            catch (err) {
+                setError('오늘의 읽기 계획을 불러오는데 실패했습니다.');
+                console.error('Error fetching today plan:', err);
+            }
+            finally {
+                setLoading(false);
+            }
+        };
+        fetchTodayPlan();
+    }, []);
+    const stats = {
+        totalDays: 45,
+        streak: 12,
+        completionRate: 78
+    };
+    return (_jsx("div", { className: "dashboard", children: _jsxs("div", { className: "container", children: [_jsxs("header", { className: "dashboard-header", children: [_jsx("h1", { children: "MacChain \uC131\uACBD \uC77D\uAE30" }), _jsx("p", { children: "\uB9E4\uC77C \uD568\uAED8\uD558\uB294 \uC131\uACBD \uC77D\uAE30 \uC5EC\uD589" })] }), _jsxs("div", { className: "dashboard-grid", children: [_jsx(Card, { title: "\uC624\uB298\uC758 \uC77D\uAE30 \uACC4\uD68D", description: loading ? "로딩 중..." : error ? "오류 발생" : `${todayReading?.date} - McCheyne 읽기 계획`, icon: _jsx(Calendar, { size: 24 }), className: "today-reading", children: loading ? (_jsx("div", { className: "loading", children: "\uC77D\uAE30 \uACC4\uD68D\uC744 \uBD88\uB7EC\uC624\uB294 \uC911..." })) : error ? (_jsx("div", { className: "error", children: error })) : todayReading ? (_jsxs(_Fragment, { children: [_jsx("div", { className: "reading-list", children: todayReading.readings.map((reading) => (_jsxs("div", { className: "reading-item", children: [_jsxs("span", { className: "passage", children: [reading.book, " ", reading.chapter, ":", reading.verseStart, "-", reading.verseEnd] }), _jsx("div", { className: "progress-bar", children: _jsx("div", { className: "progress-fill", style: { width: '0%' } }) })] }, reading.id))) }), _jsx(Link, { to: "/reading-plan", className: "view-all-btn", children: "\uC804\uCCB4 \uACC4\uD68D \uBCF4\uAE30 \u2192" })] })) : (_jsx("div", { className: "no-data", children: "\uC77D\uAE30 \uACC4\uD68D\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4." })) }), _jsxs(Card, { title: "\uC77D\uAE30 \uD1B5\uACC4", description: "\uB098\uC758 \uC131\uACBD \uC77D\uAE30 \uD604\uD669", icon: _jsx(TrendingUp, { size: 24 }), className: "stats-card", children: [_jsxs("div", { className: "stats-grid", children: [_jsxs("div", { className: "stat-item", children: [_jsx("span", { className: "stat-number", children: stats.totalDays }), _jsx("span", { className: "stat-label", children: "\uCD1D \uC77D\uC740 \uB0A0" })] }), _jsxs("div", { className: "stat-item", children: [_jsx("span", { className: "stat-number", children: stats.streak }), _jsx("span", { className: "stat-label", children: "\uC5F0\uC18D \uC77D\uAE30" })] }), _jsxs("div", { className: "stat-item", children: [_jsxs("span", { className: "stat-number", children: [stats.completionRate, "%"] }), _jsx("span", { className: "stat-label", children: "\uC644\uC8FC\uC728" })] })] }), isLoggedIn && (_jsx(Link, { to: "/statistics", className: "view-all-btn", children: "\uC0C1\uC138 \uD1B5\uACC4 \uBCF4\uAE30 \u2192" }))] }), _jsxs(Card, { title: "AI \uC131\uACBD \uBD84\uC11D", description: "AI\uAC00 \uB3C4\uC640\uC8FC\uB294 \uC131\uACBD \uAD6C\uC808 \uBD84\uC11D", icon: _jsx(Brain, { size: 24 }), className: "feature-card", children: [_jsx("p", { children: "\uC77D\uC740 \uAD6C\uC808\uC5D0 \uB300\uD574 AI\uC758 \uB3C4\uC6C0\uC744 \uBC1B\uC544 \uB354 \uAE4A\uC774 \uC774\uD574\uD574\uBCF4\uC138\uC694." }), isLoggedIn ? (_jsx(Link, { to: "/ai-analysis", className: "feature-btn", children: "\uBD84\uC11D \uC2DC\uC791\uD558\uAE30" })) : (_jsx("p", { className: "login-required", children: "\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4" }))] }), _jsxs(Card, { title: "\uCEE4\uBBA4\uB2C8\uD2F0", description: "\uB2E4\uB978 \uC131\uB3C4\uB4E4\uACFC \uC18C\uD1B5\uD558\uBA70 \uC131\uC7A5\uD558\uAE30", icon: _jsx(Users, { size: 24 }), className: "feature-card", children: [_jsx("p", { children: "\uC131\uACBD \uC77D\uAE30 \uACBD\uD5D8\uC744 \uACF5\uC720\uD558\uACE0 \uB2E4\uB978 \uC131\uB3C4\uB4E4\uACFC \uAD50\uC81C\uD558\uC138\uC694." }), isLoggedIn ? (_jsx(Link, { to: "/community", className: "feature-btn", children: "\uCEE4\uBBA4\uB2C8\uD2F0 \uCC38\uC5EC\uD558\uAE30" })) : (_jsx("p", { className: "login-required", children: "\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4" }))] })] }), !isLoggedIn && (_jsxs("div", { className: "login-prompt", children: [_jsx("h3", { children: "\uB354 \uB9CE\uC740 \uAE30\uB2A5\uC744 \uC0AC\uC6A9\uD558\uB824\uBA74 \uB85C\uADF8\uC778\uD558\uC138\uC694" }), _jsx("p", { children: "AI \uBD84\uC11D, \uCEE4\uBBA4\uB2C8\uD2F0, \uC0C1\uC138 \uD1B5\uACC4 \uB4F1\uC758 \uAE30\uB2A5\uC744 \uC774\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4." }), _jsx(Link, { to: "/login", className: "login-btn", children: "\uB85C\uADF8\uC778\uD558\uAE30" })] }))] }) }));
+};
+export default Dashboard;
+
+import Button from 'src/components/ui/Button';
+import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import Card from '../components/Card'
+import { BookOpen, Brain, Users, BarChart3, Calendar, TrendingUp } from 'lucide-react'
+import { apiService, TodayPlanResponse } from '../services/api'
+import './Dashboard.css'
+
+const Dashboard: React.FC = () => {
+  const { isLoggedIn } = useAuth()
+  const [todayReading, setTodayReading] = useState<TodayPlanResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchTodayPlan = async () => {
+      try {
+        setLoading(true)
+        const plan = await apiService.getTodayPlan()
+        setTodayReading(plan)
+      } catch (err) {
+        setError('오늘의 읽기 계획을 불러오는데 실패했습니다.')
+        console.error('Error fetching today plan:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTodayPlan()
+  }, [])
+
+  const stats = {
+    totalDays: 45,
+    streak: 12,
+    completionRate: 78
+  }
+
+  return (
+    <div className="dashboard">
+      <div className="container">
+        <header className="dashboard-header">
+          <h1>MacChain 성경 읽기</h1>
+          <p>매일 함께하는 성경 읽기 여행</p>
+        </header>
+
+        <div className="dashboard-grid">
+          {/* 오늘의 읽기 계획 */}
+          <Card
+            title="오늘의 읽기 계획"
+            description={loading ? "로딩 중..." : error ? "오류 발생" : `${todayReading?.date} - McCheyne 읽기 계획`}
+            icon={<Calendar size={24} />}
+            className="today-reading"
+          >
+            {loading ? (
+              <div className="loading">읽기 계획을 불러오는 중...</div>
+            ) : error ? (
+              <div className="error">{error}</div>
+            ) : todayReading ? (
+              <>
+                <div className="reading-list">
+                  {todayReading.readings.map((reading) => (
+                    <div key={reading.id} className="reading-item">
+                      <span className="passage">
+                        {reading.book} {reading.chapter}:{reading.verseStart}-{reading.verseEnd}
+                      </span>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: '0%' }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Link to="/reading-plan" className="view-all-btn">
+                  전체 계획 보기 →
+                </Link>
+              </>
+            ) : (
+              <div className="no-data">읽기 계획을 찾을 수 없습니다.</div>
+            )}
+          </Card>
+
+          {/* 읽기 통계 */}
+          <Card
+            title="읽기 통계"
+            description="나의 성경 읽기 현황"
+            icon={<TrendingUp size={24} />}
+            className="stats-card"
+          >
+            <div className="stats-grid">
+              <div className="stat-item">
+                <span className="stat-number">{stats.totalDays}</span>
+                <span className="stat-label">총 읽은 날</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">{stats.streak}</span>
+                <span className="stat-label">연속 읽기</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">{stats.completionRate}%</span>
+                <span className="stat-label">완주율</span>
+              </div>
+            </div>
+            {isLoggedIn && (
+              <Link to="/statistics" className="view-all-btn">
+                상세 통계 보기 →
+              </Link>
+            )}
+          </Card>
+
+          {/* 기능 카드들 */}
+          <Card
+            title="AI 성경 분석"
+            description="AI가 도와주는 성경 구절 분석"
+            icon={<Brain size={24} />}
+            className="feature-card"
+          >
+            <p>읽은 구절에 대해 AI의 도움을 받아 더 깊이 이해해보세요.</p>
+            {isLoggedIn ? (
+              <Link to="/ai-analysis" className="feature-btn">
+                분석 시작하기
+              </Link>
+            ) : (
+              <p className="login-required">로그인이 필요합니다</p>
+            )}
+          </Card>
+
+          <Card
+            title="커뮤니티"
+            description="다른 성도들과 소통하며 성장하기"
+            icon={<Users size={24} />}
+            className="feature-card"
+          >
+            <p>성경 읽기 경험을 공유하고 다른 성도들과 교제하세요.</p>
+            {isLoggedIn ? (
+              <Link to="/community" className="feature-btn">
+                커뮤니티 참여하기
+              </Link>
+            ) : (
+              <p className="login-required">로그인이 필요합니다</p>
+            )}
+          </Card>
+        </div>
+
+        {!isLoggedIn && (
+          <div className="login-prompt">
+            <h3>더 많은 기능을 사용하려면 로그인하세요</h3>
+            <p>AI 분석, 커뮤니티, 상세 통계 등의 기능을 이용할 수 있습니다.</p>
+            <Link to="/login" className="login-btn">
+              로그인하기
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default Dashboard
+
+import Button from 'src/components/ui/Button';
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import Card from '../components/Card'
+import { Settings as SettingsIcon, User, Bell, Shield, Mail, Save, Check } from 'lucide-react'
+import './Settings.css'
+
+interface UserSettings {
+  marketingConsent: boolean
+  notificationConsent: boolean
+  privacyConsent: boolean
+}
+
+const Settings: React.FC = () => {
+  const { user, isLoggedIn } = useAuth()
+  const [settings, setSettings] = useState<UserSettings>({
+    marketingConsent: false,
+    notificationConsent: false,
+    privacyConsent: true
+  })
+  const [loading, setLoading] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      // 사용자 설정 로드
+      loadUserSettings()
+    }
+  }, [isLoggedIn, user])
+
+  const loadUserSettings = async () => {
+    try {
+      // 실제로는 API에서 사용자 설정을 가져옴
+      const userSettings = localStorage.getItem('userSettings')
+      if (userSettings) {
+        setSettings(JSON.parse(userSettings))
+      }
+    } catch (error) {
+      console.error('설정 로드 실패:', error)
+    }
+  }
+
+  const handleSettingChange = (key: keyof UserSettings, value: boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }))
+  }
+
+  const handleSave = async () => {
+    setLoading(true)
+    try {
+      // 실제로는 API에 설정 저장
+      localStorage.setItem('userSettings', JSON.stringify(settings))
+      
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (error) {
+      console.error('설정 저장 실패:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="settings-page">
+        <div className="container">
+          <div className="login-required">
+            <h2>로그인이 필요합니다</h2>
+            <p>설정을 변경하려면 먼저 로그인해주세요.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="settings-page">
+      <div className="container">
+        <header className="settings-header">
+          <h1>
+            <SettingsIcon size={28} />
+            설정
+          </h1>
+          <p>계정 및 개인정보 설정을 관리하세요</p>
+        </header>
+
+        <div className="settings-grid">
+          {/* 개인정보 설정 */}
+          <Card title="개인정보 설정" icon={<User size={20} />} className="settings-card">
+            <div className="setting-group">
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h3>개인정보 처리방침 동의</h3>
+                  <p>개인정보 수집 및 이용에 대한 동의입니다.</p>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.privacyConsent}
+                    onChange={(e) => handleSettingChange('privacyConsent', e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
+          </Card>
+
+          {/* 알림 설정 */}
+          <Card title="알림 설정" icon={<Bell size={20} />} className="settings-card">
+            <div className="setting-group">
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h3>읽기 알림</h3>
+                  <p>매일 성경 읽기 시간을 알려드립니다.</p>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.notificationConsent}
+                    onChange={(e) => handleSettingChange('notificationConsent', e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
+          </Card>
+
+          {/* 마케팅 설정 */}
+          <Card title="마케팅 설정" icon={<Mail size={20} />} className="settings-card">
+            <div className="setting-group">
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h3>마케팅 정보 수신</h3>
+                  <p>새로운 기능, 이벤트, 추천 콘텐츠에 대한 정보를 받아보세요.</p>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.marketingConsent}
+                    onChange={(e) => handleSettingChange('marketingConsent', e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
+          </Card>
+
+          {/* 보안 설정 */}
+          <Card title="보안 설정" icon={<Shield size={20} />} className="settings-card">
+            <div className="setting-group">
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h3>계정 보안</h3>
+                  <p>비밀번호 변경 및 보안 설정을 관리하세요.</p>
+                </div>
+                <Button>보안 설정
+                                  </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* 저장 버튼 */}
+        <div className="settings-actions">
+          <Button onClick={handleSave} disabled={loading} className='save-btn '>
+            {loading ? (
+              <>
+                <SettingsIcon size={20} className="spinning" />
+                저장 중...
+              </>
+            ) : saved ? (
+              <>
+                <Check size={20} />
+                저장 완료!
+              </>
+            ) : (
+              <>
+                <Save size={20} />
+                설정 저장
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Settings
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import Card from '../components/Card';
+import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen } from 'lucide-react';
+import './Login.css';
+const Login = () => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        name: '',
+        nickname: ''
+    });
+    const [agreements, setAgreements] = useState({
+        privacy: false,
+        marketing: false,
+        age: false
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const { login, register } = useAuth();
+    const navigate = useNavigate();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+            let success = false;
+            if (isLogin) {
+                success = await login(formData.email, formData.password);
+            }
+            else {
+                success = await register(formData.email, formData.password, formData.name, formData.nickname);
+            }
+            if (success) {
+                navigate('/');
+            }
+            else {
+                setError(isLogin ? '로그인에 실패했습니다.' : '회원가입에 실패했습니다.');
+            }
+        }
+        catch (err) {
+            setError('오류가 발생했습니다. 다시 시도해주세요.');
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const handleInputChange = (e) => {
+        setFormData(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
+    };
+    const handleAgreementChange = (e) => {
+        setAgreements(prev => ({
+            ...prev,
+            [e.target.name]: e.target.checked
+        }));
+    };
+    const toggleMode = () => {
+        setIsLogin(!isLogin);
+        setError('');
+        setFormData({
+            email: '',
+            password: '',
+            name: '',
+            nickname: ''
+        });
+        setAgreements({
+            privacy: false,
+            marketing: false,
+            age: false
+        });
+    };
+    return (_jsx("div", { className: "login-page", children: _jsxs("div", { className: "login-container", children: [_jsxs("div", { className: "login-header", children: [_jsxs("div", { className: "login-header-left", children: [_jsx(BookOpen, { size: 24 }), _jsxs("div", { children: [_jsx("h1", { children: "MacChain" }), _jsx("p", { children: "\uC131\uACBD \uC77D\uAE30\uC640 \uD568\uAED8\uD558\uB294 \uC601\uC801 \uC5EC\uC815" })] })] }), _jsxs("div", { className: "login-nav", children: [_jsx(Link, { to: "/", children: "\uB300\uC2DC\uBCF4\uB4DC" }), _jsx(Link, { to: "/reading-plan", children: "\uC77D\uAE30 \uACC4\uD68D" }), _jsx(Link, { to: "/login", className: "active", children: "\u2192 \uB85C\uADF8\uC778" })] })] }), _jsx("div", { style: { maxWidth: '500px', margin: '0 auto' }, children: _jsxs(Card, { className: "login-card", children: [_jsx("div", { className: "login-card-header", children: _jsx("h2", { children: isLogin ? (_jsxs(_Fragment, { children: [_jsx(LogIn, { size: 24 }), "\uB85C\uADF8\uC778"] })) : (_jsxs(_Fragment, { children: [_jsx(UserPlus, { size: 24 }), "\uD68C\uC6D0\uAC00\uC785"] })) }) }), _jsxs("form", { onSubmit: handleSubmit, className: "login-form", children: [!isLogin && (_jsxs(_Fragment, { children: [_jsxs("div", { className: "input-group", children: [_jsx(User, { size: 20, className: "input-icon" }), _jsx("input", { type: "text", name: "name", placeholder: "\uC774\uB984", value: formData.name, onChange: handleInputChange, required: !isLogin, className: "form-input" })] }), _jsxs("div", { className: "input-group", children: [_jsx(User, { size: 20, className: "input-icon" }), _jsx("input", { type: "text", name: "nickname", placeholder: "\uB2C9\uB124\uC784 (\uC120\uD0DD\uC0AC\uD56D)", value: formData.nickname, onChange: handleInputChange, className: "form-input" })] })] })), _jsxs("div", { className: "input-group", children: [_jsx(Mail, { size: 20, className: "input-icon" }), _jsx("input", { type: "email", name: "email", placeholder: "\uC774\uBA54\uC77C", value: formData.email, onChange: handleInputChange, required: true, className: "form-input" })] }), _jsxs("div", { className: "input-group", children: [_jsx(Lock, { size: 20, className: "input-icon" }), _jsx("input", { type: "password", name: "password", placeholder: "\uBE44\uBC00\uBC88\uD638", value: formData.password, onChange: handleInputChange, required: true, className: "form-input" })] }), !isLogin && (_jsxs("div", { className: "agreements-section", children: [_jsx("div", { className: "agreement-item required", children: _jsxs("label", { className: "agreement-label", children: [_jsx("input", { type: "checkbox", name: "privacy", checked: agreements.privacy, onChange: handleAgreementChange, required: true, className: "agreement-checkbox" }), _jsx("span", { className: "checkmark" }), _jsxs("span", { className: "agreement-text", children: [_jsx("a", { href: "/privacy", target: "_blank", className: "agreement-link", children: "\uAC1C\uC778\uC815\uBCF4 \uCC98\uB9AC\uBC29\uCE68" }), "\uC5D0 \uB3D9\uC758\uD569\uB2C8\uB2E4 (\uD544\uC218)"] })] }) }), _jsx("div", { className: "agreement-item", children: _jsxs("label", { className: "agreement-label", children: [_jsx("input", { type: "checkbox", name: "marketing", checked: agreements.marketing, onChange: handleAgreementChange, className: "agreement-checkbox" }), _jsx("span", { className: "checkmark" }), _jsx("span", { className: "agreement-text", children: "\uB9C8\uCF00\uD305 \uC815\uBCF4 \uC218\uC2E0\uC5D0 \uB3D9\uC758\uD569\uB2C8\uB2E4 (\uC120\uD0DD)" })] }) }), _jsx("div", { className: "agreement-item required", children: _jsxs("label", { className: "agreement-label", children: [_jsx("input", { type: "checkbox", name: "age", checked: agreements.age, onChange: handleAgreementChange, required: true, className: "agreement-checkbox" }), _jsx("span", { className: "checkmark" }), _jsx("span", { className: "agreement-text", children: "\uB9CC 14\uC138 \uC774\uC0C1\uC785\uB2C8\uB2E4 (\uD544\uC218)" })] }) })] })), error && (_jsx("div", { className: "error-message", children: error })), _jsx("button", { type: "submit", disabled: loading, className: "submit-btn", children: loading ? (_jsxs(_Fragment, { children: [_jsx(Loader, { size: 20, className: "spinning" }), "\uCC98\uB9AC \uC911..."] })) : (isLogin ? '로그인' : '회원가입') })] }), _jsxs("div", { className: "login-footer", children: [_jsxs("p", { children: [isLogin ? '아직 계정이 없으신가요?' : '이미 계정이 있으신가요?', _jsx("button", { type: "button", onClick: toggleMode, className: "toggle-btn", children: isLogin ? '회원가입' : '로그인' })] }), _jsxs("div", { className: "demo-info", children: [_jsx("p", { children: "\uB370\uBAA8 \uACC4\uC815\uC73C\uB85C \uD14C\uC2A4\uD2B8\uD574\uBCF4\uC138\uC694:" }), _jsx("p", { children: "\uC774\uBA54\uC77C: test@example.com" }), _jsx("p", { children: "\uBE44\uBC00\uBC88\uD638: password" })] })] })] }) }), _jsxs("div", { className: "login-features", children: [_jsxs("button", { type: "button", className: "feature", children: [_jsx("h3", { children: "AI \uC131\uACBD \uBD84\uC11D" }), _jsx("p", { children: "\uC77D\uC740 \uAD6C\uC808\uC5D0 \uB300\uD55C AI\uC758 \uAE4A\uC774 \uC788\uB294 \uBD84\uC11D\uC744 \uBC1B\uC544\uBCF4\uC138\uC694" })] }), _jsxs("button", { type: "button", className: "feature", children: [_jsx("h3", { children: "\uCEE4\uBBA4\uB2C8\uD2F0" }), _jsx("p", { children: "\uB2E4\uB978 \uC131\uB3C4\uB4E4\uACFC \uC131\uACBD \uC77D\uAE30 \uACBD\uD5D8\uC744 \uACF5\uC720\uD558\uC138\uC694" })] }), _jsxs("button", { type: "button", className: "feature", children: [_jsx("h3", { children: "\uC0C1\uC138 \uD1B5\uACC4" }), _jsx("p", { children: "\uB098\uC758 \uC131\uACBD \uC77D\uAE30 \uC5EC\uC815\uC744 \uD1B5\uACC4\uB85C \uD655\uC778\uD558\uC138\uC694" })] })] })] }) }));
+};
+export default Login;
+
+import Button from 'src/components/ui/Button';
+import React, { useState } from 'react'
+import Card from '../components/Card'
+import { BarChart3, Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star } from 'lucide-react'
+import './Statistics.css'
+
+interface ReadingStats {
+  totalDays: number
+  currentStreak: number
+  longestStreak: number
+  completionRate: number
+  totalChapters: number
+  totalTime: number
+  favoriteBook: string
+  monthlyProgress: { month: string; days: number }[]
+}
+
+const Statistics: React.FC = () => {
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month')
+  
+  const stats: ReadingStats = {
+    totalDays: 156,
+    currentStreak: 12,
+    longestStreak: 45,
+    completionRate: 78,
+    totalChapters: 1247,
+    totalTime: 2340, // minutes
+    favoriteBook: '시편',
+    monthlyProgress: [
+      { month: '1월', days: 28 },
+      { month: '2월', days: 31 },
+      { month: '3월', days: 30 },
+      { month: '4월', days: 25 },
+      { month: '5월', days: 31 },
+      { month: '6월', days: 11 }
+    ]
+  }
+
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    if (hours > 0) {
+      return `${hours}시간 ${mins}분`
+    }
+    return `${mins}분`
+  }
+
+  const getStreakStatus = (streak: number) => {
+    if (streak >= 30) return { level: '🔥', message: '놀라운 열정!' }
+    if (streak >= 14) return { level: '⭐', message: '훌륭한 습관!' }
+    if (streak >= 7) return { level: '💪', message: '잘하고 있어요!' }
+    return { level: '🌱', message: '시작이 좋아요!' }
+  }
+
+  const getCompletionColor = (rate: number) => {
+    if (rate >= 90) return '#10b981'
+    if (rate >= 70) return '#3b82f6'
+    if (rate >= 50) return '#f59e0b'
+    return '#ef4444'
+  }
+
+  return (
+    <div className="statistics">
+      <div className="container">
+        <header className="page-header">
+          <h1>읽기 통계</h1>
+          <p>나의 성경 읽기 여정을 한눈에 보세요</p>
+        </header>
+
+        {/* 핵심 통계 */}
+        <div className="main-stats">
+          <Card title="총 읽은 날" className="stat-card">
+            <div className="stat-content">
+              <Calendar size={32} className="stat-icon" />
+              <span className="stat-number">{stats.totalDays}</span>
+              <span className="stat-label">일</span>
+            </div>
+          </Card>
+
+          <Card title="현재 연속 읽기" className="stat-card">
+            <div className="stat-content">
+              <TrendingUp size={32} className="stat-icon streak" />
+              <span className="stat-number">{stats.currentStreak}</span>
+              <span className="stat-label">일</span>
+              <div className="streak-status">
+                {getStreakStatus(stats.currentStreak).level}
+                <span>{getStreakStatus(stats.currentStreak).message}</span>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="최장 연속 기록" className="stat-card">
+            <div className="stat-content">
+              <Award size={32} className="stat-icon award" />
+              <span className="stat-number">{stats.longestStreak}</span>
+              <span className="stat-label">일</span>
+            </div>
+          </Card>
+
+          <Card title="완주율" className="stat-card">
+            <div className="stat-content">
+              <Target size={32} className="stat-icon" style={{ color: getCompletionColor(stats.completionRate) }} />
+              <span className="stat-number">{stats.completionRate}%</span>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ 
+                    width: `${stats.completionRate}%`,
+                    backgroundColor: getCompletionColor(stats.completionRate)
+                  }}
+                ></div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* 상세 통계 */}
+        <div className="detailed-stats">
+          <Card title="읽기 활동" className="activity-card">
+            <div className="activity-grid">
+              <div className="activity-item">
+                <BookOpen size={24} />
+                <div className="activity-info">
+                  <span className="activity-number">{stats.totalChapters}</span>
+                  <span className="activity-label">총 읽은 장</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <Clock size={24} />
+                <div className="activity-info">
+                  <span className="activity-number">{formatTime(stats.totalTime)}</span>
+                  <span className="activity-label">총 읽기 시간</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <Star size={24} />
+                <div className="activity-info">
+                  <span className="activity-number">{stats.favoriteBook}</span>
+                  <span className="activity-label">가장 많이 읽은 책</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="월별 진행률" className="progress-card">
+            <div className="time-range-selector">
+              <Button variant='ghost' onClick={() => setTimeRange('week')}>주간
+                              </Button>
+              <Button variant='ghost' onClick={() => setTimeRange('month')}>월간
+                              </Button>
+              <Button variant='ghost' onClick={() => setTimeRange('year')}>연간
+                              </Button>
+            </div>
+            
+            <div className="progress-chart">
+              {stats.monthlyProgress.map((month, index) => {
+                const maxDays = Math.max(...stats.monthlyProgress.map(m => m.days))
+                const percentage = (month.days / maxDays) * 100
+                
+                return (
+                  <div key={month.month} className="progress-bar-item">
+                    <div className="bar-container">
+                      <div 
+                        className="progress-bar-fill"
+                        style={{ height: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <span className="bar-label">{month.month}</span>
+                    <span className="bar-value">{month.days}일</span>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        </div>
+
+        {/* 성취 및 목표 */}
+        <div className="achievements">
+          <Card title="성취 배지" className="achievements-card">
+            <div className="badges-grid">
+              <div className="badge earned">
+                <div className="badge-icon">🏆</div>
+                <span className="badge-name">첫 읽기</span>
+                <span className="badge-desc">첫 성경 읽기 완료</span>
+              </div>
+              <div className="badge earned">
+                <div className="badge-icon">🔥</div>
+                <span className="badge-name">연속 읽기</span>
+                <span className="badge-desc">7일 연속 읽기</span>
+              </div>
+              <div className="badge earned">
+                <div className="badge-icon">📖</div>
+                <span className="badge-name">책 완주</span>
+                <span className="badge-desc">첫 책 완주</span>
+              </div>
+              <div className="badge">
+                <div className="badge-icon">🎯</div>
+                <span className="badge-name">마라톤</span>
+                <span className="badge-desc">100일 연속 읽기</span>
+              </div>
+              <div className="badge">
+                <div className="badge-icon">⭐</div>
+                <span className="badge-name">완벽주의</span>
+                <span className="badge-desc">1년 완주율 100%</span>
+              </div>
+              <div className="badge">
+                <div className="badge-icon">🌟</div>
+                <span className="badge-name">전문가</span>
+                <span className="badge-desc">성경 전체 읽기</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* 목표 설정 */}
+        <div className="goals">
+          <Card title="목표 설정" className="goals-card">
+            <div className="goal-item">
+              <div className="goal-header">
+                <h4>일일 읽기 목표</h4>
+                <span className="goal-status">진행 중</span>
+              </div>
+              <div className="goal-progress">
+                <div className="goal-bar">
+                  <div className="goal-fill" style={{ width: '80%' }}></div>
+                </div>
+                <span className="goal-text">8/10 일</span>
+              </div>
+            </div>
+            
+            <div className="goal-item">
+              <div className="goal-header">
+                <h4>월간 완주율 목표</h4>
+                <span className="goal-status">달성!</span>
+              </div>
+              <div className="goal-progress">
+                <div className="goal-bar">
+                  <div className="goal-fill" style={{ width: '100%' }}></div>
+                </div>
+                <span className="goal-text">78/75%</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Statistics
+
+import Button from 'src/components/ui/Button';
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import Card from '../components/Card';
+import { Settings as SettingsIcon, User, Bell, Shield, Mail, Save, Check } from 'lucide-react';
+import './Settings.css';
+const Settings = () => {
+    const { user, isLoggedIn } = useAuth();
+    const [settings, setSettings] = useState({
+        marketingConsent: false,
+        notificationConsent: false,
+        privacyConsent: true
+    });
+    const [loading, setLoading] = useState(false);
+    const [saved, setSaved] = useState(false);
+    useEffect(() => {
+        if (isLoggedIn && user) {
+            // 사용자 설정 로드
+            loadUserSettings();
+        }
+    }, [isLoggedIn, user]);
+    const loadUserSettings = async () => {
+        try {
+            // 실제로는 API에서 사용자 설정을 가져옴
+            const userSettings = localStorage.getItem('userSettings');
+            if (userSettings) {
+                setSettings(JSON.parse(userSettings));
+            }
+        }
+        catch (error) {
+            console.error('설정 로드 실패:', error);
+        }
+    };
+    const handleSettingChange = (key, value) => {
+        setSettings(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            // 실제로는 API에 설정 저장
+            localStorage.setItem('userSettings', JSON.stringify(settings));
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+        }
+        catch (error) {
+            console.error('설정 저장 실패:', error);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    if (!isLoggedIn) {
+        return (_jsx("div", { className: "settings-page", children: _jsx("div", { className: "container", children: _jsxs("div", { className: "login-required", children: [_jsx("h2", { children: "\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4" }), _jsx("p", { children: "\uC124\uC815\uC744 \uBCC0\uACBD\uD558\uB824\uBA74 \uBA3C\uC800 \uB85C\uADF8\uC778\uD574\uC8FC\uC138\uC694." })] }) }) }));
+    }
+    return (_jsx("div", { className: "settings-page", children: _jsxs("div", { className: "container", children: [_jsxs("header", { className: "settings-header", children: [_jsxs("h1", { children: [_jsx(SettingsIcon, { size: 28 }), "\uC124\uC815"] }), _jsx("p", { children: "\uACC4\uC815 \uBC0F \uAC1C\uC778\uC815\uBCF4 \uC124\uC815\uC744 \uAD00\uB9AC\uD558\uC138\uC694" })] }), _jsxs("div", { className: "settings-grid", children: [_jsx(Card, { title: "\uAC1C\uC778\uC815\uBCF4 \uC124\uC815", icon: _jsx(User, { size: 20 }), className: "settings-card", children: _jsx("div", { className: "setting-group", children: _jsxs("div", { className: "setting-item", children: [_jsxs("div", { className: "setting-info", children: [_jsx("h3", { children: "\uAC1C\uC778\uC815\uBCF4 \uCC98\uB9AC\uBC29\uCE68 \uB3D9\uC758" }), _jsx("p", { children: "\uAC1C\uC778\uC815\uBCF4 \uC218\uC9D1 \uBC0F \uC774\uC6A9\uC5D0 \uB300\uD55C \uB3D9\uC758\uC785\uB2C8\uB2E4." })] }), _jsxs("label", { className: "toggle-switch", children: [_jsx("input", { type: "checkbox", checked: settings.privacyConsent, onChange: (e) => handleSettingChange('privacyConsent', e.target.checked) }), _jsx("span", { className: "slider" })] })] }) }) }), _jsx(Card, { title: "\uC54C\uB9BC \uC124\uC815", icon: _jsx(Bell, { size: 20 }), className: "settings-card", children: _jsx("div", { className: "setting-group", children: _jsxs("div", { className: "setting-item", children: [_jsxs("div", { className: "setting-info", children: [_jsx("h3", { children: "\uC77D\uAE30 \uC54C\uB9BC" }), _jsx("p", { children: "\uB9E4\uC77C \uC131\uACBD \uC77D\uAE30 \uC2DC\uAC04\uC744 \uC54C\uB824\uB4DC\uB9BD\uB2C8\uB2E4." })] }), _jsxs("label", { className: "toggle-switch", children: [_jsx("input", { type: "checkbox", checked: settings.notificationConsent, onChange: (e) => handleSettingChange('notificationConsent', e.target.checked) }), _jsx("span", { className: "slider" })] })] }) }) }), _jsx(Card, { title: "\uB9C8\uCF00\uD305 \uC124\uC815", icon: _jsx(Mail, { size: 20 }), className: "settings-card", children: _jsx("div", { className: "setting-group", children: _jsxs("div", { className: "setting-item", children: [_jsxs("div", { className: "setting-info", children: [_jsx("h3", { children: "\uB9C8\uCF00\uD305 \uC815\uBCF4 \uC218\uC2E0" }), _jsx("p", { children: "\uC0C8\uB85C\uC6B4 \uAE30\uB2A5, \uC774\uBCA4\uD2B8, \uCD94\uCC9C \uCF58\uD150\uCE20\uC5D0 \uB300\uD55C \uC815\uBCF4\uB97C \uBC1B\uC544\uBCF4\uC138\uC694." })] }), _jsxs("label", { className: "toggle-switch", children: [_jsx("input", { type: "checkbox", checked: settings.marketingConsent, onChange: (e) => handleSettingChange('marketingConsent', e.target.checked) }), _jsx("span", { className: "slider" })] })] }) }) }), _jsx(Card, { title: "\uBCF4\uC548 \uC124\uC815", icon: _jsx(Shield, { size: 20 }), className: "settings-card", children: _jsx("div", { className: "setting-group", children: _jsxs("div", { className: "setting-item", children: [_jsxs("div", { className: "setting-info", children: [_jsx("h3", { children: "\uACC4\uC815 \uBCF4\uC548" }), _jsx("p", { children: "\uBE44\uBC00\uBC88\uD638 \uBCC0\uACBD \uBC0F \uBCF4\uC548 \uC124\uC815\uC744 \uAD00\uB9AC\uD558\uC138\uC694." })] }), _jsx("button", { className: "security-btn", children: "\uBCF4\uC548 \uC124\uC815" })] }) }) })] }), _jsx("div", { className: "settings-actions", children: _jsx("button", { onClick: handleSave, disabled: loading, className: `save-btn ${saved ? 'saved' : ''}`, children: loading ? (_jsxs(_Fragment, { children: [_jsx(SettingsIcon, { size: 20, className: "spinning" }), "\uC800\uC7A5 \uC911..."] })) : saved ? (_jsxs(_Fragment, { children: [_jsx(Check, { size: 20 }), "\uC800\uC7A5 \uC644\uB8CC!"] })) : (_jsxs(_Fragment, { children: [_jsx(Save, { size: 20 }), "\uC124\uC815 \uC800\uC7A5"] })) }) })] }) }));
+};
+export default Settings;
+
+All done. 
+Results: 
+0 errors
+3 unmodified
+0 skipped
+34 ok
+Time elapsed: 0.809seconds 

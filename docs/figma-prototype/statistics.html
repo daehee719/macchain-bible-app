@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MacChain - Prototype Statistics</title>
+  <link rel="stylesheet" href="../frontend/src/styles/design-tokens.css" />
+  <style>
+    body { font-family: Inter, system-ui, -apple-system; background: var(--color-bg); padding: 16px }
+    .frame { max-width: 375px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 16px }
+    .card { background: var(--color-surface); border-radius: 8px; padding: 12px; margin-bottom: 12px }
+    .chart { height: 80px; background: linear-gradient(90deg,#eef2ff,#fff); border-radius:8px }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <h3>통계</h3>
+    <div class="card">
+      <div>연속 일수: <strong>12</strong></div>
+      <div style="margin-top:8px" class="chart"></div>
+    </div>
+
+    <div class="card">
+      <h4>완독율</h4>
+      <div>45%</div>
+    </div>
+  </div>
+</body>
+</html>

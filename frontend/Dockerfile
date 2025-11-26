@@ -7,8 +7,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (install devDependencies so Tailwind/PostCSS are available for build)
+# We install full deps during the builder stage, then only copy built static assets to the final image.
+RUN npm ci
 
 # Copy source code
 COPY . .

@@ -1,0 +1,20 @@
+:root {
+  /* Colors */
+  --color-bg: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-primary: #2563eb;
+  --color-primary-600: #1d4ed8;
+  --color-muted: #6b7280;
+  --color-border: #e6eef8;
+
+  /* Typography */
+  --font-family-base: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --font-size-base: 16px;
+  --radius-sm: 8px;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+}

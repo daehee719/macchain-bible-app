@@ -1,3 +1,4 @@
+import Button from 'src/components/ui/Button';
 import { jsx as _jsx } from "react/jsx-runtime";
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
