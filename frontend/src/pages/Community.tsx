@@ -145,21 +145,21 @@ const Community: React.FC = () => {
   }
 
   return (
-    <div className="community">
-      <div className="container">
-        <header className="page-header">
-          <h1>성경 읽기 커뮤니티</h1>
-          <p>다른 성도들과 함께 나누는 성경 읽기 경험</p>
+    <div className="community bg-slate-900 min-h-screen py-12">
+      <div className="container max-w-6xl mx-auto px-6">
+        <header className="page-header text-center mb-12 text-white">
+          <h1 className="text-3xl md:text-4xl font-bold drop-shadow">성경 읽기 커뮤니티</h1>
+          <p className="text-base md:text-lg opacity-90">다른 성도들과 함께 나누는 성경 읽기 경험</p>
         </header>
 
-        <div className="create-post">
+        <div className="create-post mb-8">
           <Card title="새 글 작성" icon={<MessageCircle size={24} />}>
-            <div className="post-form">
+            <div className="post-form flex flex-col gap-4">
               <textarea
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
                 placeholder="오늘 읽은 성경 구절에 대한 생각을 공유해보세요..."
-                className="post-input"
+                className="post-input w-full p-4 border-2 border-gray-200 rounded-lg text-sm min-h-[120px] focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                 rows={4}
               />
               <input
@@ -167,7 +167,7 @@ const Community: React.FC = () => {
                 value={selectedPassage}
                 onChange={(e) => setSelectedPassage(e.target.value)}
                 placeholder="관련 성경 구절 (선택사항)"
-                className="passage-input"
+                className="passage-input p-3 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
               <Button onClick={handleCreatePost} disabled={!newPost.trim()} variant="primary">
                 <Send size={16} />
@@ -179,7 +179,7 @@ const Community: React.FC = () => {
 
         <div className="community-stats">
           <Card title="커뮤니티 현황" className="stats-card">
-            <div className="stats-grid">
+            <div className="stats-grid grid grid-cols-3 gap-6">
               <div className="stat">
                 <TrendingUp size={24} />
                 <span className="stat-number">{posts.length}</span>
@@ -204,7 +204,7 @@ const Community: React.FC = () => {
         </div>
 
         <div className="posts-feed">
-          <h2>최신 글</h2>
+          <h2 className="text-white text-2xl md:text-3xl mb-6">최신 글</h2>
           {posts.length === 0 ? (
             <Card className="empty-state">
               <div className="empty-content">
@@ -214,15 +214,15 @@ const Community: React.FC = () => {
               </div>
             </Card>
           ) : (
-            <div className="posts-list">
+            <div className="posts-list grid gap-8">
               {posts.map((post) => (
-                <Card key={post.id} className="post-card">
+                <Card key={post.id} className="post-card bg-white/95 backdrop-blur p-4">
                   <div className="post-header">
-                    <div className="author-info">
-                      <span className="author-avatar">{post.author.avatar}</span>
+                    <div className="author-info flex items-center gap-3">
+                      <span className="author-avatar w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg">{post.author.avatar}</span>
                       <div className="author-details">
-                        <span className="author-name">{post.author.name}</span>
-                        <span className="post-time">{formatTimestamp(post.timestamp)}</span>
+                        <span className="author-name font-semibold text-sm">{post.author.name}</span>
+                        <span className="post-time text-sm text-gray-500">{formatTimestamp(post.timestamp)}</span>
                       </div>
                     </div>
                   </div>
@@ -230,13 +230,13 @@ const Community: React.FC = () => {
                   <div className="post-content">
                     <p>{post.content}</p>
                     {post.passage && (
-                      <div className="passage-reference">
+                      <div className="passage-reference p-3 bg-slate-50 rounded-md border-l-4 border-indigo-500 text-sm text-gray-700 font-medium">
                         📖 {post.passage}
                       </div>
                     )}
                   </div>
 
-                  <div className="post-actions">
+                  <div className="post-actions flex gap-4 border-t pt-4">
                     <Button
                       onClick={() => handleLike(post.id)}
                       variant="ghost"
@@ -269,7 +269,7 @@ const Community: React.FC = () => {
                       </div>
                     ))}
 
-                    <div className="add-comment">
+                    <div className="add-comment flex gap-2 mt-4">
                       <input
                         type="text"
                         value={newComments[post.id] || ''}
@@ -278,7 +278,7 @@ const Community: React.FC = () => {
                           [post.id]: e.target.value 
                         }))}
                         placeholder="댓글을 입력하세요..."
-                        className="comment-input"
+                        className="comment-input flex-1 p-2 border rounded-md"
                       />
                       <Button onClick={() => handleAddComment(post.id)} disabled={!newComments[post.id]?.trim()} variant="secondary" size="sm">
                         <Send size={14} />
