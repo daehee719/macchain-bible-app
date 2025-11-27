@@ -118,7 +118,7 @@ jobs:
     name: 🚀 Deploy Application
     runs-on: ubuntu-latest
     needs: [prepare-deployment, build-images]
-    if: ${{ secrets.DEPLOY_HOST != '' }}
+    if: false  # Cloudflare 배포 사용으로 비활성화
     
     steps:
     - name: 📥 Checkout Code
@@ -171,7 +171,7 @@ jobs:
     name: ✅ Verify Deployment
     runs-on: ubuntu-latest
     needs: [prepare-deployment, deploy-application]
-    if: ${{ secrets.DEPLOY_HOST != '' }}
+    if: false  # Cloudflare 배포 사용으로 비활성화
     
     steps:
     - name: 📥 Checkout Code

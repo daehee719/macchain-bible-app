@@ -4,14 +4,14 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'cloudflare-workers/**'
-      - 'macchain-frontend/**'
+      - 'backend/cloudflare-workers/**'
+      - 'frontend/**'
       - '.github/workflows/cloudflare-deploy.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'cloudflare-workers/**'
-      - 'macchain-frontend/**'
+      - 'backend/cloudflare-workers/**'
+      - 'frontend/**'
   workflow_dispatch:
 
 jobs:
@@ -33,9 +33,9 @@ jobs:
       with:
         filters: |
           workers:
-            - 'cloudflare-workers/**'
+            - 'backend/cloudflare-workers/**'
           frontend:
-            - 'macchain-frontend/**'
+            - 'frontend/**'
 
   deploy-workers:
     name: ⚡ Deploy Workers
@@ -52,21 +52,21 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: cloudflare-workers/package-lock.json
+        cache-dependency-path: backend/cloudflare-workers/package-lock.json
         
     - name: 📦 Install Dependencies
       run: |
-        cd cloudflare-workers
+        cd backend/cloudflare-workers
         npm ci
         
     - name: 🔍 Lint Code
       run: |
-        cd cloudflare-workers
+        cd backend/cloudflare-workers
         npm run lint || echo "Lint skipped"
         
     - name: 🧪 Run Tests
       run: |
-        cd cloudflare-workers
+        cd backend/cloudflare-workers
         npm run test || echo "Tests skipped"
         
     - name: 🚀 Deploy Workers
@@ -75,7 +75,7 @@ jobs:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         command: deploy
-        workingDirectory: cloudflare-workers
+        workingDirectory: backend/cloudflare-workers
         
     - name: 🗄️ Deploy D1 Database
       uses: cloudflare/wrangler-action@v3
@@ -100,30 +100,30 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: macchain-frontend/package-lock.json
+        cache-dependency-path: frontend/package-lock.json
         
     - name: 📦 Install Dependencies
       run: |
-        cd macchain-frontend
+        cd frontend
         npm ci
         
     - name: 🔍 Lint Code
       run: |
-        cd macchain-frontend
+        cd frontend
         npm run lint || echo "Lint skipped"
         
     - name: 🧪 Run Tests
       run: |
-        cd macchain-frontend
+        cd frontend
         npm run test || echo "Tests skipped"
     - name: 🏗️ Build CSS
       run: |
-        cd macchain-frontend
+        cd frontend
         npm run css:build
 
     - name: 🏗️ Build Application
       run: |
-        cd macchain-frontend
+        cd frontend
         npm run build
         
     - name: 🌐 Deploy to Pages
@@ -132,7 +132,7 @@ jobs:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         projectName: macchain-frontend
-        directory: macchain-frontend/dist
+        directory: frontend/dist
         gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   notify:
