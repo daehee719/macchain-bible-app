@@ -2,10 +2,17 @@
  * Health Check API (Worktop 버전)
  */
 
+import { successResponse } from '../utils/response.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('Health');
+
 export function handleHealth(request, response, env) {
-  response.send(200, {
+  logger.request(request);
+  logger.response(200);
+  
+  return successResponse(response, {
     status: 'OK',
-    timestamp: new Date().toISOString(),
     environment: env?.ENVIRONMENT || 'production',
   });
 }

@@ -3,33 +3,21 @@
  * 사용자 통계 및 분석 관련 엔드포인트
  */
 
-import { verifyJWT } from '../utils/jwt.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { successResponse, notFoundResponse, serverErrorResponse } from '../utils/response.js';
+import { createLogger } from '../utils/logger.js';
 
-// 인증 확인 헬퍼
-async function checkAuth(request, env) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { success: false, message: '인증 토큰이 필요합니다.' };
-  }
-
-  const token = authHeader.substring(7);
-  const payload = await verifyJWT(token, env.JWT_SECRET);
-
-  if (!payload) {
-    return { success: false, message: '유효하지 않은 토큰입니다.' };
-  }
-
-  return { success: true, userId: payload.userId };
-}
+const logger = createLogger('Statistics');
 
 export async function getUserStatistics(request, response, env) {
   try {
-    const authResult = await checkAuth(request, env);
-    if (!authResult.success) {
-      return response.send(401, authResult);
-    }
+    logger.request(request);
 
-    const userId = authResult.userId;
+    // 인증 미들웨어
+    const auth = await authMiddleware(request, response, env);
+    if (!auth) return;
+
+    const userId = auth.userId;
 
     // 사용자 기본 통계
     const userStats = await env.DB.prepare(`
@@ -46,10 +34,8 @@ export async function getUserStatistics(request, response, env) {
     `).bind(userId).first();
 
     if (!userStats) {
-      return response.send(404, {
-        success: false,
-        message: '사용자 통계를 찾을 수 없습니다.',
-      });
+      logger.warn('User statistics not found', { userId });
+      return notFoundResponse(response, '사용자 통계를 찾을 수 없습니다.');
     }
 
     // 월별 읽기 통계
@@ -76,8 +62,10 @@ export async function getUserStatistics(request, response, env) {
       ORDER BY chapters_completed DESC
     `).bind(userId).all();
 
-    return response.send(200, {
-      success: true,
+    logger.info('User statistics retrieved', { userId });
+    logger.response(200, { userId });
+
+    return successResponse(response, {
       statistics: {
         totalDaysRead: userStats.total_days_read,
         currentStreak: userStats.current_streak,
@@ -90,11 +78,8 @@ export async function getUserStatistics(request, response, env) {
       },
     });
   } catch (error) {
-    console.error('Get user statistics error:', error);
-    return response.send(500, {
-      success: false,
-      message: '통계 조회 중 오류가 발생했습니다.',
-    });
+    logger.errorWithContext('Get user statistics error', error, { path: request.url.pathname });
+    return serverErrorResponse(response, '통계 조회 중 오류가 발생했습니다.');
   }
 }
 

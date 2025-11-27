@@ -3,27 +3,17 @@
  * McCheyne 읽기 계획 관련 엔드포인트
  */
 
-import { verifyJWT } from '../utils/jwt.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { successResponse, errorResponse, notFoundResponse, serverErrorResponse } from '../utils/response.js';
+import { validate } from '../utils/validator.js';
+import { createLogger } from '../utils/logger.js';
 
-// 인증 확인 헬퍼
-async function checkAuth(request, env) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { success: false, message: '인증 토큰이 필요합니다.' };
-  }
-
-  const token = authHeader.substring(7);
-  const payload = await verifyJWT(token, env.JWT_SECRET);
-
-  if (!payload) {
-    return { success: false, message: '유효하지 않은 토큰입니다.' };
-  }
-
-  return { success: true, userId: payload.userId };
-}
+const logger = createLogger('ReadingPlan');
 
 export async function getTodayPlan(request, response, env) {
   try {
+    logger.request(request);
+
     // 테스트를 위해 2025-01-01로 고정 (실제로는 오늘 날짜 사용)
     const today = '2025-01-01'; // new Date().toISOString().split('T')[0];
     
@@ -59,26 +49,39 @@ export async function getTodayPlan(request, response, env) {
         { id: 3, book: plan.reading3_book, chapter: plan.reading3_chapter, verseStart: plan.reading3_verse_start, verseEnd: plan.reading3_verse_end },
         { id: 4, book: plan.reading4_book, chapter: plan.reading4_chapter, verseStart: plan.reading4_verse_start, verseEnd: plan.reading4_verse_end },
       ];
-      return response.send(200, { success: true, date: plan.date, readings });
+      logger.info('Today plan retrieved', { date: plan.date });
+      logger.response(200);
+      return successResponse(response, { date: plan.date, readings });
     } else {
-      return response.send(404, { success: false, message: '오늘의 읽기 계획을 찾을 수 없습니다.' });
+      logger.warn('Today plan not found', { date: today });
+      return notFoundResponse(response, '오늘의 읽기 계획을 찾을 수 없습니다.');
     }
   } catch (error) {
-    console.error('Error fetching today\'s plan:', error);
-    return response.send(500, { success: false, message: '서버 오류가 발생했습니다.' });
+    logger.errorWithContext('Error fetching today\'s plan', error, { path: request.url.pathname });
+    return serverErrorResponse(response, '서버 오류가 발생했습니다.');
   }
 }
 
 export async function getPlanProgress(request, response, env) {
   try {
-    // 인증 확인
-    const authResult = await checkAuth(request, env);
-    if (!authResult.success) {
-      return response.send(401, authResult);
-    }
+    logger.request(request);
 
-    const userId = authResult.userId;
+    // 인증 미들웨어
+    const auth = await authMiddleware(request, response, env);
+    if (!auth) return;
+
+    const userId = auth.userId;
     const date = request.params.date;
+
+    // 날짜 형식 검증
+    const dateValidation = validate({ date })
+      .pattern('date', /^\d{4}-\d{2}-\d{2}$/, '날짜 형식이 올바르지 않습니다. (YYYY-MM-DD)')
+      .validate();
+
+    if (!dateValidation.isValid) {
+      logger.warn('Get plan progress validation failed', { errors: dateValidation.getErrors(), userId, date });
+      return errorResponse(response, 'INVALID_DATE', dateValidation.getFirstError().message, 400);
+    }
 
     // 해당 날짜의 읽기 진행률 조회
     const progress = await env.DB.prepare(`
@@ -92,39 +95,44 @@ export async function getPlanProgress(request, response, env) {
       ORDER BY reading_id
     `).bind(userId, date).all();
 
-    return response.send(200, {
-      success: true,
+    logger.info('Plan progress retrieved', { userId, date });
+    logger.response(200, { userId, date });
+
+    return successResponse(response, {
       date,
       progress: progress.results || [],
     });
   } catch (error) {
-    console.error('Error fetching plan progress:', error);
-    return response.send(500, {
-      success: false,
-      message: '진행률 조회 중 오류가 발생했습니다.',
-    });
+    logger.errorWithContext('Error fetching plan progress', error, { path: request.url.pathname });
+    return serverErrorResponse(response, '진행률 조회 중 오류가 발생했습니다.');
   }
 }
 
 export async function updatePlanProgress(request, response, env) {
   try {
-    // 인증 확인
-    const authResult = await checkAuth(request, env);
-    if (!authResult.success) {
-      return response.send(401, authResult);
-    }
+    logger.request(request);
 
-    const userId = authResult.userId;
+    // 인증 미들웨어
+    const auth = await authMiddleware(request, response, env);
+    if (!auth) return;
+
+    const userId = auth.userId;
     const date = request.params.date;
     const body = await request.body.json();
-    const { readingId, isCompleted } = body;
 
-    if (readingId === undefined || isCompleted === undefined) {
-      return response.send(400, {
-        success: false,
-        message: 'readingId와 isCompleted가 필요합니다.',
-      });
+    // 데이터 검증
+    const validation = validate(body)
+      .required('readingId', 'readingId가 필요합니다.')
+      .range('readingId', 1, 4, 'readingId는 1-4 사이의 값이어야 합니다.')
+      .required('isCompleted', 'isCompleted가 필요합니다.')
+      .validate();
+
+    if (!validation.isValid) {
+      logger.warn('Update plan progress validation failed', { errors: validation.getErrors(), userId, date });
+      return errorResponse(response, 'VALIDATION_ERROR', validation.getFirstError().message, 400);
     }
+
+    const { readingId, isCompleted } = body;
 
     // 진행률 업데이트 또는 생성
     await env.DB.prepare(`
@@ -155,16 +163,13 @@ export async function updatePlanProgress(request, response, env) {
       `).bind(userId, date, userId).run();
     }
 
-    return response.send(200, {
-      success: true,
-      message: '진행률이 업데이트되었습니다.',
-    });
+    logger.info('Plan progress updated', { userId, date, readingId, isCompleted });
+    logger.response(200, { userId, date });
+
+    return successResponse(response, null, '진행률이 업데이트되었습니다.');
   } catch (error) {
-    console.error('Error updating plan progress:', error);
-    return response.send(500, {
-      success: false,
-      message: '진행률 업데이트 중 오류가 발생했습니다.',
-    });
+    logger.errorWithContext('Error updating plan progress', error, { path: request.url.pathname });
+    return serverErrorResponse(response, '진행률 업데이트 중 오류가 발생했습니다.');
   }
 }
 

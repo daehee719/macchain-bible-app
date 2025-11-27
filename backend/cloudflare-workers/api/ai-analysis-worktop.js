@@ -3,17 +3,30 @@
  * Cloudflare AI 모델을 활용한 성경 구절 분석
  */
 
+import { successResponse, errorResponse, validationErrorResponse, serverErrorResponse } from '../utils/response.js';
+import { validate } from '../utils/validator.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('AIAnalysis');
+
 export async function handleAIAnalysis(request, response, env) {
   try {
+    logger.request(request);
+
     const body = await request.body.json();
-    const { passage, analysisType = 'general' } = body;
     
-    if (!passage) {
-      return response.send(400, {
-        success: false,
-        error: '성경 구절이 필요합니다.',
-      });
+    // 데이터 검증
+    const validation = validate(body)
+      .required('passage', '성경 구절이 필요합니다.')
+      .minLength('passage', 1, '성경 구절을 입력해주세요.')
+      .validate();
+
+    if (!validation.isValid) {
+      logger.warn('AI analysis validation failed', { errors: validation.getErrors() });
+      return validationErrorResponse(response, validation.getFirstError().message);
     }
+
+    const { passage, analysisType = 'general' } = body;
 
     // AI 모델 선택
     let modelId;
@@ -51,22 +64,17 @@ export async function handleAIAnalysis(request, response, env) {
 
     const analysis = aiResponse.response || aiResponse;
 
-    return response.send(200, {
-      success: true,
-      data: {
-        passage,
-        analysisType,
-        analysis,
-        timestamp: new Date().toISOString(),
-      },
+    logger.info('AI analysis completed', { analysisType, passageLength: passage.length });
+    logger.response(200);
+
+    return successResponse(response, {
+      passage,
+      analysisType,
+      analysis,
     });
   } catch (error) {
-    console.error('AI Analysis error:', error);
-    return response.send(500, {
-      success: false,
-      error: 'AI 분석 중 오류가 발생했습니다.',
-      message: error.message,
-    });
+    logger.errorWithContext('AI Analysis error', error, { path: request.url.pathname });
+    return serverErrorResponse(response, 'AI 분석 중 오류가 발생했습니다.');
   }
 }
 

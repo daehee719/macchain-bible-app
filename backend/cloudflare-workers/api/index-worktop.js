@@ -11,6 +11,9 @@ import { getTodayPlan, getPlanProgress, updatePlanProgress } from './reading-pla
 import { getUserStatistics } from './statistics-worktop.js';
 import { handleAIAnalysis } from './ai-analysis-worktop.js';
 import { getConsent, updateConsent } from './consent-worktop.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('Router');
 
 const API = new Router();
 
@@ -182,11 +185,16 @@ API.add('POST', '/api/consent', async (request, response) => {
 
 // Error Handler
 API.onerror = (request, response, error) => {
-  console.error('API Error:', error);
+  logger.errorWithContext('API Error', error, {
+    method: request.method,
+    path: request.url.pathname,
+  });
   addCORS(response, request);
   response.send(500, {
-    error: 'Internal Server Error',
+    success: false,
+    error: 'INTERNAL_SERVER_ERROR',
     message: error.message,
+    timestamp: new Date().toISOString(),
   });
 };
 
