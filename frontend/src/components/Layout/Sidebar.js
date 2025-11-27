@@ -1,11 +1,12 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { NavLink } from 'react-router-dom';
-import { Home, BookOpen, Brain, Users, BarChart3, Settings } from 'lucide-react';
+import { Home, BookOpen, Brain, Users, MessageSquare, BarChart3, Settings } from 'lucide-react';
 const routes = [
     { to: '/', label: '대시보드', icon: _jsx(Home, { size: 18 }) },
     { to: '/reading-plan', label: '읽기 계획', icon: _jsx(BookOpen, { size: 18 }) },
     { to: '/ai-analysis', label: 'AI 분석', icon: _jsx(Brain, { size: 18 }) },
     { to: '/community', label: '커뮤니티', icon: _jsx(Users, { size: 18 }) },
+    { to: '/discussions', label: '토론', icon: _jsx(MessageSquare, { size: 18 }) },
     { to: '/statistics', label: '통계', icon: _jsx(BarChart3, { size: 18 }) },
     { to: '/settings', label: '설정', icon: _jsx(Settings, { size: 18 }) },
 ];
