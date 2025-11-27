@@ -1,4 +1,3 @@
-import Button from 'src/components/ui/Button';
 import React from 'react'
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -19,8 +18,8 @@ export default function Button({ variant = 'primary', size = 'md', children, cla
   const classes = `${variantCls} ${sizeCls} rounded-md inline-flex items-center gap-2 ${className}`.trim()
 
   return (
-    <Button disabled={disabled}>
+    <button className={classes} disabled={disabled} {...rest}>
       {children}
-    </Button>
+    </button>
   );
 }
