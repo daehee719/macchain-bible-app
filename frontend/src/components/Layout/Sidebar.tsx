@@ -1,12 +1,13 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { Home, BookOpen, Brain, Users, BarChart3, Settings } from 'lucide-react'
+import { Home, BookOpen, Brain, Users, MessageSquare, BarChart3, Settings } from 'lucide-react'
 
 const routes = [
   { to: '/', label: '대시보드', icon: <Home size={18} /> },
   { to: '/reading-plan', label: '읽기 계획', icon: <BookOpen size={18} /> },
   { to: '/ai-analysis', label: 'AI 분석', icon: <Brain size={18} /> },
   { to: '/community', label: '커뮤니티', icon: <Users size={18} /> },
+  { to: '/discussions', label: '토론', icon: <MessageSquare size={18} /> },
   { to: '/statistics', label: '통계', icon: <BarChart3 size={18} /> },
   { to: '/settings', label: '설정', icon: <Settings size={18} /> },
 ]

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import ReadingPlan from './pages/ReadingPlan_v2'
 import AIAnalysis from './pages/AIAnalysis_v2'
 import Community from './pages/Community_v2'
+import Discussion from './pages/Discussion_v2'
 import Statistics from './pages/Statistics_v2'
 import Settings from './pages/Settings_v2'
 import Login from './pages/Login_v2'
@@ -34,6 +35,8 @@ function App() {
                 <Community />
               </ProtectedRoute>
             } />
+            <Route path="/discussions" element={<Discussion />} />
+            <Route path="/discussions/:id" element={<Discussion />} />
             <Route path="/statistics" element={
               <ProtectedRoute>
                 <Statistics />
