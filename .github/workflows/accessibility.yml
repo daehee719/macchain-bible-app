@@ -1,0 +1,31 @@
+name: Accessibility Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  accessibility:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      - name: Run accessibility scan (pa11y)
+        run: npm run ci:accessibility
+        working-directory: ./frontend
+
+      - name: Run Lighthouse CI
+        run: npm run ci:lighthouse
+        working-directory: ./frontend

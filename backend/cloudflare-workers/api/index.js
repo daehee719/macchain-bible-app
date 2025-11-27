@@ -9,6 +9,7 @@ import { handleAuth } from './auth.js';
 import { handleStatistics } from './statistics.js';
 import { handleHealth } from './health.js';
 import { handleConsent } from './consent.js';
+import { handleAIAnalysis } from './ai-analysis.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -46,7 +47,9 @@ export default {
             '/api/auth/register',
             '/api/users/profile',
             '/api/mccheyne/today',
+            '/api/mccheyne/{date}/progress',
             '/api/statistics/user',
+            '/api/ai/analyze',
             '/api/consent'
           ]
         }), { 
@@ -65,6 +68,8 @@ export default {
         response = await handleStatistics(request, env);
       } else if (path.startsWith('/api/consent')) {
         response = await handleConsent(request, env);
+      } else if (path.startsWith('/api/ai')) {
+        response = await handleAIAnalysis(request, env, ctx);
       } else {
         response = new Response(JSON.stringify({ 
           error: 'Not Found',
@@ -75,7 +80,9 @@ export default {
             '/api/auth/register',
             '/api/users/profile',
             '/api/mccheyne/today',
+            '/api/mccheyne/{date}/progress',
             '/api/statistics/user',
+            '/api/ai/analyze',
             '/api/consent'
           ]
         }), { 

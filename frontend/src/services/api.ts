@@ -84,6 +84,37 @@ class ApiService {
       },
     });
   }
+
+  // 읽기 진행률 조회
+  async getReadingProgress(token: string, date: string) {
+    return this.request(`/api/mccheyne/${date}/progress`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  // 읽기 진행률 업데이트
+  async updateReadingProgress(token: string, date: string, readingId: number, isCompleted: boolean) {
+    return this.request(`/api/mccheyne/${date}/progress`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ readingId, isCompleted }),
+    });
+  }
+
+  // AI 분석
+  async analyzePassage(token: string, passage: string, analysisType: string = 'general') {
+    return this.request('/api/ai/analyze', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ passage, analysisType }),
+    });
+  }
 }
 
 export const apiService = new ApiService();

@@ -7,9 +7,13 @@ export async function handleReadingPlan(request, env) {
 
   if (path === '/api/mccheyne/today' && method === 'GET') {
     return await getTodayPlan(env);
-  } else if (path.startsWith('/api/mccheyne/') && path.endsWith('/progress') && method === 'GET') {
+  } else if (path.startsWith('/api/mccheyne/') && path.endsWith('/progress')) {
     const date = path.split('/')[3];
-    return await getPlanProgress(date, env);
+    if (method === 'GET') {
+      return await getPlanProgress(request, date, env);
+    } else if (method === 'PUT' || method === 'POST') {
+      return await updatePlanProgress(request, date, env);
+    }
   }
 
   return new Response('Not Found', { status: 404 });
@@ -71,10 +75,135 @@ async function getTodayPlan(env) {
   }
 }
 
-async function getPlanProgress(date, env) {
-  // TODO: 사용자별 읽기 진행률 조회 로직 구현
-  return new Response(JSON.stringify({ date, progress: 'Not Implemented' }), {
-    headers: { 'Content-Type': 'application/json' },
-    status: 200,
-  });
+async function checkAuth(request, env) {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { success: false, message: '인증 토큰이 필요합니다.' };
+  }
+
+  const token = authHeader.substring(7);
+  const payload = await verifyJWT(token, env.JWT_SECRET);
+
+  if (!payload) {
+    return { success: false, message: '유효하지 않은 토큰입니다.' };
+  }
+
+  return { success: true, userId: payload.userId };
+}
+
+async function getPlanProgress(request, date, env) {
+  try {
+    // 인증 확인
+    const authResult = await checkAuth(request, env);
+    if (!authResult.success) {
+      return new Response(JSON.stringify(authResult), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const userId = authResult.userId;
+
+    // 해당 날짜의 읽기 진행률 조회
+    const progress = await env.DB.prepare(`
+      SELECT 
+        plan_date,
+        reading_id,
+        is_completed,
+        completed_at
+      FROM reading_progress
+      WHERE user_id = ? AND plan_date = ?
+      ORDER BY reading_id
+    `).bind(userId, date).all();
+
+    return new Response(JSON.stringify({
+      success: true,
+      date,
+      progress: progress.results || []
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Error fetching plan progress:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      message: '진행률 조회 중 오류가 발생했습니다.'
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500,
+    });
+  }
+}
+
+async function updatePlanProgress(request, date, env) {
+  try {
+    // 인증 확인
+    const authResult = await checkAuth(request, env);
+    if (!authResult.success) {
+      return new Response(JSON.stringify(authResult), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const userId = authResult.userId;
+    const { readingId, isCompleted } = await request.json();
+
+    if (readingId === undefined || isCompleted === undefined) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'readingId와 isCompleted가 필요합니다.'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 진행률 업데이트 또는 생성
+    await env.DB.prepare(`
+      INSERT OR REPLACE INTO reading_progress 
+      (user_id, plan_date, reading_id, is_completed, completed_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `).bind(
+      userId,
+      date,
+      readingId,
+      isCompleted ? 1 : 0,
+      isCompleted ? new Date().toISOString() : null
+    ).run();
+
+    // 사용자 진행률 통계 업데이트
+    if (isCompleted) {
+      await env.DB.prepare(`
+        UPDATE user_progress
+        SET 
+          total_days_read = (
+            SELECT COUNT(DISTINCT plan_date)
+            FROM reading_progress
+            WHERE user_id = ? AND is_completed = 1
+          ),
+          last_read_date = ?,
+          updated_at = datetime('now')
+        WHERE user_id = ?
+      `).bind(userId, date, userId).run();
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: '진행률이 업데이트되었습니다.'
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Error updating plan progress:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      message: '진행률 업데이트 중 오류가 발생했습니다.'
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500,
+    });
+  }
 }
