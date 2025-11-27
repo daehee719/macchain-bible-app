@@ -1,5 +1,5 @@
-import Button from 'src/components/ui/Button';
 import React from 'react'
+import Button from './Button'
 
 type Props = {
   title?: string
