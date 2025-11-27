@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacChain API 아키텍처 시각화</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feature-card h3 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .directory-tree {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .directory-tree .file {
+            color: #3498db;
+        }
+        .directory-tree .dir {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏗️ MacChain API 아키텍처 시각화</h1>
+
+    <div class="info-box">
+        <strong>📌 개요:</strong> MacChain Bible App의 Cloudflare Workers 기반 API 서버 아키텍처를 시각화한 문서입니다.
+    </div>
+
+    <h2>📐 전체 아키텍처</h2>
+    
+    <h3>간단한 구조도</h3>
+    <div class="mermaid">
+        graph LR
+            A[Client] -->|HTTP Request| B[Cloudflare Workers]
+            B --> C[Router]
+            C --> D[Middleware]
+            D --> E[Handler]
+            E --> F[Utils]
+            E --> G[Database]
+            E --> H[AI]
+            F --> I[Response]
+            I -->|HTTP Response| A
+    </div>
+
+    <h3>상세 레이어 구조</h3>
+    <div class="mermaid">
+        graph TD
+            A[Client Request] --> B[Entry Point<br/>fetch handler]
+            B --> C[Router<br/>Worktop]
+            
+            C -->|Public| D1[Health Handler]
+            C -->|Protected| D2[Auth Middleware]
+            
+            D2 -->|Valid| E[API Handlers]
+            D2 -->|Invalid| F[401 Response]
+            
+            E --> G[Validator]
+            E --> H[Logger]
+            E --> I[Database]
+            E --> J[AI Service]
+            
+            G --> K[Response Wrapper]
+            H --> K
+            I --> K
+            J --> K
+            
+            K --> L[Client Response]
+            F --> L
+            D1 --> L
+    </div>
+
+    <h3>레이어별 구성 요소</h3>
+    <div class="mermaid">
+        graph TB
+            subgraph L1["1️⃣ Entry Layer"]
+                E1[fetch handler]
+            end
+            
+            subgraph L2["2️⃣ Router Layer"]
+                R1[Worktop Router]
+                R2[Route Matching]
+            end
+            
+            subgraph L3["3️⃣ Middleware Layer"]
+                M1[Auth Middleware]
+            end
+            
+            subgraph L4["4️⃣ Handler Layer"]
+                H1[Auth API]
+                H2[Users API]
+                H3[Reading Plan API]
+                H4[Statistics API]
+                H5[AI Analysis API]
+                H6[Consent API]
+            end
+            
+            subgraph L5["5️⃣ Utility Layer"]
+                U1[Validator]
+                U2[Response Wrapper]
+                U3[Logger]
+                U4[JWT Utils]
+                U5[Password Utils]
+            end
+            
+            subgraph L6["6️⃣ Data Layer"]
+                D1[D1 Database]
+                D2[Cloudflare AI]
+            end
+            
+            L1 --> L2
+            L2 --> L3
+            L3 --> L4
+            L4 --> L5
+            L4 --> L6
+            L5 --> L1
+    </div>
+
+    <h2>🔄 요청 처리 흐름</h2>
+    
+    <h3>단계별 흐름</h3>
+    <div class="mermaid">
+        flowchart TD
+            Start([Client Request]) --> Step1[1. Entry Point<br/>HTTP 요청 수신]
+            Step1 --> Step2[2. Router<br/>경로 매칭]
+            
+            Step2 -->|Public| Step3A[3A. Public Handler<br/>Health Check]
+            Step2 -->|Protected| Step3B[3B. Auth Check<br/>JWT 검증]
+            
+            Step3B -->|실패| Error1[401 Unauthorized]
+            Step3B -->|성공| Step4[4. Handler 실행]
+            Step3A --> Step4
+            
+            Step4 --> Step5[5. 데이터 검증]
+            Step5 -->|실패| Error2[400 Validation Error]
+            Step5 -->|성공| Step6[6. 비즈니스 로직]
+            
+            Step6 --> Step7[7. Database/AI 호출]
+            Step7 --> Step8[8. 응답 생성]
+            Step8 --> Step9[9. 로깅]
+            Step9 --> End([Client Response])
+            
+            Error1 --> End
+            Error2 --> End
+    </div>
+
+    <h3>시퀀스 다이어그램</h3>
+    <div class="mermaid">
+        sequenceDiagram
+            participant C as Client
+            participant R as Router
+            participant M as Middleware
+            participant H as Handler
+            participant D as Database
+            participant Res as Response
+
+            C->>R: HTTP Request
+            R->>M: Check Auth (if needed)
+            M->>H: Continue
+            H->>H: Validate Data
+            H->>D: Query
+            D->>H: Result
+            H->>Res: Format Response
+            Res->>C: HTTP Response
+    </div>
+
+    <h2>📁 디렉토리 구조</h2>
+    <div class="directory-tree">
+backend/cloudflare-workers/
+│
+├── <span class="dir">api/</span>                          # API 핸들러 레이어
+│   ├── <span class="file">index-worktop.js</span>          # 메인 라우터 (Worktop)
+│   ├── <span class="file">auth-worktop.js</span>           # 인증 API
+│   ├── <span class="file">users-worktop.js</span>          # 사용자 관리 API
+│   ├── <span class="file">reading-plan-worktop.js</span>   # 읽기 계획 API
+│   ├── <span class="file">statistics-worktop.js</span>     # 통계 API
+│   ├── <span class="file">ai-analysis-worktop.js</span>    # AI 분석 API
+│   ├── <span class="file">consent-worktop.js</span>        # 동의 관리 API
+│   └── <span class="file">health-worktop.js</span>         # 헬스체크 API
+│
+├── <span class="dir">middleware/</span>                    # 미들웨어 레이어
+│   └── <span class="file">auth.js</span>                   # 인증 미들웨어
+│       ├── authMiddleware()      # 필수 인증
+│       └── optionalAuthMiddleware() # 선택적 인증
+│
+├── <span class="dir">utils/</span>                         # 유틸리티 레이어
+│   ├── <span class="file">jwt.js</span>                    # JWT 토큰 관리
+│   ├── <span class="file">password.js</span>               # 비밀번호 해시화
+│   ├── <span class="file">logger.js</span>                 # 구조화된 로깅
+│   ├── <span class="file">response.js</span>               # 표준화된 응답 래퍼
+│   └── <span class="file">validator.js</span>              # 데이터 검증
+│
+└── <span class="dir">database/</span>                      # 데이터베이스 레이어
+    ├── <span class="file">schema.sql</span>                 # D1 스키마
+    └── <span class="file">sample-data.sql</span>           # 샘플 데이터
+    </div>
+
+    <h2>🧩 핵심 컴포넌트</h2>
+    <div class="feature-list">
+        <div class="feature-card">
+            <h3>🔐 인증 미들웨어</h3>
+            <p><strong>위치:</strong> <code>middleware/auth.js</code></p>
+            <ul>
+                <li>JWT 토큰 검증</li>
+                <li>사용자 정보 추출</li>
+                <li>인증 실패 시 자동 응답</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <h3>📦 응답 래퍼</h3>
+            <p><strong>위치:</strong> <code>utils/response.js</code></p>
+            <ul>
+                <li>표준화된 응답 형식</li>
+                <li>성공/에러 응답 헬퍼</li>
+                <li>자동 타임스탬프 추가</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <h3>📝 로깅 시스템</h3>
+            <p><strong>위치:</strong> <code>utils/logger.js</code></p>
+            <ul>
+                <li>구조화된 JSON 로그</li>
+                <li>컨텍스트별 로거</li>
+                <li>요청/응답 자동 로깅</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <h3>✅ 검증 유틸리티</h3>
+            <p><strong>위치:</strong> <code>utils/validator.js</code></p>
+            <ul>
+                <li>체이닝 가능한 검증</li>
+                <li>일반적인 검증 규칙</li>
+                <li>커스텀 검증 지원</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>🎯 API 엔드포인트 맵</h2>
+    <div class="mermaid">
+        mindmap
+          root((MacChain API))
+            Auth
+              POST /api/auth/login
+              POST /api/auth/register
+              POST /api/auth/verify
+            Users
+              GET /api/users/profile
+              PUT /api/users/profile
+              GET /api/users/:userId/progress
+              PUT /api/users/:userId/progress
+            Reading Plan
+              GET /api/mccheyne/today
+              GET /api/mccheyne/:date/progress
+              PUT /api/mccheyne/:date/progress
+            Statistics
+              GET /api/statistics/user
+            AI Analysis
+              POST /api/ai/analyze
+            Consent
+              GET /api/consent
+              PUT /api/consent
+            Health
+              GET /api/health
+    </div>
+
+    <h2>🔐 인증 흐름</h2>
+    <div class="mermaid">
+        sequenceDiagram
+            participant C as Client
+            participant A as Auth Handler
+            participant V as Validator
+            participant P as Password Utils
+            participant J as JWT Utils
+            participant D as Database
+            participant R as Response
+
+            Note over C,R: 회원가입 (Register)
+            C->>A: POST /api/auth/register
+            A->>V: Validate email, password, name, nickname
+            V->>A: Validation Result
+            A->>D: Check email exists
+            D->>A: User exists?
+            alt Email exists
+                A->>R: 409 Conflict
+            else Email not exists
+                A->>P: Hash password
+                P->>A: Hashed password
+                A->>D: Insert user
+                D->>A: User ID
+                A->>J: Generate JWT
+                J->>A: Token
+                A->>R: 201 Created + Token
+            end
+            R->>C: Response
+    </div>
+
+    <h2>🛡️ 보안 계층</h2>
+    <div class="mermaid">
+        graph TD
+            subgraph "Security Layers"
+                L1[Layer 1: CORS] --> L2[Layer 2: Authentication]
+                L2 --> L3[Layer 3: Authorization]
+                L3 --> L4[Layer 4: Input Validation]
+                L4 --> L5[Layer 5: SQL Injection Prevention]
+                L5 --> L6[Layer 6: Password Hashing]
+            end
+            
+            L1 -->|Origin Check| C1[Allowed Origins]
+            L2 -->|JWT Verify| C2[Token Validation]
+            L3 -->|User Check| C3[Resource Ownership]
+            L4 -->|Data Check| C4[Type & Format]
+            L5 -->|Query Check| C5[Prepared Statements]
+            L6 -->|Password Check| C6[SHA-256 + Salt]
+    </div>
+
+    <div class="info-box">
+        <strong>📚 참고:</strong> 이 문서는 Mermaid 다이어그램을 사용하여 작성되었습니다. 
+        GitHub나 Mermaid를 지원하는 마크다운 뷰어에서 자동으로 렌더링됩니다.
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>
+

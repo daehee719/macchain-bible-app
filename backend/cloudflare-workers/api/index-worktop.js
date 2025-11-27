@@ -11,6 +11,9 @@ import { getTodayPlan, getPlanProgress, updatePlanProgress } from './reading-pla
 import { getUserStatistics } from './statistics-worktop.js';
 import { handleAIAnalysis } from './ai-analysis-worktop.js';
 import { getConsent, updateConsent } from './consent-worktop.js';
+import { getDiscussions, getDiscussion, createDiscussion, updateDiscussion, deleteDiscussion, getCategories } from './discussions-worktop.js';
+import { getComments, createComment, updateComment, deleteComment } from './comments-worktop.js';
+import { toggleDiscussionLike, toggleCommentLike, toggleBookmark, getMyBookmarks } from './discussion-likes-worktop.js';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('Router');
@@ -183,6 +186,112 @@ API.add('POST', '/api/consent', async (request, response) => {
   await updateConsent(request, response, env);
 });
 
+// Discussion Routes
+API.add('GET', '/api/discussions', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await getDiscussions(request, response, env);
+});
+
+API.add('GET', '/api/discussions/categories', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await getCategories(request, response, env);
+});
+
+API.add('POST', '/api/discussions', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await createDiscussion(request, response, env);
+});
+
+API.add('GET', '/api/discussions/:id', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await getDiscussion(request, response, env);
+});
+
+API.add('PUT', '/api/discussions/:id', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await updateDiscussion(request, response, env);
+});
+
+API.add('DELETE', '/api/discussions/:id', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await deleteDiscussion(request, response, env);
+});
+
+// Comment Routes
+API.add('GET', '/api/discussions/:discussionId/comments', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await getComments(request, response, env);
+});
+
+API.add('POST', '/api/discussions/:discussionId/comments', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await createComment(request, response, env);
+});
+
+API.add('PUT', '/api/comments/:id', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await updateComment(request, response, env);
+});
+
+API.add('DELETE', '/api/comments/:id', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await deleteComment(request, response, env);
+});
+
+// Like Routes
+API.add('POST', '/api/discussions/:id/like', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await toggleDiscussionLike(request, response, env);
+});
+
+API.add('DELETE', '/api/discussions/:id/like', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await toggleDiscussionLike(request, response, env);
+});
+
+API.add('POST', '/api/comments/:id/like', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await toggleCommentLike(request, response, env);
+});
+
+API.add('DELETE', '/api/comments/:id/like', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await toggleCommentLike(request, response, env);
+});
+
+// Bookmark Routes
+API.add('POST', '/api/discussions/:id/bookmark', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await toggleBookmark(request, response, env);
+});
+
+API.add('DELETE', '/api/discussions/:id/bookmark', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await toggleBookmark(request, response, env);
+});
+
+API.add('GET', '/api/users/me/bookmarks', async (request, response) => {
+  addCORS(response, request);
+  const env = request.env || globalThis.env;
+  await getMyBookmarks(request, response, env);
+});
+
 // Error Handler
 API.onerror = (request, response, error) => {
   logger.errorWithContext('API Error', error, {
@@ -216,6 +325,15 @@ API.notfound = (request, response) => {
       '/api/statistics/user',
       '/api/ai/analyze',
       '/api/consent',
+      '/api/discussions',
+      '/api/discussions/categories',
+      '/api/discussions/:id',
+      '/api/discussions/:id/comments',
+      '/api/comments/:id',
+      '/api/discussions/:id/like',
+      '/api/comments/:id/like',
+      '/api/discussions/:id/bookmark',
+      '/api/users/me/bookmarks',
     ],
   });
 };
