@@ -10,14 +10,17 @@ export async function hashPassword(password) {
   // SHA-256으로 해시
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   
+  // ArrayBuffer를 Uint8Array로 변환
+  const hashArray = new Uint8Array(hashBuffer);
+  
   // 솔트 생성 (현재 시간 + 랜덤)
   const salt = new Uint8Array(16);
   crypto.getRandomValues(salt);
   
   // 솔트와 해시를 결합
-  const combined = new Uint8Array(hashBuffer.length + salt.length);
-  combined.set(salt);
-  combined.set(new Uint8Array(hashBuffer), salt.length);
+  const combined = new Uint8Array(hashArray.length + salt.length);
+  combined.set(salt, 0);
+  combined.set(hashArray, salt.length);
   
   // Base64로 인코딩
   return btoa(String.fromCharCode.apply(null, combined));
@@ -39,10 +42,13 @@ export async function verifyPassword(password, hashedPassword) {
     const data = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     
+    // ArrayBuffer를 Uint8Array로 변환
+    const hashArray = new Uint8Array(hashBuffer);
+    
     // 솔트와 해시 결합
-    const combinedInput = new Uint8Array(hashBuffer.length + salt.length);
-    combinedInput.set(salt);
-    combinedInput.set(new Uint8Array(hashBuffer), salt.length);
+    const combinedInput = new Uint8Array(hashArray.length + salt.length);
+    combinedInput.set(salt, 0);
+    combinedInput.set(hashArray, salt.length);
     
     // 해시 비교
     return arrayEquals(combinedInput, combined);

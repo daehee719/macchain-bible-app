@@ -135,7 +135,7 @@ CREATE TRIGGER IF NOT EXISTS update_user_stats
     END;
 
 -- 사용자 동의 설정 테이블
-CREATE TABLE user_consents (
+CREATE TABLE IF NOT EXISTS user_consents (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     privacy_consent BOOLEAN DEFAULT FALSE,

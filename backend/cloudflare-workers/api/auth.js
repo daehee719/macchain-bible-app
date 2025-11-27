@@ -98,9 +98,12 @@ async function handleLogin(request, env) {
 
 async function handleRegister(request, env) {
   try {
+    console.log('[Register] 시작');
     const { email, password, name, nickname } = await request.json();
+    console.log('[Register] 입력 데이터:', { email, name, nickname, passwordLength: password?.length });
 
     if (!email || !password || !name || !nickname) {
+      console.log('[Register] 필수 필드 누락');
       return new Response(JSON.stringify({
         success: false,
         message: '모든 필드를 입력해주세요.'
@@ -111,9 +114,11 @@ async function handleRegister(request, env) {
     }
 
     // 이메일 중복 확인
+    console.log('[Register] 이메일 중복 확인 시작');
     const existingUser = await env.DB.prepare(
       'SELECT id FROM users WHERE email = ?'
     ).bind(email).first();
+    console.log('[Register] 이메일 중복 확인 결과:', existingUser ? '중복' : '사용 가능');
 
     if (existingUser) {
       return new Response(JSON.stringify({
@@ -126,22 +131,50 @@ async function handleRegister(request, env) {
     }
 
     // 비밀번호 해시화
-    const hashedPassword = await hashPassword(password);
+    console.log('[Register] 비밀번호 해시화 시작');
+    let hashedPassword;
+    try {
+      hashedPassword = await hashPassword(password);
+      console.log('[Register] 비밀번호 해시화 성공, 길이:', hashedPassword.length);
+    } catch (error) {
+      console.error('[Register] 비밀번호 해시화 실패:', error);
+      throw new Error(`비밀번호 해시화 실패: ${error.message}`);
+    }
 
     // 사용자 생성
-    const result = await env.DB.prepare(`
-      INSERT INTO users (email, password, name, nickname, is_active, created_at)
-      VALUES (?, ?, ?, ?, 1, datetime('now'))
-    `).bind(email, hashedPassword, name, nickname).run();
+    console.log('[Register] DB INSERT 시작');
+    let result;
+    try {
+      result = await env.DB.prepare(`
+        INSERT INTO users (email, password, name, nickname, is_active, created_at)
+        VALUES (?, ?, ?, ?, 1, datetime('now'))
+      `).bind(email, hashedPassword, name, nickname).run();
+      console.log('[Register] DB INSERT 성공, userId:', result.meta.last_row_id);
+    } catch (error) {
+      console.error('[Register] DB INSERT 실패:', error);
+      throw new Error(`DB INSERT 실패: ${error.message}`);
+    }
 
     const userId = result.meta.last_row_id;
 
     // JWT 토큰 생성
-    const token = await generateJWT({
-      userId,
-      email
-    }, env.JWT_SECRET);
+    console.log('[Register] JWT 생성 시작');
+    let token;
+    try {
+      if (!env.JWT_SECRET) {
+        throw new Error('JWT_SECRET이 설정되지 않았습니다.');
+      }
+      token = await generateJWT({
+        userId,
+        email
+      }, env.JWT_SECRET);
+      console.log('[Register] JWT 생성 성공, 토큰 길이:', token.length);
+    } catch (error) {
+      console.error('[Register] JWT 생성 실패:', error);
+      throw new Error(`JWT 생성 실패: ${error.message}`);
+    }
 
+    console.log('[Register] 회원가입 완료');
     return new Response(JSON.stringify({
       success: true,
       message: '회원가입 성공',
@@ -159,10 +192,12 @@ async function handleRegister(request, env) {
     });
 
   } catch (error) {
-    console.error('Register error:', error);
+    console.error('[Register] 에러 발생:', error);
+    console.error('[Register] 에러 스택:', error.stack);
     return new Response(JSON.stringify({
       success: false,
-      message: '회원가입 중 오류가 발생했습니다.'
+      message: '회원가입 중 오류가 발생했습니다.',
+      error: error.message // 개발 중이므로 에러 메시지 포함
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
