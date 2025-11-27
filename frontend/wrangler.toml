@@ -16,3 +16,6 @@ REACT_APP_FRONTEND_URL = "https://macchain.your-domain.pages.dev"
 [[pages_builds]]
 build_command = "npm run build"
 build_output_directory = "dist"
+
+# Pages 설정: publish/deploy 명령이 `dist` 폴더를 업로드하도록 명시합니다.
+pages_build_output_dir = "dist"

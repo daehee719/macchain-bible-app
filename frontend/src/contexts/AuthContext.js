@@ -1,6 +1,6 @@
-import Button from 'src/components/ui/Button';
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiService } from '../services/api';
 const AuthContext = createContext(undefined);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -27,19 +27,9 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             setLoading(true);
-            // 실제 API 호출
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            });
-            if (!response.ok) {
-                throw new Error('로그인 실패');
-            }
-            const data = await response.json();
-            if (data.success && data.token && data.user) {
+            // 실제 API 호출 (외부 Workers API로 일관되게 요청합니다)
+            const data = await apiService.login(email, password);
+            if (data && data.success && data.token && data.user) {
                 setToken(data.token);
                 setUser(data.user);
                 // 로컬 스토리지에 저장
@@ -76,24 +66,9 @@ export const AuthProvider = ({ children }) => {
     const register = async (email, password, name, nickname) => {
         try {
             setLoading(true);
-            // 실제 API 호출
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                    name,
-                    nickname: nickname || name
-                }),
-            });
-            if (!response.ok) {
-                throw new Error('회원가입 실패');
-            }
-            const data = await response.json();
-            if (data.success && data.token && data.user) {
+            // 실제 API 호출 (외부 Workers API로 일관되게 요청)
+            const data = await apiService.register(email, password, name, nickname);
+            if (data && data.success && data.token && data.user) {
                 setToken(data.token);
                 setUser(data.user);
                 // 로컬 스토리지에 저장

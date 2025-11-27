@@ -1,4 +1,4 @@
-import Button from 'src/components/ui/Button';
+import Button from '../components/ui/Button';
 import React from 'react'
 import './Card.css'
 
@@ -19,10 +19,21 @@ const Card: React.FC<CardProps> = ({
   className = '',
   children
 }) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onClick()
+    }
+  }
+
   return (
     <div 
       className={`card ${onClick ? 'clickable' : ''} ${className}`}
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={handleKeyDown}
     >
       {icon && <div className="card-icon">{icon}</div>}
       <div className="card-content">

@@ -1,4 +1,4 @@
-import Button from 'src/components/ui/Button';
+import Button from './components/ui/Button';
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  
   "scripts": {
     "dev": "vite",
     "css:build": "tailwindcss -i src/styles/tailwind.css -o src/styles/tailwind-output.css --minify",
@@ -16,11 +17,15 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "ci:accessibility": "npm run build && (npx http-server ./dist -p 8080 & ) && npx pa11y http://127.0.0.1:8080 || true",
+    "ci:lighthouse": "npm run build && (npx http-server ./dist -p 8080 & ) && npx @lhci/cli autorun --upload.disabled"
   },
   "dependencies": {
     "axios": "^1.3.4",
     "lucide-react": "^0.263.1",
+    "chart.js": "^4.4.0",
+    "react-chartjs-2": "^5.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1"
@@ -46,6 +51,8 @@
     "prettier": "^2.8.7",
     "typescript": "^4.9.3",
     "vite": "^4.2.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "pa11y": "^6.0.0",
+    "http-server": "^14.1.1"
   }
 }

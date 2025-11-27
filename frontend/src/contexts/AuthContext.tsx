@@ -1,5 +1,5 @@
-import Button from 'src/components/ui/Button';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { apiService } from '../services/api'
 
 interface User {
   id: string
@@ -53,33 +53,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true)
-      
-      // 실제 API 호출
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      // 실제 API 호출 (외부 Workers API로 일관되게 요청합니다)
+      const data: any = await apiService.login(email, password)
 
-      if (!response.ok) {
-        throw new Error('로그인 실패')
-      }
-
-      const data = await response.json()
-      
-      if (data.success && data.token && data.user) {
+      if (data && data.success && data.token && data.user) {
         setToken(data.token)
         setUser(data.user)
-        
+
         // 로컬 스토리지에 저장
         localStorage.setItem('authToken', data.token)
         localStorage.setItem('user', JSON.stringify(data.user))
-        
+
         return true
       }
-      
+
       return false
     } catch (error) {
       console.error('Login error:', error)
@@ -119,38 +106,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<boolean> => {
     try {
       setLoading(true)
-      
-      // 실제 API 호출
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email, 
-          password, 
-          name, 
-          nickname: nickname || name 
-        }),
-      })
+      // 실제 API 호출 (외부 Workers API로 일관되게 요청)
+      const data: any = await apiService.register(email, password, name, nickname)
 
-      if (!response.ok) {
-        throw new Error('회원가입 실패')
-      }
-
-      const data = await response.json()
-      
-      if (data.success && data.token && data.user) {
+      if (data && data.success && data.token && data.user) {
         setToken(data.token)
         setUser(data.user)
-        
+
         // 로컬 스토리지에 저장
         localStorage.setItem('authToken', data.token)
         localStorage.setItem('user', JSON.stringify(data.user))
-        
+
         return true
       }
-      
+
       return false
     } catch (error) {
       console.error('Register error:', error)

@@ -1,4 +1,4 @@
-import Button from 'src/components/ui/Button';
+import Button from '../components/ui/Button';
 import React, { useState } from 'react'
 import Card from '../components/Card'
 import { BarChart3, Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star } from 'lucide-react'

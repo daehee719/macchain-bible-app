@@ -1,0 +1,262 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "MacChain" [level=2] [ref=e8]
+        - paragraph [ref=e9]: 성경 읽기 대시보드
+      - navigation [ref=e10]:
+        - link "대시보드" [ref=e11]:
+          - /url: /
+          - img [ref=e13]
+          - generic [ref=e16]: 대시보드
+        - link "읽기 계획" [ref=e17]:
+          - /url: /reading-plan
+          - img [ref=e19]
+          - generic [ref=e22]: 읽기 계획
+        - link "AI 분석" [ref=e23]:
+          - /url: /ai-analysis
+          - img [ref=e25]
+          - generic [ref=e28]: AI 분석
+        - link "커뮤니티" [ref=e29]:
+          - /url: /community
+          - img [ref=e31]
+          - generic [ref=e36]: 커뮤니티
+        - link "통계" [ref=e37]:
+          - /url: /statistics
+          - img [ref=e39]
+          - generic [ref=e41]: 통계
+        - link "설정" [ref=e42]:
+          - /url: /settings
+          - img [ref=e44]
+          - generic [ref=e47]: 설정
+  - generic [ref=e48]:
+    - banner [ref=e49]:
+      - generic [ref=e52]:
+        - button "라이트" [ref=e53] [cursor=pointer]
+        - button "Guest" [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+          - generic [ref=e58]: Guest
+    - main [ref=e59]:
+      - generic [ref=e61]:
+        - generic [ref=e63]:
+          - img [ref=e65]
+          - generic [ref=e68]:
+            - heading "McCheyne 읽기 계획" [level=1] [ref=e69]
+            - paragraph [ref=e70]: 1년에 성경을 두 번 읽는 체계적인 계획
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - heading "연간 완주율" [level=3] [ref=e73]
+            - generic [ref=e76]: 62%
+            - paragraph [ref=e79]: 47 / 365일 완료
+          - generic [ref=e80]:
+            - heading "이번 주 진행률" [level=3] [ref=e81]
+            - generic [ref=e84]: 68%
+            - paragraph [ref=e87]: 19 / 28개 완료
+          - generic [ref=e88]:
+            - heading "현재 주" [level=3] [ref=e89]
+            - generic [ref=e90]: 1주
+            - paragraph [ref=e91]: 12월 31일 (화) ~ 1월 6일 (월)
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - heading "이번 주 읽기 계획" [level=2] [ref=e94]
+            - generic [ref=e95]:
+              - button [disabled] [ref=e96]:
+                - img [ref=e97]
+              - generic [ref=e99]: 1주
+              - button [ref=e100] [cursor=pointer]:
+                - img [ref=e101]
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - img [ref=e106]
+                - heading "12월 31일 (화)" [level=3] [ref=e108]
+                - generic [ref=e109]: 2 / 4
+              - generic [ref=e110]:
+                - button "창세기 1장 1-31절" [ref=e111] [cursor=pointer]:
+                  - img [ref=e113]
+                  - generic [ref=e115]:
+                    - generic [ref=e116]: 창세기
+                    - generic [ref=e117]: 1장 1-31절
+                - button "마태복음 1장 1-28절" [ref=e118] [cursor=pointer]:
+                  - img [ref=e120]
+                  - generic [ref=e123]:
+                    - generic [ref=e124]: 마태복음
+                    - generic [ref=e125]: 1장 1-28절
+                - button "에스라 1장 1-20절" [ref=e126] [cursor=pointer]:
+                  - img [ref=e128]
+                  - generic [ref=e130]:
+                    - generic [ref=e131]: 에스라
+                    - generic [ref=e132]: 1장 1-20절
+                - button "사도행전 1장 1-20절" [ref=e133] [cursor=pointer]:
+                  - img [ref=e135]
+                  - generic [ref=e138]:
+                    - generic [ref=e139]: 사도행전
+                    - generic [ref=e140]: 1장 1-20절
+            - generic [ref=e141]:
+              - generic [ref=e142]:
+                - img [ref=e143]
+                - heading "1월 1일 (수)" [level=3] [ref=e145]
+                - generic [ref=e146]: 4 / 4
+              - generic [ref=e147]:
+                - button "창세기 2장 1-31절" [ref=e148] [cursor=pointer]:
+                  - img [ref=e150]
+                  - generic [ref=e153]:
+                    - generic [ref=e154]: 창세기
+                    - generic [ref=e155]: 2장 1-31절
+                - button "마태복음 2장 1-28절" [ref=e156] [cursor=pointer]:
+                  - img [ref=e158]
+                  - generic [ref=e161]:
+                    - generic [ref=e162]: 마태복음
+                    - generic [ref=e163]: 2장 1-28절
+                - button "에스라 2장 1-20절" [ref=e164] [cursor=pointer]:
+                  - img [ref=e166]
+                  - generic [ref=e169]:
+                    - generic [ref=e170]: 에스라
+                    - generic [ref=e171]: 2장 1-20절
+                - button "사도행전 2장 1-20절" [ref=e172] [cursor=pointer]:
+                  - img [ref=e174]
+                  - generic [ref=e177]:
+                    - generic [ref=e178]: 사도행전
+                    - generic [ref=e179]: 2장 1-20절
+            - generic [ref=e180]:
+              - generic [ref=e181]:
+                - img [ref=e182]
+                - heading "1월 2일 (목)" [level=3] [ref=e184]
+                - generic [ref=e185]: 3 / 4
+              - generic [ref=e186]:
+                - button "창세기 3장 1-31절" [ref=e187] [cursor=pointer]:
+                  - img [ref=e189]
+                  - generic [ref=e192]:
+                    - generic [ref=e193]: 창세기
+                    - generic [ref=e194]: 3장 1-31절
+                - button "마태복음 3장 1-28절" [ref=e195] [cursor=pointer]:
+                  - img [ref=e197]
+                  - generic [ref=e200]:
+                    - generic [ref=e201]: 마태복음
+                    - generic [ref=e202]: 3장 1-28절
+                - button "에스라 3장 1-20절" [ref=e203] [cursor=pointer]:
+                  - img [ref=e205]
+                  - generic [ref=e207]:
+                    - generic [ref=e208]: 에스라
+                    - generic [ref=e209]: 3장 1-20절
+                - button "사도행전 3장 1-20절" [ref=e210] [cursor=pointer]:
+                  - img [ref=e212]
+                  - generic [ref=e215]:
+                    - generic [ref=e216]: 사도행전
+                    - generic [ref=e217]: 3장 1-20절
+            - generic [ref=e218]:
+              - generic [ref=e219]:
+                - img [ref=e220]
+                - heading "1월 3일 (금)" [level=3] [ref=e222]
+                - generic [ref=e223]: 3 / 4
+              - generic [ref=e224]:
+                - button "창세기 4장 1-31절" [ref=e225] [cursor=pointer]:
+                  - img [ref=e227]
+                  - generic [ref=e229]:
+                    - generic [ref=e230]: 창세기
+                    - generic [ref=e231]: 4장 1-31절
+                - button "마태복음 4장 1-28절" [ref=e232] [cursor=pointer]:
+                  - img [ref=e234]
+                  - generic [ref=e237]:
+                    - generic [ref=e238]: 마태복음
+                    - generic [ref=e239]: 4장 1-28절
+                - button "에스라 4장 1-20절" [ref=e240] [cursor=pointer]:
+                  - img [ref=e242]
+                  - generic [ref=e245]:
+                    - generic [ref=e246]: 에스라
+                    - generic [ref=e247]: 4장 1-20절
+                - button "사도행전 4장 1-20절" [ref=e248] [cursor=pointer]:
+                  - img [ref=e250]
+                  - generic [ref=e253]:
+                    - generic [ref=e254]: 사도행전
+                    - generic [ref=e255]: 4장 1-20절
+            - generic [ref=e256]:
+              - generic [ref=e257]:
+                - img [ref=e258]
+                - heading "1월 4일 (토)" [level=3] [ref=e260]
+                - generic [ref=e261]: 3 / 4
+              - generic [ref=e262]:
+                - button "창세기 5장 1-31절" [ref=e263] [cursor=pointer]:
+                  - img [ref=e265]
+                  - generic [ref=e267]:
+                    - generic [ref=e268]: 창세기
+                    - generic [ref=e269]: 5장 1-31절
+                - button "마태복음 5장 1-28절" [ref=e270] [cursor=pointer]:
+                  - img [ref=e272]
+                  - generic [ref=e275]:
+                    - generic [ref=e276]: 마태복음
+                    - generic [ref=e277]: 5장 1-28절
+                - button "에스라 5장 1-20절" [ref=e278] [cursor=pointer]:
+                  - img [ref=e280]
+                  - generic [ref=e283]:
+                    - generic [ref=e284]: 에스라
+                    - generic [ref=e285]: 5장 1-20절
+                - button "사도행전 5장 1-20절" [ref=e286] [cursor=pointer]:
+                  - img [ref=e288]
+                  - generic [ref=e291]:
+                    - generic [ref=e292]: 사도행전
+                    - generic [ref=e293]: 5장 1-20절
+            - generic [ref=e294]:
+              - generic [ref=e295]:
+                - img [ref=e296]
+                - heading "1월 5일 (일)" [level=3] [ref=e298]
+                - generic [ref=e299]: 2 / 4
+              - generic [ref=e300]:
+                - button "창세기 6장 1-31절" [ref=e301] [cursor=pointer]:
+                  - img [ref=e303]
+                  - generic [ref=e305]:
+                    - generic [ref=e306]: 창세기
+                    - generic [ref=e307]: 6장 1-31절
+                - button "마태복음 6장 1-28절" [ref=e308] [cursor=pointer]:
+                  - img [ref=e310]
+                  - generic [ref=e312]:
+                    - generic [ref=e313]: 마태복음
+                    - generic [ref=e314]: 6장 1-28절
+                - button "에스라 6장 1-20절" [ref=e315] [cursor=pointer]:
+                  - img [ref=e317]
+                  - generic [ref=e320]:
+                    - generic [ref=e321]: 에스라
+                    - generic [ref=e322]: 6장 1-20절
+                - button "사도행전 6장 1-20절" [ref=e323] [cursor=pointer]:
+                  - img [ref=e325]
+                  - generic [ref=e328]:
+                    - generic [ref=e329]: 사도행전
+                    - generic [ref=e330]: 6장 1-20절
+            - generic [ref=e331]:
+              - generic [ref=e332]:
+                - img [ref=e333]
+                - heading "1월 6일 (월)" [level=3] [ref=e335]
+                - generic [ref=e336]: 2 / 4
+              - generic [ref=e337]:
+                - button "창세기 7장 1-31절" [ref=e338] [cursor=pointer]:
+                  - img [ref=e340]
+                  - generic [ref=e343]:
+                    - generic [ref=e344]: 창세기
+                    - generic [ref=e345]: 7장 1-31절
+                - button "마태복음 7장 1-28절" [ref=e346] [cursor=pointer]:
+                  - img [ref=e348]
+                  - generic [ref=e351]:
+                    - generic [ref=e352]: 마태복음
+                    - generic [ref=e353]: 7장 1-28절
+                - button "에스라 7장 1-20절" [ref=e354] [cursor=pointer]:
+                  - img [ref=e356]
+                  - generic [ref=e358]:
+                    - generic [ref=e359]: 에스라
+                    - generic [ref=e360]: 7장 1-20절
+                - button "사도행전 7장 1-20절" [ref=e361] [cursor=pointer]:
+                  - img [ref=e363]
+                  - generic [ref=e365]:
+                    - generic [ref=e366]: 사도행전
+                    - generic [ref=e367]: 7장 1-20절
+        - generic [ref=e368]:
+          - heading "💡 이 계획에 대해" [level=3] [ref=e369]
+          - paragraph [ref=e370]: McCheyne 읽기 계획은 1년 동안 성경을 두 번 읽을 수 있도록 설계된 계획입니다. 매일 구약 1권, 구약 2권, 신약, 시편을 읽음으로써 균형잡힌 성경 읽기를 경험할 수 있습니다.
+          - generic [ref=e371]:
+            - generic [ref=e373]: 구약 (책 1)
+            - generic [ref=e375]: 구약 (책 2)
+            - generic [ref=e377]: 신약
+            - generic [ref=e379]: 시편
+```

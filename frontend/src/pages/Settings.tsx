@@ -1,4 +1,4 @@
-import Button from 'src/components/ui/Button';
+import Button from '../components/ui/Button';
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
