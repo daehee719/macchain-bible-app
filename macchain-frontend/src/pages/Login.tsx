@@ -46,7 +46,12 @@ const Login: React.FC = () => {
       if (success) {
         navigate('/')
       } else {
-        setError(isLogin ? '로그인에 실패했습니다.' : '회원가입에 실패했습니다.')
+        if (!isLogin) {
+          // 회원가입 실패 시 이메일 확인 필요 여부 안내
+          setError('회원가입이 완료되었습니다. 이메일을 확인해주세요.')
+        } else {
+          setError('로그인에 실패했습니다.')
+        }
       }
     } catch (err) {
       setError('오류가 발생했습니다. 다시 시도해주세요.')

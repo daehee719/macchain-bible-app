@@ -3,36 +3,48 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
 import { BookOpen, Brain, Users, BarChart3, Calendar, TrendingUp } from 'lucide-react'
-import { apiService, TodayPlanResponse } from '../services/api'
+import { apiService, TodayPlanResponse, UserStatistics } from '../services/api.ts'
 import './Dashboard.css'
 
 const Dashboard: React.FC = () => {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, user } = useAuth()
   const [todayReading, setTodayReading] = useState<TodayPlanResponse | null>(null)
+  const [statistics, setStatistics] = useState<UserStatistics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchTodayPlan = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
+        
+        // 오늘의 읽기 계획 조회
         const plan = await apiService.getTodayPlan()
         setTodayReading(plan)
+        
+        // 사용자 통계 조회 (로그인한 경우)
+        if (user?.id) {
+          const stats = await apiService.getUserStatistics(user.id)
+          if (stats) {
+            setStatistics(stats)
+          }
+        }
       } catch (err) {
-        setError('오늘의 읽기 계획을 불러오는데 실패했습니다.')
-        console.error('Error fetching today plan:', err)
+        setError('데이터를 불러오는데 실패했습니다.')
+        console.error('Error fetching data:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTodayPlan()
-  }, [])
+    fetchData()
+  }, [user])
 
   const stats = {
-    totalDays: 45,
-    streak: 12,
-    completionRate: 78
+    totalDays: statistics?.total_days_read || 0,
+    streak: statistics?.current_streak || 0,
+    longestStreak: statistics?.longest_streak || 0,
+    completionRate: statistics?.total_days_read ? Math.round((statistics.total_days_read / 365) * 100) : 0
   }
 
   return (
@@ -55,11 +67,16 @@ const Dashboard: React.FC = () => {
               <div className="loading">읽기 계획을 불러오는 중...</div>
             ) : error ? (
               <div className="error">{error}</div>
-            ) : todayReading ? (
+            ) : todayReading?.plan ? (
               <>
                 <div className="reading-list">
-                  {todayReading.readings.map((reading) => (
-                    <div key={reading.id} className="reading-item">
+                  {[
+                    { book: todayReading.plan.reading1_book, chapter: todayReading.plan.reading1_chapter, verseStart: todayReading.plan.reading1_verse_start, verseEnd: todayReading.plan.reading1_verse_end },
+                    { book: todayReading.plan.reading2_book, chapter: todayReading.plan.reading2_chapter, verseStart: todayReading.plan.reading2_verse_start, verseEnd: todayReading.plan.reading2_verse_end },
+                    { book: todayReading.plan.reading3_book, chapter: todayReading.plan.reading3_chapter, verseStart: todayReading.plan.reading3_verse_start, verseEnd: todayReading.plan.reading3_verse_end },
+                    { book: todayReading.plan.reading4_book, chapter: todayReading.plan.reading4_chapter, verseStart: todayReading.plan.reading4_verse_start, verseEnd: todayReading.plan.reading4_verse_end }
+                  ].filter(r => r.book && r.chapter).map((reading, index) => (
+                    <div key={index} className="reading-item">
                       <span className="passage">
                         {reading.book} {reading.chapter}:{reading.verseStart}-{reading.verseEnd}
                       </span>

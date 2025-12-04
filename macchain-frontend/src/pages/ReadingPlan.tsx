@@ -1,74 +1,150 @@
 import React, { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
 import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight } from 'lucide-react'
+import { apiService, ReadingPlan } from '../services/api.ts'
 import './ReadingPlan.css'
 
 interface ReadingDay {
   date: string
+  plan: ReadingPlan | null
   passages: {
-    book: string
-    chapter: number
+    book: string | null
+    chapter: number | null
     verse: string
+    readingId: number
     completed: boolean
   }[]
 }
 
-const ReadingPlan: React.FC = () => {
+const ReadingPlanPage: React.FC = () => {
+  const { user } = useAuth()
   const [currentWeek, setCurrentWeek] = useState(0)
   const [readingData, setReadingData] = useState<ReadingDay[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data - 실제로는 API에서 가져올 데이터
-    const mockData: ReadingDay[] = [
-      {
-        date: '2025-01-06',
-        passages: [
-          { book: '창세기', chapter: 1, verse: '1-31', completed: true },
-          { book: '마태복음', chapter: 1, verse: '1-17', completed: true },
-          { book: '에스라', chapter: 1, verse: '1-11', completed: false },
-          { book: '사도행전', chapter: 1, verse: '1-26', completed: false }
-        ]
-      },
-      {
-        date: '2025-01-07',
-        passages: [
-          { book: '창세기', chapter: 2, verse: '1-25', completed: true },
-          { book: '마태복음', chapter: 2, verse: '1-12', completed: true },
-          { book: '에스라', chapter: 2, verse: '1-35', completed: true },
-          { book: '사도행전', chapter: 2, verse: '1-13', completed: false }
-        ]
-      },
-      {
-        date: '2025-01-08',
-        passages: [
-          { book: '창세기', chapter: 3, verse: '1-24', completed: false },
-          { book: '마태복음', chapter: 2, verse: '13-23', completed: false },
-          { book: '에스라', chapter: 2, verse: '36-70', completed: false },
-          { book: '사도행전', chapter: 2, verse: '14-36', completed: false }
-        ]
-      }
-    ]
-    setReadingData(mockData)
-  }, [])
+    const fetchReadingPlans = async () => {
+      try {
+        setLoading(true)
+        const today = new Date()
+        const weekData: ReadingDay[] = []
 
-  const togglePassageCompletion = (dayIndex: number, passageIndex: number) => {
-    setReadingData(prev => prev.map((day, dIndex) => 
-      dIndex === dayIndex 
+        // 현재 주의 7일 데이터 가져오기
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(today)
+          date.setDate(today.getDate() + (currentWeek * 7) + i)
+          const dateString = date.toISOString().split('T')[0]
+
+          const plan = await apiService.getPlanByDate(dateString)
+          
+          // 진행률 조회 (로그인한 경우)
+          let progress: any[] = []
+          if (user?.id) {
+            progress = await apiService.getReadingProgress(user.id, dateString)
+          }
+
+          const passages = [
+            { 
+              book: plan?.reading1_book || null, 
+              chapter: plan?.reading1_chapter || null, 
+              verse: plan ? `${plan.reading1_verse_start}-${plan.reading1_verse_end}` : '',
+              readingId: 1,
+              completed: progress.find(p => p.reading_id === 1)?.is_completed || false
+            },
+            { 
+              book: plan?.reading2_book || null, 
+              chapter: plan?.reading2_chapter || null, 
+              verse: plan ? `${plan.reading2_verse_start}-${plan.reading2_verse_end}` : '',
+              readingId: 2,
+              completed: progress.find(p => p.reading_id === 2)?.is_completed || false
+            },
+            { 
+              book: plan?.reading3_book || null, 
+              chapter: plan?.reading3_chapter || null, 
+              verse: plan ? `${plan.reading3_verse_start}-${plan.reading3_verse_end}` : '',
+              readingId: 3,
+              completed: progress.find(p => p.reading_id === 3)?.is_completed || false
+            },
+            { 
+              book: plan?.reading4_book || null, 
+              chapter: plan?.reading4_chapter || null, 
+              verse: plan ? `${plan.reading4_verse_start}-${plan.reading4_verse_end}` : '',
+              readingId: 4,
+              completed: progress.find(p => p.reading_id === 4)?.is_completed || false
+            }
+          ].filter(p => p.book && p.chapter)
+
+          weekData.push({
+            date: dateString,
+            plan,
+            passages
+          })
+        }
+
+        setReadingData(weekData)
+      } catch (error) {
+        console.error('Error fetching reading plans:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchReadingPlans()
+  }, [currentWeek, user])
+
+  const togglePassageCompletion = async (dayIndex: number, passageIndex: number) => {
+    if (!user?.id) {
+      console.warn('로그인이 필요합니다.')
+      return
+    }
+
+    const day = readingData[dayIndex]
+    const passage = day.passages[passageIndex]
+    const newCompleted = !passage.completed
+
+    // 로컬 상태 먼저 업데이트 (낙관적 업데이트)
+    setReadingData(prev => prev.map((d, dIdx) => 
+      dIdx === dayIndex 
         ? {
-            ...day,
-            passages: day.passages.map((passage, pIndex) => 
-              pIndex === passageIndex 
-                ? { ...passage, completed: !passage.completed }
-                : passage
+            ...d,
+            passages: d.passages.map((p, pIdx) => 
+              pIdx === passageIndex 
+                ? { ...p, completed: newCompleted }
+                : p
             )
           }
-        : day
+        : d
     ))
+
+    // Supabase에 진행률 업데이트
+    try {
+      await apiService.updateReadingProgress(
+        user.id,
+        day.date,
+        passage.readingId,
+        newCompleted
+      )
+    } catch (error) {
+      console.error('Failed to update reading progress:', error)
+      // 실패 시 롤백
+      setReadingData(prev => prev.map((d, dIdx) => 
+        dIdx === dayIndex 
+          ? {
+              ...d,
+              passages: d.passages.map((p, pIdx) => 
+                pIdx === passageIndex 
+                  ? { ...p, completed: !newCompleted }
+                  : p
+              )
+            }
+          : d
+      ))
+    }
   }
 
   const getWeekData = () => {
-    const startIndex = currentWeek * 7
-    return readingData.slice(startIndex, startIndex + 7)
+    return readingData
   }
 
   const formatDate = (dateString: string) => {
@@ -143,37 +219,47 @@ const ReadingPlan: React.FC = () => {
         </div>
 
         <div className="reading-days">
-          {getWeekData().map((day, dayIndex) => (
-            <Card
-              key={day.date}
-              title={formatDate(day.date)}
-              icon={<Calendar size={20} />}
-              className="reading-day"
-            >
-              <div className="passages-list">
-                {day.passages.map((passage, passageIndex) => (
-                  <div 
-                    key={passageIndex}
-                    className={`passage-item ${passage.completed ? 'completed' : ''}`}
-                    onClick={() => togglePassageCompletion(dayIndex + currentWeek * 7, passageIndex)}
-                  >
-                    <div className="passage-check">
-                      {passage.completed ? (
-                        <CheckCircle size={20} className="check-icon completed" />
-                      ) : (
-                        <Circle size={20} className="check-icon" />
-                      )}
-                    </div>
-                    <div className="passage-text">
-                      <span className="passage-reference">
-                        {passage.book} {passage.chapter}:{passage.verse}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          ))}
+          {loading ? (
+            <div className="loading">읽기 계획을 불러오는 중...</div>
+          ) : getWeekData().length > 0 ? (
+            getWeekData().map((day, dayIndex) => (
+              <Card
+                key={day.date}
+                title={formatDate(day.date)}
+                icon={<Calendar size={20} />}
+                className="reading-day"
+              >
+                <div className="passages-list">
+                  {day.passages.length > 0 ? (
+                    day.passages.map((passage, passageIndex) => (
+                      <div 
+                        key={passageIndex}
+                        className={`passage-item ${passage.completed ? 'completed' : ''}`}
+                        onClick={() => togglePassageCompletion(dayIndex, passageIndex)}
+                      >
+                        <div className="passage-check">
+                          {passage.completed ? (
+                            <CheckCircle size={20} className="check-icon completed" />
+                          ) : (
+                            <Circle size={20} className="check-icon" />
+                          )}
+                        </div>
+                        <div className="passage-text">
+                          <span className="passage-reference">
+                            {passage.book} {passage.chapter}:{passage.verse}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-passages">이 날짜의 읽기 계획이 없습니다.</div>
+                  )}
+                </div>
+              </Card>
+            ))
+          ) : (
+            <div className="no-data">읽기 계획 데이터가 없습니다.</div>
+          )}
         </div>
 
         <div className="plan-info">
@@ -194,4 +280,4 @@ const ReadingPlan: React.FC = () => {
   )
 }
 
-export default ReadingPlan
+export default ReadingPlanPage
