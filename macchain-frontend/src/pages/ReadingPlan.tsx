@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
-import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight } from 'lucide-react'
-import { apiService, ReadingPlan } from '../services/api.ts'
-import './ReadingPlan.css'
+import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight, Flame } from 'lucide-react'
+import { apiService, ReadingPlan } from '../services/api'
 
 interface ReadingDay {
   date: string
@@ -22,6 +21,17 @@ const ReadingPlanPage: React.FC = () => {
   const [currentWeek, setCurrentWeek] = useState(0)
   const [readingData, setReadingData] = useState<ReadingDay[]>([])
   const [loading, setLoading] = useState(true)
+  const [statistics, setStatistics] = useState<any>(null)
+
+  useEffect(() => {
+    const loadStatistics = async () => {
+      if (user?.id) {
+        const stats = await apiService.getUserStatistics(user.id)
+        setStatistics(stats)
+      }
+    }
+    loadStatistics()
+  }, [user])
 
   useEffect(() => {
     const fetchReadingPlans = async () => {
@@ -165,116 +175,169 @@ const ReadingPlanPage: React.FC = () => {
   }
 
   return (
-    <div className="reading-plan">
-      <div className="container">
-        <header className="page-header">
-          <h1>McCheyne 읽기 계획</h1>
-          <p>1년에 성경을 두 번 읽는 체계적인 계획</p>
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            McCheyne 읽기 계획
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300">
+            1년에 성경을 두 번 읽는 체계적인 계획
+          </p>
         </header>
 
-        <div className="plan-stats">
-          <Card title="진행률" className="stat-card">
-            <div className="completion-rate">
-              <span className="rate-number">{getCompletionRate()}%</span>
-              <div className="progress-circle">
-                <div 
-                  className="progress-fill" 
-                  style={{ 
-                    background: `conic-gradient(#667eea ${getCompletionRate() * 3.6}deg, #e5e7eb 0deg)` 
-                  }}
-                ></div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card title="진행률" className="text-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-32 h-32">
+                <svg className="transform -rotate-90 w-32 h-32">
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="none"
+                    className="text-gray-200 dark:text-gray-700"
+                  />
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeDasharray={`${getCompletionRate() * 3.51} 351`}
+                    className="text-primary-600 dark:text-primary-400 transition-all duration-500"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-3xl font-bold text-primary-600 dark:text-primary-400">
+                    {getCompletionRate()}%
+                  </span>
+                </div>
               </div>
             </div>
           </Card>
           
-          <Card title="연속 읽기" className="stat-card">
-            <div className="streak">
-              <span className="streak-number">12일</span>
-              <span className="streak-label">연속으로 읽고 있어요!</span>
+          <Card title="연속 읽기" className="text-center">
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Flame size={32} className="text-orange-500" />
+                <span className="text-4xl font-bold text-green-600">
+                  {user ? (statistics?.current_streak || 0) : 0}일
+                </span>
+              </div>
+              <span className="text-gray-600 dark:text-gray-300">연속으로 읽고 있어요!</span>
             </div>
           </Card>
         </div>
 
-        <div className="week-navigation">
+        {/* Week Navigation */}
+        <div className="flex items-center justify-center gap-4 mb-8">
           <button 
             onClick={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
             disabled={currentWeek === 0}
-            className="nav-btn"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-primary-300 dark:hover:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <ArrowLeft size={20} />
             이전 주
           </button>
           
-          <span className="week-label">
+          <div className="px-6 py-3 bg-gradient-primary text-white rounded-lg font-semibold text-lg">
             {currentWeek + 1}주차
-          </span>
+          </div>
           
           <button 
             onClick={() => setCurrentWeek(currentWeek + 1)}
-            className="nav-btn"
+            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-primary-300 dark:hover:border-primary-500 transition-all"
           >
             다음 주
             <ArrowRight size={20} />
           </button>
         </div>
 
-        <div className="reading-days">
+        {/* Reading Days */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {loading ? (
-            <div className="loading">읽기 계획을 불러오는 중...</div>
+            <div className="col-span-full flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
           ) : getWeekData().length > 0 ? (
             getWeekData().map((day, dayIndex) => (
               <Card
                 key={day.date}
                 title={formatDate(day.date)}
                 icon={<Calendar size={20} />}
-                className="reading-day"
               >
-                <div className="passages-list">
+                <div className="space-y-2">
                   {day.passages.length > 0 ? (
                     day.passages.map((passage, passageIndex) => (
                       <div 
                         key={passageIndex}
-                        className={`passage-item ${passage.completed ? 'completed' : ''}`}
+                        className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                          passage.completed 
+                            ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700' 
+                            : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                        }`}
                         onClick={() => togglePassageCompletion(dayIndex, passageIndex)}
                       >
-                        <div className="passage-check">
+                        <div className="flex-shrink-0">
                           {passage.completed ? (
-                            <CheckCircle size={20} className="check-icon completed" />
+                            <CheckCircle size={20} className="text-green-600" />
                           ) : (
-                            <Circle size={20} className="check-icon" />
+                            <Circle size={20} className="text-gray-400" />
                           )}
                         </div>
-                        <div className="passage-text">
-                          <span className="passage-reference">
+                        <div className="flex-1">
+                          <span className={`font-medium ${
+                            passage.completed 
+                              ? 'text-green-700 dark:text-green-400 line-through' 
+                              : 'text-gray-900 dark:text-white'
+                          }`}>
                             {passage.book} {passage.chapter}:{passage.verse}
                           </span>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="no-passages">이 날짜의 읽기 계획이 없습니다.</div>
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      이 날짜의 읽기 계획이 없습니다.
+                    </div>
                   )}
                 </div>
               </Card>
             ))
           ) : (
-            <div className="no-data">읽기 계획 데이터가 없습니다.</div>
+            <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
+              읽기 계획 데이터가 없습니다.
+            </div>
           )}
         </div>
 
-        <div className="plan-info">
-          <Card title="McCheyne 읽기 계획이란?" className="info-card">
-            <p>
-              로버트 머레이 매케인의 읽기 계획으로, 1년에 성경을 두 번 읽을 수 있도록 
-              설계된 체계적인 읽기 계획입니다. 매일 구약 1장, 신약 1장, 시편/잠언 1장씩 읽습니다.
-            </p>
-            <ul>
-              <li>구약: 창세기부터 말라기까지 순서대로</li>
-              <li>신약: 마태복음부터 요한계시록까지 순서대로</li>
-              <li>시편/잠언: 시편 119장과 잠언을 매일 조금씩</li>
-            </ul>
-          </Card>
-        </div>
+        {/* Info Card */}
+        <Card title="McCheyne 읽기 계획이란?" className="max-w-3xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+            로버트 머레이 매케인의 읽기 계획으로, 1년에 성경을 두 번 읽을 수 있도록 
+            설계된 체계적인 읽기 계획입니다. 매일 구약 1장, 신약 1장, 시편/잠언 1장씩 읽습니다.
+          </p>
+          <ul className="space-y-2 text-gray-600 dark:text-gray-300">
+            <li className="flex items-start">
+              <span className="text-primary-600 dark:text-primary-400 mr-2">•</span>
+              <span>구약: 창세기부터 말라기까지 순서대로</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary-600 dark:text-primary-400 mr-2">•</span>
+              <span>신약: 마태복음부터 요한계시록까지 순서대로</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary-600 dark:text-primary-400 mr-2">•</span>
+              <span>시편/잠언: 시편 119장과 잠언을 매일 조금씩</span>
+            </li>
+          </ul>
+        </Card>
       </div>
     </div>
   )

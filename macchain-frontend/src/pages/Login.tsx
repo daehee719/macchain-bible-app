@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
-import { LogIn, UserPlus, Mail, Lock, User, Loader } from 'lucide-react'
-import './Login.css'
+import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen, Brain, Users, BarChart3 } from 'lucide-react'
 
 const Login: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true)
@@ -91,196 +90,215 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
-          <h1>MacChain</h1>
-          <p>성경 읽기와 함께하는 영적 여정</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 transition-colors">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          {/* Left Side - Features */}
+          <div className="hidden lg:block space-y-8">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-gradient-primary rounded-lg">
+                  <BookOpen size={32} className="text-white" />
+                </div>
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white">MacChain</h1>
+              </div>
+              <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+                성경 읽기와 함께하는 영적 여정
+              </p>
+            </div>
 
-        <Card className="login-card">
-          <div className="login-card-header">
-            <h2>
-              {isLogin ? (
-                <>
-                  <LogIn size={24} />
-                  로그인
-                </>
-              ) : (
-                <>
-                  <UserPlus size={24} />
-                  회원가입
-                </>
-              )}
-            </h2>
+            <div className="grid grid-cols-1 gap-6">
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-gray-900/50">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                    <Brain size={24} className="text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI 성경 분석</h3>
+                  </div>
+                <p className="text-gray-600 dark:text-gray-300">읽은 구절에 대한 AI의 깊이 있는 분석을 받아보세요</p>
+              </div>
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-gray-900/50">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                    <Users size={24} className="text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">커뮤니티</h3>
+                  </div>
+                <p className="text-gray-600 dark:text-gray-300">다른 성도들과 성경 읽기 경험을 공유하세요</p>
+              </div>
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-gray-900/50">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <BarChart3 size={24} className="text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">상세 통계</h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300">나의 성경 읽기 여정을 통계로 확인하세요</p>
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="login-form">
-            {!isLogin && (
-              <>
-                <div className="input-group">
-                  <User size={20} className="input-icon" />
+          {/* Right Side - Login Form */}
+          <div>
+            <Card className="max-w-md mx-auto">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-full mb-4">
+                  {isLogin ? (
+                    <LogIn size={32} className="text-white" />
+                  ) : (
+                    <UserPlus size={32} className="text-white" />
+                  )}
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {isLogin ? '로그인' : '회원가입'}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  {isLogin ? 'MacChain에 오신 것을 환영합니다' : '새로운 계정을 만들어보세요'}
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!isLogin && (
+                  <>
+                    <div className="relative">
+                      <User size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder="이름"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required={!isLogin}
+                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all"
+                      />
+                    </div>
+                    
+                    <div className="relative">
+                      <User size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        name="nickname"
+                        placeholder="닉네임 (선택사항)"
+                        value={formData.nickname}
+                        onChange={handleInputChange}
+                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="relative">
+                  <Mail size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
-                    type="text"
-                    name="name"
-                    placeholder="이름"
-                    value={formData.name}
+                    type="email"
+                    name="email"
+                    placeholder="이메일"
+                    value={formData.email}
                     onChange={handleInputChange}
-                    required={!isLogin}
-                    className="form-input"
+                    required
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all"
                   />
                 </div>
-                
-                <div className="input-group">
-                  <User size={20} className="input-icon" />
+
+                <div className="relative">
+                  <Lock size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
-                    type="text"
-                    name="nickname"
-                    placeholder="닉네임 (선택사항)"
-                    value={formData.nickname}
+                    type="password"
+                    name="password"
+                    placeholder="비밀번호"
+                    value={formData.password}
                     onChange={handleInputChange}
-                    className="form-input"
+                    required
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all"
                   />
                 </div>
-              </>
-            )}
 
-            <div className="input-group">
-              <Mail size={20} className="input-icon" />
-              <input
-                type="email"
-                name="email"
-                placeholder="이메일"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="form-input"
-              />
-            </div>
+                {!isLogin && (
+                  <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="privacy"
+                        checked={agreements.privacy}
+                        onChange={handleAgreementChange}
+                        required
+                        className="mt-1 w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-400"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <a href="/privacy" target="_blank" className="text-primary-600 hover:underline">
+                          개인정보 처리방침
+                        </a>에 동의합니다 <span className="text-red-500">(필수)</span>
+                      </span>
+                    </label>
 
-            <div className="input-group">
-              <Lock size={20} className="input-icon" />
-              <input
-                type="password"
-                name="password"
-                placeholder="비밀번호"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-                className="form-input"
-              />
-            </div>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="marketing"
+                        checked={agreements.marketing}
+                        onChange={handleAgreementChange}
+                        className="mt-1 w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-400"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        마케팅 정보 수신에 동의합니다 (선택)
+                      </span>
+                    </label>
 
-            {!isLogin && (
-              <div className="agreements-section">
-                <div className="agreement-item required">
-                  <label className="agreement-label">
-                    <input
-                      type="checkbox"
-                      name="privacy"
-                      checked={agreements.privacy}
-                      onChange={handleAgreementChange}
-                      required
-                      className="agreement-checkbox"
-                    />
-                    <span className="checkmark"></span>
-                    <span className="agreement-text">
-                      <a href="/privacy" target="_blank" className="agreement-link">
-                        개인정보 처리방침
-                      </a>에 동의합니다 (필수)
-                    </span>
-                  </label>
-                </div>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="age"
+                        checked={agreements.age}
+                        onChange={handleAgreementChange}
+                        required
+                        className="mt-1 w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-400"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        만 14세 이상입니다 <span className="text-red-500">(필수)</span>
+                      </span>
+                    </label>
+                  </div>
+                )}
 
-                <div className="agreement-item">
-                  <label className="agreement-label">
-                    <input
-                      type="checkbox"
-                      name="marketing"
-                      checked={agreements.marketing}
-                      onChange={handleAgreementChange}
-                      className="agreement-checkbox"
-                    />
-                    <span className="checkmark"></span>
-                    <span className="agreement-text">
-                      마케팅 정보 수신에 동의합니다 (선택)
-                    </span>
-                  </label>
-                </div>
+                {error && (
+                  <div className={`p-4 rounded-lg ${
+                    error.includes('완료') 
+                      ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300' 
+                      : 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
+                  }`}>
+                    {error}
+                  </div>
+                )}
 
-                <div className="agreement-item required">
-                  <label className="agreement-label">
-                    <input
-                      type="checkbox"
-                      name="age"
-                      checked={agreements.age}
-                      onChange={handleAgreementChange}
-                      required
-                      className="agreement-checkbox"
-                    />
-                    <span className="checkmark"></span>
-                    <span className="agreement-text">
-                      만 14세 이상입니다 (필수)
-                    </span>
-                  </label>
-                </div>
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full px-6 py-3 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader size={20} className="animate-spin" />
+                      처리 중...
+                    </>
+                  ) : (
+                    isLogin ? '로그인' : '회원가입'
+                  )}
+                </button>
+              </form>
+
+              <div className="mt-6 text-center space-y-4">
+                <p className="text-gray-600 dark:text-gray-300">
+                  {isLogin ? '아직 계정이 없으신가요?' : '이미 계정이 있으신가요?'}
+                  <button 
+                    type="button" 
+                    onClick={toggleMode}
+                    className="ml-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold"
+                  >
+                    {isLogin ? '회원가입' : '로그인'}
+                  </button>
+                </p>
               </div>
-            )}
-
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="submit-btn"
-            >
-              {loading ? (
-                <>
-                  <Loader size={20} className="spinning" />
-                  처리 중...
-                </>
-              ) : (
-                isLogin ? '로그인' : '회원가입'
-              )}
-            </button>
-          </form>
-
-          <div className="login-footer">
-            <p>
-              {isLogin ? '아직 계정이 없으신가요?' : '이미 계정이 있으신가요?'}
-              <button 
-                type="button" 
-                onClick={toggleMode}
-                className="toggle-btn"
-              >
-                {isLogin ? '회원가입' : '로그인'}
-              </button>
-            </p>
-            
-            <div className="demo-info">
-              <p>데모 계정으로 테스트해보세요:</p>
-              <p>이메일: test@example.com</p>
-              <p>비밀번호: password</p>
-            </div>
-          </div>
-        </Card>
-
-        <div className="login-features">
-          <div className="feature">
-            <h3>AI 성경 분석</h3>
-            <p>읽은 구절에 대한 AI의 깊이 있는 분석을 받아보세요</p>
-          </div>
-          <div className="feature">
-            <h3>커뮤니티</h3>
-            <p>다른 성도들과 성경 읽기 경험을 공유하세요</p>
-          </div>
-          <div className="feature">
-            <h3>상세 통계</h3>
-            <p>나의 성경 읽기 여정을 통계로 확인하세요</p>
+            </Card>
           </div>
         </div>
       </div>
