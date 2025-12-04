@@ -56,10 +56,19 @@ class ApiService {
         .from('macchain_plan')
         .select('*')
         .eq('date', today)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('Failed to get today plan:', error)
+        return {
+          success: false,
+          date: today,
+          plan: null
+        }
+      }
+
+      if (!data) {
+        console.warn('No plan found for today:', today)
         return {
           success: false,
           date: today,
@@ -208,6 +217,189 @@ class ApiService {
       return data || []
     } catch (error) {
       console.error('Error getting reading progress:', error)
+      return []
+    }
+  }
+
+  // AI 분석 결과 저장
+  async saveAIAnalysis(
+    userId: string,
+    planDate: string,
+    readingId: number,
+    passage: string,
+    analysisType: string,
+    analysisData: any
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('ai_analysis')
+        .insert({
+          user_id: userId,
+          plan_date: planDate,
+          reading_id: readingId,
+          analysis_type: analysisType,
+          analysis_data: analysisData
+        })
+
+      if (error) {
+        console.error('Failed to save AI analysis:', error)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error saving AI analysis:', error)
+      return false
+    }
+  }
+
+  // AI 분석 결과 조회
+  async getAIAnalysis(userId: string, limit: number = 20) {
+    try {
+      const { data, error } = await supabase
+        .from('ai_analysis')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        console.error('Failed to get AI analysis:', error)
+        return []
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Error getting AI analysis:', error)
+      return []
+    }
+  }
+
+  // 사용자 설정 조회
+  async getUserSettings(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // 설정이 없으면 기본값 반환
+          return {
+            notification_enabled: true,
+            reminder_time: '09:00',
+            language: 'ko',
+            theme: 'light'
+          }
+        }
+        console.error('Failed to get user settings:', error)
+        return null
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error getting user settings:', error)
+      return null
+    }
+  }
+
+  // 사용자 설정 업데이트
+  async updateUserSettings(userId: string, settings: any): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: userId,
+          ...settings
+        })
+
+      if (error) {
+        console.error('Failed to update user settings:', error)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error updating user settings:', error)
+      return false
+    }
+  }
+
+  // 사용자 동의 설정 조회
+  async getUserConsents(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('user_consents')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return {
+            privacy_consent: false,
+            marketing_consent: false,
+            notification_consent: false,
+            age_consent: false
+          }
+        }
+        console.error('Failed to get user consents:', error)
+        return null
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error getting user consents:', error)
+      return null
+    }
+  }
+
+  // 사용자 동의 설정 업데이트
+  async updateUserConsents(userId: string, consents: any): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('user_consents')
+        .upsert({
+          user_id: userId,
+          ...consents
+        })
+
+      if (error) {
+        console.error('Failed to update user consents:', error)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error updating user consents:', error)
+      return false
+    }
+  }
+
+  // 월별 통계 조회
+  async getMonthlyStatistics(userId: string, year: number, month: number) {
+    try {
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+      const endDate = `${year}-${String(month).padStart(2, '0')}-31`
+
+      const { data, error } = await supabase
+        .from('reading_progress')
+        .select('plan_date, is_completed')
+        .eq('user_id', userId)
+        .eq('is_completed', true)
+        .gte('plan_date', startDate)
+        .lte('plan_date', endDate)
+
+      if (error) {
+        console.error('Failed to get monthly statistics:', error)
+        return []
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Error getting monthly statistics:', error)
       return []
     }
   }

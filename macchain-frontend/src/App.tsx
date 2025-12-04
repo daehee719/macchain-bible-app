@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Header from './components/Header'
 import Dashboard from './pages/Dashboard'
@@ -10,18 +11,20 @@ import Community from './pages/Community'
 import Statistics from './pages/Statistics'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
-import './App.css'
+import VerifyEmail from './pages/VerifyEmail'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Header />
-          <main className="main-content">
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-700 dark:from-gray-900 dark:to-gray-800 transition-colors">
+            <Header />
+            <main className="pt-20 min-h-screen">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/reading-plan" element={<ReadingPlan />} />
               <Route path="/ai-analysis" element={
                 <ProtectedRoute>
@@ -48,6 +51,7 @@ function App() {
         </div>
       </Router>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
 

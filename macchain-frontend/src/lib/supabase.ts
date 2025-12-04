@@ -19,11 +19,6 @@ export const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
   },
   db: {
     schema: 'public'
-  },
-  global: {
-    headers: {
-      'x-client-info': 'macchain-web'
-    }
   }
 })
 

@@ -7,10 +7,9 @@ command = "npm run build"
 cwd = "."
 watch_dir = "src"
 
-# 환경 변수
-[vars]
-REACT_APP_API_URL = "https://macchain-api.your-domain.workers.dev"
-REACT_APP_FRONTEND_URL = "https://macchain.your-domain.pages.dev"
+# 환경 변수 (Supabase만 사용)
+# VITE_SUPABASE_URL과 VITE_SUPABASE_ANON_KEY는 Cloudflare Pages 환경 변수에서 설정
+# Cloudflare Workers API는 더 이상 사용하지 않음
 
 # Cloudflare Pages 설정
 [[pages_builds]]

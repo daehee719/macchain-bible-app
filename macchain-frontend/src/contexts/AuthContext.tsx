@@ -237,10 +237,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true)
       
       // Supabase Auth를 통한 회원가입
+      // 이메일 인증 후 리다이렉트 URL 설정
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/verify-email`,
           data: {
             name,
             nickname: nickname || name
