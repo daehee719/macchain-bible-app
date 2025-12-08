@@ -1,0 +1,14 @@
+node_modules
+.git
+.env
+.env.local
+.env.*.local
+dist
+coverage
+.vercel
+playwright-report
+test-results
+*.log
+.DS_Store
+
+

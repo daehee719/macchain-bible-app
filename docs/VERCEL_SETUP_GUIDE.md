@@ -69,11 +69,20 @@ vercel --prod
 
 #### 2. 환경 변수 설정
 
+⚠️ **환경별 DB 분리 권장**: 프로덕션과 개발 환경에서 다른 Supabase 프로젝트를 사용하는 것을 권장합니다. 자세한 내용은 `docs/ENVIRONMENT_DB_SEPARATION.md`를 참고하세요.
+
+**프로덕션 환경 변수:**
 1. 프로젝트 대시보드 → **Settings** → **Environment Variables**
-2. 다음 변수 추가:
+2. 다음 변수 추가 (Production 환경만 선택):
    - `VITE_SUPABASE_URL`: `https://dazushjgczteromlitve.supabase.co`
    - `VITE_SUPABASE_ANON_KEY`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhenVzaGpnY3p0ZXJvbWxpdHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NDEyOTIsImV4cCI6MjA4MDMxNzI5Mn0.c4iPQm0HrYtE1N3nW_k0bG1LJJMr4r-7G2pL8_yq93I`
-3. **Production**, **Preview**, **Development** 모두 선택
+   - **Production**만 선택
+
+**개발/프리뷰 환경 변수 (선택사항):**
+개발용 Supabase 프로젝트를 생성한 경우:
+1. `VITE_SUPABASE_URL` (Preview, Development): 개발 프로젝트 URL
+2. `VITE_SUPABASE_ANON_KEY` (Preview, Development): 개발 프로젝트 Anon Key
+   - **Preview**, **Development** 선택
 
 #### 3. 배포
 
