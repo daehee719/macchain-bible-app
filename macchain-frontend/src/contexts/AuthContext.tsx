@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, callEdgeFunction } from '../lib/supabase'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
 interface User {
@@ -15,7 +15,7 @@ interface AuthContextType {
   token: string | null
   isLoggedIn: boolean
   login: (email: string, password: string) => Promise<boolean>
-  register: (email: string, password: string, name: string, nickname?: string) => Promise<boolean>
+  register: (email: string, password: string, name: string, nickname?: string) => Promise<{ success: boolean; user?: any; isExistingUser?: boolean }>
   logout: () => void
   loading: boolean
 }
@@ -232,7 +232,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string, 
     name: string, 
     nickname?: string
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; user?: any; isExistingUser?: boolean }> => {
     try {
       setLoading(true)
       
@@ -252,10 +252,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (authError) {
         console.error('Register error:', authError)
-        return false
+        console.error('Register error details:', {
+          message: authError.message,
+          status: authError.status,
+          code: authError.code,
+          name: authError.name
+        })
+        // 이메일 중복 에러 처리 - Supabase의 다양한 에러 메시지 패턴 확인
+        const errorMsg = authError.message?.toLowerCase() || ''
+        const errorCode = authError.status || authError.code || ''
+        
+        if (errorMsg.includes('already registered') || 
+            errorMsg.includes('user already registered') ||
+            errorMsg.includes('already exists') ||
+            errorMsg.includes('email address is already registered') ||
+            errorMsg.includes('email already registered') ||
+            errorCode === 'signup_disabled' ||
+            errorCode === 'user_already_exists') {
+          console.error('이메일 중복 에러 감지:', errorMsg, errorCode)
+          throw new Error('이미 사용 중인 이메일입니다.')
+        }
+        throw new Error(authError.message || '회원가입에 실패했습니다.')
       }
 
       if (authData.user) {
+        // 이메일이 이미 인증된 사용자인지 확인
+        // email_confirmed_at이 있고 created_at이 오래 전이면 이미 존재하는 사용자일 가능성이 높음
+        if (authData.user.email_confirmed_at) {
+          const createdAt = new Date(authData.user.created_at)
+          const now = new Date()
+          const timeDiff = now.getTime() - createdAt.getTime()
+          const minutesDiff = timeDiff / (1000 * 60)
+          
+          // 1분 이내에 생성된 사용자는 새 사용자로 간주
+          // 그 외는 이미 존재하는 사용자로 간주
+          if (minutesDiff > 1) {
+            console.error('이미 존재하는 사용자 감지:', {
+              email: authData.user.email,
+              created_at: authData.user.created_at,
+              email_confirmed_at: authData.user.email_confirmed_at,
+              minutesDiff
+            })
+            throw new Error('중복된 이메일입니다.')
+          }
+        }
+        
         // 세션이 있으면 (이메일 확인 불필요) 바로 로그인 처리
         if (authData.session) {
           setToken(authData.session.access_token)
@@ -263,23 +304,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const profile = await loadUserProfile(authData.user)
           if (profile) {
             setUser(profile)
-            return true
+            return { success: true, user: authData.user }
           }
           // 프로필이 없어도 세션은 있으므로 로그인 성공으로 처리
           // (프로필은 loadUserProfile에서 자동 생성 시도했지만 실패한 경우)
           // 세션만으로도 로그인 상태 유지
-          return true
+          return { success: true, user: authData.user }
         }
         
         // 세션이 없으면 (이메일 확인 필요) false 반환하여
         // Login 페이지에서 안내 메시지 표시 가능하도록
-        return false
+        // Edge Function을 통해 auth.users와 public.users 둘 다 확인
+        
+        let isExistingUser = false
+        try {
+          const checkResult = await callEdgeFunction('check-email', { email })
+          isExistingUser = checkResult.exists || false
+          console.log('Register result - no session (Edge Function check):', {
+            email: authData.user.email,
+            email_confirmed_at: authData.user.email_confirmed_at,
+            created_at: authData.user.created_at,
+            checkResult,
+            isExistingUser
+          })
+        } catch (checkError) {
+          console.error('Edge Function check error:', checkError)
+          // Edge Function 호출 실패 시 기존 로직 사용
+          // 1. auth.users 확인: email_confirmed_at이 있으면 이미 존재하는 사용자
+          const isExistingInAuth = !!authData.user.email_confirmed_at
+          
+          // 2. public.users 확인: 직접 조회
+          const { data: existingUserInPublic } = await supabase
+            .from('users')
+            .select('id, email')
+            .eq('email', email.toLowerCase().trim())
+            .maybeSingle()
+          
+          const isExistingInPublic = !!existingUserInPublic
+          isExistingUser = isExistingInAuth || isExistingInPublic
+          
+          console.log('Register result - no session (fallback check):', {
+            email: authData.user.email,
+            isExistingInAuth,
+            isExistingInPublic,
+            isExistingUser
+          })
+        }
+        
+        return { success: false, user: authData.user, isExistingUser }
       }
       
-      return false
+      // authData.user가 없는 경우 (이상한 상황)
+      console.error('Register returned user data but no user object:', authData)
+      return { success: false, isExistingUser: false }
     } catch (error) {
       console.error('Register error:', error)
-      return false
+      // 에러를 다시 throw하여 Login.tsx에서 처리할 수 있도록 함
+      throw error
     } finally {
       setLoading(false)
     }

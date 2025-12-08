@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase, callEdgeFunction } from '../lib/supabase'
 import Card from '../components/Card'
-import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen, Brain, Users, BarChart3 } from 'lucide-react'
+import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen, Brain, Users, BarChart3, XCircle } from 'lucide-react'
 
 const Login: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true)
@@ -19,41 +20,168 @@ const Login: React.FC = () => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string
+    email?: string
+    password?: string
+    privacy?: string
+    age?: string
+  }>({})
   
   const { login, register } = useAuth()
   const navigate = useNavigate()
+
+  // 이메일 중복 검증 (Edge Function을 통해 auth.users와 public.users 모두 확인)
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const result = await callEdgeFunction('check-email', { email })
+      console.log('Email check result:', result)
+      return result.exists || false
+    } catch (err) {
+      console.error('Email check error:', err)
+      // 에러 발생 시 false 반환 (확인 불가)
+      return false
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setFieldErrors({})
 
     try {
-      let success = false
-      
       if (isLogin) {
-        success = await login(formData.email, formData.password)
-      } else {
-        success = await register(
-          formData.email, 
-          formData.password, 
-          formData.name, 
-          formData.nickname
-        )
-      }
+        // 로그인 모드
+        if (!formData.email) {
+          setFieldErrors({ email: '이메일을 입력해주세요.' })
+          setLoading(false)
+          return
+        }
+        if (!formData.password) {
+          setFieldErrors({ password: '비밀번호를 입력해주세요.' })
+          setLoading(false)
+          return
+        }
 
-      if (success) {
-        navigate('/')
-      } else {
-        if (!isLogin) {
-          // 회원가입 실패 시 이메일 확인 필요 여부 안내
-          setError('회원가입이 완료되었습니다. 이메일을 확인해주세요.')
+        const success = await login(formData.email, formData.password)
+        if (success) {
+          navigate('/')
         } else {
           setError('로그인에 실패했습니다.')
         }
+      } else {
+        // 회원가입 모드 - 필수 입력 검증
+        const errors: typeof fieldErrors = {}
+        
+        if (!formData.name || formData.name.trim() === '') {
+          errors.name = '이름을 입력해주세요.'
+        }
+        
+        if (!formData.email || formData.email.trim() === '') {
+          errors.email = '이메일을 입력해주세요.'
+        } else {
+          // 이메일 형식 검증
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          if (!emailRegex.test(formData.email)) {
+            errors.email = '올바른 이메일 형식을 입력해주세요.'
+          }
+        }
+        
+        if (!formData.password || formData.password.trim() === '') {
+          errors.password = '비밀번호를 입력해주세요.'
+        } else if (formData.password.length < 6) {
+          errors.password = '비밀번호는 최소 6자 이상이어야 합니다.'
+        }
+        
+        if (!agreements.privacy) {
+          errors.privacy = '개인정보 처리방침에 동의해주세요.'
+        }
+        
+        if (!agreements.age) {
+          errors.age = '만 14세 이상임을 확인해주세요.'
+        }
+
+        // 필수 입력 검증 실패 시
+        if (Object.keys(errors).length > 0) {
+          setFieldErrors(errors)
+          setLoading(false)
+          return
+        }
+
+        // 이메일 중복 검증 (public.users 확인)
+        const emailExistsInPublic = await checkEmailExists(formData.email)
+        if (emailExistsInPublic) {
+          setFieldErrors({ email: '중복된 이메일입니다.' })
+          setError('중복된 이메일입니다. 다른 이메일을 사용해주세요.')
+          setLoading(false)
+          return
+        }
+
+        // 회원가입 시도 (auth.users 확인은 회원가입 시도 시 Supabase 에러로 확인)
+        try {
+          const result = await register(
+            formData.email, 
+            formData.password, 
+            formData.name, 
+            formData.nickname
+          )
+
+          console.log('Register result:', result)
+
+          if (result.success) {
+            navigate('/')
+          } else {
+            // success가 false인 경우 기본적으로 에러 처리
+            if (result.isExistingUser === true) {
+              // 중복된 이메일
+              setFieldErrors({ email: '중복된 이메일입니다.' })
+              setError('중복된 이메일입니다. 다른 이메일을 사용해주세요.')
+            } else if (result.isExistingUser === false) {
+              // 정상적인 새 회원가입 (이메일 확인 필요) - 성공 메시지
+              setError('회원가입이 완료되었습니다. 이메일을 확인해주세요.')
+            } else {
+              // isExistingUser가 undefined인 경우 에러
+              setFieldErrors({ email: '회원가입 중 오류가 발생했습니다.' })
+              setError('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.')
+            }
+          }
+        } catch (registerError) {
+          // register 함수에서 throw한 에러를 다시 throw하여 외부 catch 블록에서 처리
+          console.log('Register threw error:', registerError)
+          throw registerError
+        }
       }
-    } catch (err) {
-      setError('오류가 발생했습니다. 다시 시도해주세요.')
+    } catch (err: any) {
+      console.error('Submit error:', err)
+      // AuthContext에서 던진 에러 메시지 사용
+      if (err instanceof Error) {
+        const errorMessage = err.message
+        // 이메일 중복 에러인 경우
+        if (errorMessage.includes('이미 사용 중인 이메일') || errorMessage.includes('중복된 이메일')) {
+          setFieldErrors({ email: '중복된 이메일입니다.' })
+          setError('중복된 이메일입니다. 다른 이메일을 사용해주세요.')
+        } else {
+          setError(errorMessage)
+        }
+      } else {
+        // Supabase 에러 객체인 경우
+        const errorMsg = err?.message?.toLowerCase() || ''
+        const errorCode = err?.code || err?.status || ''
+        
+        if (errorMsg.includes('already registered') ||
+            errorMsg.includes('already exists') ||
+            errorMsg.includes('user already registered') ||
+            errorMsg.includes('email address is already registered') ||
+            errorMsg.includes('email already registered') ||
+            errorCode === 'signup_disabled' ||
+            errorCode === 'user_already_exists') {
+          setFieldErrors({ email: '중복된 이메일입니다.' })
+          setError('중복된 이메일입니다. 다른 이메일을 사용해주세요.')
+        } else {
+          setError(err?.message || '오류가 발생했습니다. 다시 시도해주세요.')
+        }
+      }
     } finally {
       setLoading(false)
     }
@@ -64,6 +192,15 @@ const Login: React.FC = () => {
       ...prev,
       [e.target.name]: e.target.value
     }))
+    // 입력 시 해당 필드의 에러 메시지 제거
+    if (fieldErrors[e.target.name as keyof typeof fieldErrors]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[e.target.name as keyof typeof fieldErrors]
+        return newErrors
+      })
+    }
+    setError('')
   }
 
   const handleAgreementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,11 +208,20 @@ const Login: React.FC = () => {
       ...prev,
       [e.target.name]: e.target.checked
     }))
+    // 체크박스 변경 시 해당 필드의 에러 메시지 제거
+    if (fieldErrors[e.target.name as keyof typeof fieldErrors]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[e.target.name as keyof typeof fieldErrors]
+        return newErrors
+      })
+    }
   }
 
   const toggleMode = () => {
     setIsLogin(!isLogin)
     setError('')
+    setFieldErrors({})
     setFormData({
       email: '',
       password: '',
@@ -160,76 +306,122 @@ const Login: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
                   <>
-                    <div className="relative">
-                      <User size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="이름"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required={!isLogin}
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all"
-                      />
+                    <div>
+                      <div className="relative">
+                        <User size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                        <input
+                          type="text"
+                          name="name"
+                          placeholder="이름"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          className={`w-full pl-12 pr-4 py-3 border-2 ${
+                            fieldErrors.name 
+                              ? 'border-red-300 dark:border-red-700' 
+                              : 'border-gray-200 dark:border-gray-700'
+                          } bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all`}
+                        />
+                      </div>
+                      {fieldErrors.name && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                          <XCircle size={14} />
+                          {fieldErrors.name}
+                        </p>
+                      )}
                     </div>
                     
-                    <div className="relative">
-                      <User size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        name="nickname"
-                        placeholder="닉네임 (선택사항)"
-                        value={formData.nickname}
-                        onChange={handleInputChange}
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all"
-                      />
+                    <div>
+                      <div className="relative">
+                        <User size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                        <input
+                          type="text"
+                          name="nickname"
+                          placeholder="닉네임 (선택사항)"
+                          value={formData.nickname}
+                          onChange={handleInputChange}
+                          className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all"
+                        />
+                      </div>
                     </div>
                   </>
                 )}
 
-                <div className="relative">
-                  <Mail size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="이메일"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all"
-                  />
+                <div>
+                  <div className="relative">
+                    <Mail size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="이메일"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`w-full pl-12 pr-4 py-3 border-2 ${
+                        fieldErrors.email 
+                          ? 'border-red-300 dark:border-red-700' 
+                          : 'border-gray-200 dark:border-gray-700'
+                      } bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all`}
+                    />
+                  </div>
+                  {fieldErrors.email && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                      <XCircle size={14} />
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
-                <div className="relative">
-                  <Lock size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="비밀번호"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all"
-                  />
+                <div>
+                  <div className="relative">
+                    <Lock size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="비밀번호"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`w-full pl-12 pr-4 py-3 border-2 ${
+                        fieldErrors.password 
+                          ? 'border-red-300 dark:border-red-700' 
+                          : 'border-gray-200 dark:border-gray-700'
+                      } bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all`}
+                    />
+                  </div>
+                  {fieldErrors.password && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                      <XCircle size={14} />
+                      {fieldErrors.password}
+                    </p>
+                  )}
                 </div>
 
                 {!isLogin && (
                   <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="privacy"
-                        checked={agreements.privacy}
-                        onChange={handleAgreementChange}
-                        required
-                        className="mt-1 w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-400"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        <a href="/privacy" target="_blank" className="text-primary-600 hover:underline">
-                          개인정보 처리방침
-                        </a>에 동의합니다 <span className="text-red-500">(필수)</span>
-                      </span>
-                    </label>
+                    <div>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="privacy"
+                          checked={agreements.privacy}
+                          onChange={handleAgreementChange}
+                          className={`mt-1 w-4 h-4 text-primary-600 dark:text-primary-400 ${
+                            fieldErrors.privacy 
+                              ? 'border-red-500 dark:border-red-500' 
+                              : 'border-gray-300 dark:border-gray-600'
+                          } rounded focus:ring-primary-500 dark:focus:ring-primary-400`}
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          <a href="/privacy" target="_blank" className="text-primary-600 hover:underline">
+                            개인정보 처리방침
+                          </a>에 동의합니다 <span className="text-red-500">(필수)</span>
+                        </span>
+                      </label>
+                      {fieldErrors.privacy && (
+                        <p className="mt-1 ml-7 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                          <XCircle size={14} />
+                          {fieldErrors.privacy}
+                        </p>
+                      )}
+                    </div>
 
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
@@ -244,25 +436,36 @@ const Login: React.FC = () => {
                       </span>
                     </label>
 
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="age"
-                        checked={agreements.age}
-                        onChange={handleAgreementChange}
-                        required
-                        className="mt-1 w-4 h-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-400"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        만 14세 이상입니다 <span className="text-red-500">(필수)</span>
-                      </span>
-                    </label>
+                    <div>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="age"
+                          checked={agreements.age}
+                          onChange={handleAgreementChange}
+                          className={`mt-1 w-4 h-4 text-primary-600 dark:text-primary-400 ${
+                            fieldErrors.age 
+                              ? 'border-red-500 dark:border-red-500' 
+                              : 'border-gray-300 dark:border-gray-600'
+                          } rounded focus:ring-primary-500 dark:focus:ring-primary-400`}
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          만 14세 이상입니다 <span className="text-red-500">(필수)</span>
+                        </span>
+                      </label>
+                      {fieldErrors.age && (
+                        <p className="mt-1 ml-7 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                          <XCircle size={14} />
+                          {fieldErrors.age}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
 
                 {error && (
-                  <div className={`p-4 rounded-lg ${
-                    error.includes('완료') 
+                  <div                   className={`p-4 rounded-lg ${
+                    error.includes('완료') && !error.includes('중복된 이메일')
                       ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300' 
                       : 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
                   }`}>

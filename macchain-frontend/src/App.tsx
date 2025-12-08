@@ -18,7 +18,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-700 dark:from-gray-900 dark:to-gray-800 transition-colors">
+          <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
             <Header />
             <main className="pt-20 min-h-screen">
             <Routes>
