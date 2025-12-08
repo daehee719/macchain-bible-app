@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
 import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight, Flame } from 'lucide-react'
 import { apiService, ReadingPlan } from '../services/api'
+import { cn } from '../utils/cn'
+import { layout, button, card, text, state } from '../utils/styles'
 
 interface ReadingDay {
   date: string
@@ -18,40 +21,108 @@ interface ReadingDay {
 
 const ReadingPlanPage: React.FC = () => {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [currentWeek, setCurrentWeek] = useState(0)
-  const [readingData, setReadingData] = useState<ReadingDay[]>([])
-  const [loading, setLoading] = useState(true)
-  const [statistics, setStatistics] = useState<any>(null)
 
-  useEffect(() => {
-    const loadStatistics = async () => {
-      if (user?.id) {
-        const stats = await apiService.getUserStatistics(user.id)
-        setStatistics(stats)
+  // 사용자 통계 조회 (30분 캐시)
+  const { data: statistics } = useQuery({
+    queryKey: ['user-statistics', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null
+      return await (apiService as any).getUserStatistics(user.id)
+    },
+    staleTime: 30 * 60 * 1000, // 30분
+    gcTime: 60 * 60 * 1000, // 1시간
+    enabled: !!user?.id,
+  })
+
+  // 현재 주의 읽기 계획 조회 (1시간 캐시)
+  const { data: readingData = [], isLoading: loading } = useQuery<ReadingDay[]>({
+    queryKey: ['reading-plan-week', currentWeek],
+    queryFn: async () => {
+      const today = new Date()
+      const weekData: ReadingDay[] = []
+
+      // 현재 주의 7일 데이터 가져오기
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today)
+        date.setDate(today.getDate() + (currentWeek * 7) + i)
+        const dateString = date.toISOString().split('T')[0]
+
+        const plan = await (apiService as any).getPlanByDate(dateString)
+        
+        // 진행률 조회 (로그인한 경우)
+        let progress: any[] = []
+        if (user?.id) {
+          progress = await (apiService as any).getReadingProgress(user.id, dateString)
+        }
+
+        const passages = [
+          { 
+            book: plan?.reading1_book || null, 
+            chapter: plan?.reading1_chapter || null, 
+            verse: plan ? `${plan.reading1_verse_start}-${plan.reading1_verse_end}` : '',
+            readingId: 1,
+            completed: progress.find((p: any) => p.reading_id === 1)?.is_completed || false
+          },
+          { 
+            book: plan?.reading2_book || null, 
+            chapter: plan?.reading2_chapter || null, 
+            verse: plan ? `${plan.reading2_verse_start}-${plan.reading2_verse_end}` : '',
+            readingId: 2,
+            completed: progress.find((p: any) => p.reading_id === 2)?.is_completed || false
+          },
+          { 
+            book: plan?.reading3_book || null, 
+            chapter: plan?.reading3_chapter || null, 
+            verse: plan ? `${plan.reading3_verse_start}-${plan.reading3_verse_end}` : '',
+            readingId: 3,
+            completed: progress.find((p: any) => p.reading_id === 3)?.is_completed || false
+          },
+          { 
+            book: plan?.reading4_book || null, 
+            chapter: plan?.reading4_chapter || null, 
+            verse: plan ? `${plan.reading4_verse_start}-${plan.reading4_verse_end}` : '',
+            readingId: 4,
+            completed: progress.find((p: any) => p.reading_id === 4)?.is_completed || false
+          }
+        ].filter(p => p.book && p.chapter)
+
+        weekData.push({
+          date: dateString,
+          plan,
+          passages
+        })
       }
-    }
-    loadStatistics()
-  }, [user])
 
+      return weekData
+    },
+    staleTime: 60 * 60 * 1000, // 1시간 (읽기 계획은 하루에 한 번만 변경)
+    gcTime: 2 * 60 * 60 * 1000, // 2시간
+  })
+
+  // 프리페칭: 다음 주 데이터 미리 로드
   useEffect(() => {
-    const fetchReadingPlans = async () => {
-      try {
-        setLoading(true)
+    if (loading) return
+
+    // 다음 주 데이터 프리페치
+    const nextWeek = currentWeek + 1
+    queryClient.prefetchQuery({
+      queryKey: ['reading-plan-week', nextWeek],
+      queryFn: async () => {
         const today = new Date()
         const weekData: ReadingDay[] = []
 
-        // 현재 주의 7일 데이터 가져오기
         for (let i = 0; i < 7; i++) {
           const date = new Date(today)
-          date.setDate(today.getDate() + (currentWeek * 7) + i)
+          date.setDate(today.getDate() + (nextWeek * 7) + i)
           const dateString = date.toISOString().split('T')[0]
 
-          const plan = await apiService.getPlanByDate(dateString)
+          const plan = await (apiService as any).getPlanByDate(dateString)
           
-          // 진행률 조회 (로그인한 경우)
           let progress: any[] = []
           if (user?.id) {
-            progress = await apiService.getReadingProgress(user.id, dateString)
+            progress = await (apiService as any).getReadingProgress(user.id, dateString)
           }
 
           const passages = [
@@ -60,28 +131,28 @@ const ReadingPlanPage: React.FC = () => {
               chapter: plan?.reading1_chapter || null, 
               verse: plan ? `${plan.reading1_verse_start}-${plan.reading1_verse_end}` : '',
               readingId: 1,
-              completed: progress.find(p => p.reading_id === 1)?.is_completed || false
+              completed: progress.find((p: any) => p.reading_id === 1)?.is_completed || false
             },
             { 
               book: plan?.reading2_book || null, 
               chapter: plan?.reading2_chapter || null, 
               verse: plan ? `${plan.reading2_verse_start}-${plan.reading2_verse_end}` : '',
               readingId: 2,
-              completed: progress.find(p => p.reading_id === 2)?.is_completed || false
+              completed: progress.find((p: any) => p.reading_id === 2)?.is_completed || false
             },
             { 
               book: plan?.reading3_book || null, 
               chapter: plan?.reading3_chapter || null, 
               verse: plan ? `${plan.reading3_verse_start}-${plan.reading3_verse_end}` : '',
               readingId: 3,
-              completed: progress.find(p => p.reading_id === 3)?.is_completed || false
+              completed: progress.find((p: any) => p.reading_id === 3)?.is_completed || false
             },
             { 
               book: plan?.reading4_book || null, 
               chapter: plan?.reading4_chapter || null, 
               verse: plan ? `${plan.reading4_verse_start}-${plan.reading4_verse_end}` : '',
               readingId: 4,
-              completed: progress.find(p => p.reading_id === 4)?.is_completed || false
+              completed: progress.find((p: any) => p.reading_id === 4)?.is_completed || false
             }
           ].filter(p => p.book && p.chapter)
 
@@ -92,18 +163,71 @@ const ReadingPlanPage: React.FC = () => {
           })
         }
 
-        setReadingData(weekData)
-      } catch (error) {
-        console.error('Error fetching reading plans:', error)
-      } finally {
-        setLoading(false)
+        return weekData
+      },
+      staleTime: 60 * 60 * 1000,
+      gcTime: 2 * 60 * 60 * 1000,
+    })
+  }, [currentWeek, loading, queryClient, user])
+
+  // 진행률 업데이트 Mutation
+  const updateProgressMutation = useMutation({
+    mutationFn: async ({ 
+      dayIndex, 
+      passageIndex, 
+      newCompleted 
+    }: { 
+      dayIndex: number
+      passageIndex: number
+      newCompleted: boolean
+    }) => {
+      if (!user?.id) throw new Error('로그인이 필요합니다.')
+      const day = readingData[dayIndex]
+      const passage = day.passages[passageIndex]
+      await (apiService as any).updateReadingProgress(
+        user.id,
+        day.date,
+        passage.readingId,
+        newCompleted
+      )
+      return { dayIndex, passageIndex, newCompleted }
+    },
+    onMutate: async ({ dayIndex, passageIndex, newCompleted }) => {
+      // 낙관적 업데이트
+      await queryClient.cancelQueries({ queryKey: ['reading-plan-week', currentWeek] })
+      const previousData = queryClient.getQueryData<ReadingDay[]>(['reading-plan-week', currentWeek])
+      
+      queryClient.setQueryData<ReadingDay[]>(['reading-plan-week', currentWeek], (old = []) =>
+        old.map((d, dIdx) => 
+          dIdx === dayIndex 
+            ? {
+                ...d,
+                passages: d.passages.map((p, pIdx) => 
+                  pIdx === passageIndex 
+                    ? { ...p, completed: newCompleted }
+                    : p
+                )
+              }
+            : d
+        )
+      )
+
+      return { previousData }
+    },
+    onError: (err, variables, context) => {
+      // 실패 시 롤백
+      if (context?.previousData) {
+        queryClient.setQueryData(['reading-plan-week', currentWeek], context.previousData)
       }
-    }
+      console.error('Failed to update reading progress:', err)
+    },
+    onSuccess: () => {
+      // 통계 캐시 무효화 (진행률이 변경되었으므로)
+      queryClient.invalidateQueries({ queryKey: ['user-statistics', user?.id] })
+    },
+  })
 
-    fetchReadingPlans()
-  }, [currentWeek, user])
-
-  const togglePassageCompletion = async (dayIndex: number, passageIndex: number) => {
+  const togglePassageCompletion = (dayIndex: number, passageIndex: number) => {
     if (!user?.id) {
       console.warn('로그인이 필요합니다.')
       return
@@ -113,44 +237,7 @@ const ReadingPlanPage: React.FC = () => {
     const passage = day.passages[passageIndex]
     const newCompleted = !passage.completed
 
-    // 로컬 상태 먼저 업데이트 (낙관적 업데이트)
-    setReadingData(prev => prev.map((d, dIdx) => 
-      dIdx === dayIndex 
-        ? {
-            ...d,
-            passages: d.passages.map((p, pIdx) => 
-              pIdx === passageIndex 
-                ? { ...p, completed: newCompleted }
-                : p
-            )
-          }
-        : d
-    ))
-
-    // Supabase에 진행률 업데이트
-    try {
-      await apiService.updateReadingProgress(
-        user.id,
-        day.date,
-        passage.readingId,
-        newCompleted
-      )
-    } catch (error) {
-      console.error('Failed to update reading progress:', error)
-      // 실패 시 롤백
-      setReadingData(prev => prev.map((d, dIdx) => 
-        dIdx === dayIndex 
-          ? {
-              ...d,
-              passages: d.passages.map((p, pIdx) => 
-                pIdx === passageIndex 
-                  ? { ...p, completed: !newCompleted }
-                  : p
-              )
-            }
-          : d
-      ))
-    }
+    updateProgressMutation.mutate({ dayIndex, passageIndex, newCompleted })
   }
 
   const getWeekData = () => {
@@ -175,20 +262,20 @@ const ReadingPlanPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className={layout.pageContainer}>
+      <div className={layout.container}>
         {/* Header */}
-        <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        <header className={layout.header}>
+          <h1 className={layout.title}>
             McCheyne 읽기 계획
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
+          <p className={layout.subtitle}>
             1년에 성경을 두 번 읽는 체계적인 계획
           </p>
         </header>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className={cn(card.grid2, 'mb-8')}>
           <Card title="진행률" className="text-center">
             <div className="flex flex-col items-center gap-4">
               <div className="relative w-32 h-32">
@@ -240,7 +327,7 @@ const ReadingPlanPage: React.FC = () => {
           <button 
             onClick={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
             disabled={currentWeek === 0}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-primary-300 dark:hover:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className={cn(button.secondary, button.disabled)}
           >
             <ArrowLeft size={20} />
             이전 주
@@ -252,7 +339,7 @@ const ReadingPlanPage: React.FC = () => {
           
           <button 
             onClick={() => setCurrentWeek(currentWeek + 1)}
-            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-primary-300 dark:hover:border-primary-500 transition-all"
+            className={button.secondary}
           >
             다음 주
             <ArrowRight size={20} />
@@ -260,9 +347,9 @@ const ReadingPlanPage: React.FC = () => {
         </div>
 
         {/* Reading Days */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className={cn(card.grid, 'mb-12')}>
           {loading ? (
-            <div className="col-span-full flex items-center justify-center h-64">
+            <div className={cn(state.loading, 'col-span-full')}>
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
             </div>
           ) : getWeekData().length > 0 ? (
@@ -277,11 +364,12 @@ const ReadingPlanPage: React.FC = () => {
                     day.passages.map((passage, passageIndex) => (
                       <div 
                         key={passageIndex}
-                        className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                        className={cn(
+                          'flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer',
                           passage.completed 
                             ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700' 
                             : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-                        }`}
+                        )}
                         onClick={() => togglePassageCompletion(dayIndex, passageIndex)}
                       >
                         <div className="flex-shrink-0">
@@ -292,11 +380,12 @@ const ReadingPlanPage: React.FC = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <span className={`font-medium ${
+                          <span className={cn(
+                            'font-medium',
                             passage.completed 
                               ? 'text-green-700 dark:text-green-400 line-through' 
-                              : 'text-gray-900 dark:text-white'
-                          }`}>
+                              : text.bold
+                          )}>
                             {passage.book} {passage.chapter}:{passage.verse}
                           </span>
                         </div>

@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
 import { BarChart3, Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star, Loader, Flame } from 'lucide-react'
 import { apiService } from '../services/api'
+import { cn } from '../utils/cn'
+import { layout, card, text, state } from '../utils/styles'
 
 interface ReadingStats {
   totalDays: number
@@ -18,63 +21,54 @@ interface ReadingStats {
 const Statistics: React.FC = () => {
   const { user, isLoggedIn } = useAuth()
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month')
-  const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState<ReadingStats>({
-    totalDays: 0,
-    currentStreak: 0,
-    longestStreak: 0,
-    completionRate: 0,
-    totalChapters: 0,
-    totalTime: 0,
-    favoriteBook: '없음',
-    monthlyProgress: []
+
+  // 사용자 통계 조회 (30분 캐시)
+  const { data: userStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['user-statistics', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null
+      return await (apiService as any).getUserStatistics(user.id)
+    },
+    staleTime: 30 * 60 * 1000, // 30분
+    gcTime: 60 * 60 * 1000, // 1시간
+    enabled: isLoggedIn && !!user?.id,
   })
 
-  useEffect(() => {
-    if (isLoggedIn && user) {
-      loadStatistics()
-    } else {
-      setLoading(false)
-    }
-  }, [isLoggedIn, user, timeRange])
-
-  const loadStatistics = async () => {
-    try {
-      setLoading(true)
+  // 월별 통계 조회 (30분 캐시)
+  const { data: monthlyProgress = [], isLoading: monthlyLoading } = useQuery({
+    queryKey: ['monthly-statistics', user?.id, new Date().getFullYear()],
+    queryFn: async () => {
+      if (!user?.id) return []
+      const currentYear = new Date().getFullYear()
+      const progress: { month: string; days: number }[] = []
       
-      // 사용자 통계 조회
-      const userStats = await apiService.getUserStatistics(user!.id)
-      
-      if (userStats) {
-        // 월별 진행률 계산
-        const currentYear = new Date().getFullYear()
-        const monthlyProgress: { month: string; days: number }[] = []
-        
-        for (let month = 1; month <= 12; month++) {
-          const monthData = await apiService.getMonthlyStatistics(user!.id, currentYear, month)
-          const uniqueDays = new Set(monthData.map((d: any) => d.plan_date)).size
-          monthlyProgress.push({
-            month: `${month}월`,
-            days: uniqueDays
-          })
-        }
-
-        setStats({
-          totalDays: userStats.total_days_read || 0,
-          currentStreak: userStats.current_streak || 0,
-          longestStreak: userStats.longest_streak || 0,
-          completionRate: userStats.total_days_read ? Math.round((userStats.total_days_read / 365) * 100) : 0,
-          totalChapters: userStats.total_days_read * 4, // 매일 4개 읽기
-          totalTime: userStats.total_days_read * 30, // 평균 30분 가정
-          favoriteBook: '시편', // TODO: 실제 데이터에서 계산
-          monthlyProgress
+      for (let month = 1; month <= 12; month++) {
+        const monthData = await (apiService as any).getMonthlyStatistics(user.id, currentYear, month)
+        const uniqueDays = new Set(monthData.map((d: any) => d.plan_date)).size
+        progress.push({
+          month: `${month}월`,
+          days: uniqueDays
         })
       }
-    } catch (error) {
-      console.error('Failed to load statistics:', error)
-    } finally {
-      setLoading(false)
-    }
+      
+      return progress
+    },
+    staleTime: 30 * 60 * 1000, // 30분
+    gcTime: 60 * 60 * 1000, // 1시간
+    enabled: isLoggedIn && !!user?.id,
+  })
+
+  const loading = statsLoading || monthlyLoading
+
+  const stats: ReadingStats = {
+    totalDays: userStats?.total_days_read || 0,
+    currentStreak: userStats?.current_streak || 0,
+    longestStreak: userStats?.longest_streak || 0,
+    completionRate: userStats?.total_days_read ? Math.round((userStats.total_days_read / 365) * 100) : 0,
+    totalChapters: (userStats?.total_days_read || 0) * 4, // 매일 4개 읽기
+    totalTime: (userStats?.total_days_read || 0) * 30, // 평균 30분 가정
+    favoriteBook: '시편', // TODO: 실제 데이터에서 계산
+    monthlyProgress
   }
 
   const formatTime = (minutes: number) => {
@@ -102,11 +96,11 @@ const Statistics: React.FC = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center py-12">
+      <div className={cn(layout.pageContainer, 'flex items-center justify-center')}>
         <div className="max-w-md mx-auto px-4">
-          <Card className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">로그인이 필요합니다</h2>
-            <p className="text-gray-600 dark:text-gray-300">통계를 보려면 먼저 로그인해주세요.</p>
+          <Card className={text.center}>
+            <h2 className={cn('text-2xl font-bold', text.bold, 'mb-2')}>로그인이 필요합니다</h2>
+            <p className={text.secondary}>통계를 보려면 먼저 로그인해주세요.</p>
           </Card>
         </div>
       </div>
@@ -115,61 +109,61 @@ const Statistics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center py-12">
-        <div className="text-center">
+      <div className={cn(layout.pageContainer, 'flex items-center justify-center')}>
+        <div className={text.center}>
           <Loader size={48} className="animate-spin text-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-300">통계를 불러오는 중...</p>
+          <p className={text.secondary}>통계를 불러오는 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className={layout.pageContainer}>
+      <div className={layout.container}>
         {/* Header */}
-        <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        <header className={layout.header}>
+          <h1 className={layout.title}>
             읽기 통계
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
+          <p className={layout.subtitle}>
             나의 성경 읽기 여정을 한눈에 보세요
           </p>
         </header>
 
         {/* 핵심 통계 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <Card title="총 읽은 날" className="text-center">
+        <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12')}>
+          <Card title="총 읽은 날" className={text.center}>
             <div className="flex flex-col items-center gap-3">
               <Calendar size={40} className="text-primary-600" />
               <div>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white">{stats.totalDays}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">일</div>
+                <div className={cn('text-4xl font-bold', text.bold)}>{stats.totalDays}</div>
+                <div className={cn(text.small, 'mt-1')}>일</div>
               </div>
             </div>
           </Card>
 
-          <Card title="현재 연속 읽기" className="text-center">
+          <Card title="현재 연속 읽기" className={text.center}>
             <div className="flex flex-col items-center gap-3">
               <div className="flex items-center gap-2">
                 <Flame size={40} className="text-orange-500" />
               </div>
               <div>
                 <div className="text-4xl font-bold text-green-600">{stats.currentStreak}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">일</div>
+                <div className={cn(text.small, 'mt-1')}>일</div>
               </div>
-              <div className="text-sm text-primary-600 font-medium">
+              <div className={cn(text.small, text.primary, 'font-medium')}>
                 {getStreakStatus(stats.currentStreak).level} {getStreakStatus(stats.currentStreak).message}
               </div>
             </div>
           </Card>
 
-          <Card title="최장 연속 기록" className="text-center">
+          <Card title="최장 연속 기록" className={text.center}>
             <div className="flex flex-col items-center gap-3">
               <Award size={40} className="text-yellow-500" />
               <div>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white">{stats.longestStreak}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">일</div>
+                <div className={cn('text-4xl font-bold', text.bold)}>{stats.longestStreak}</div>
+                <div className={cn(text.small, 'mt-1')}>일</div>
               </div>
             </div>
           </Card>
@@ -196,9 +190,9 @@ const Statistics: React.FC = () => {
         </div>
 
         {/* 상세 통계 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+        <div className={cn('grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12')}>
           <Card title="읽기 활동">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-6')}>
               <div className="text-center">
                 <BookOpen size={32} className="text-primary-600 mx-auto mb-3" />
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalChapters}</div>

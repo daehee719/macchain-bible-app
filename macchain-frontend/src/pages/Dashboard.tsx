@@ -1,43 +1,40 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
 import { BookOpen, Brain, Users, BarChart3, Calendar, TrendingUp, ArrowRight, CheckCircle } from 'lucide-react'
 import { apiService, TodayPlanResponse, UserStatistics } from '../services/api'
+import { cn } from '../utils/cn'
+import { layout, button, card, text, state, link } from '../utils/styles'
 
 const Dashboard: React.FC = () => {
   const { isLoggedIn, user } = useAuth()
-  const [todayReading, setTodayReading] = useState<TodayPlanResponse | null>(null)
-  const [statistics, setStatistics] = useState<UserStatistics | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        
-        // 오늘의 읽기 계획 조회
-        const plan = await apiService.getTodayPlan()
-        setTodayReading(plan)
-        
-        // 사용자 통계 조회 (로그인한 경우)
-        if (user?.id) {
-          const stats = await apiService.getUserStatistics(user.id)
-          if (stats) {
-            setStatistics(stats)
-          }
-        }
-      } catch (err) {
-        setError('데이터를 불러오는데 실패했습니다.')
-        console.error('Error fetching data:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
+  // 오늘의 읽기 계획 조회 (1시간 캐시)
+  const { data: todayReading, isLoading: planLoading } = useQuery<TodayPlanResponse>({
+    queryKey: ['today-plan'],
+    queryFn: async () => {
+      return await (apiService as any).getTodayPlan()
+    },
+    staleTime: 60 * 60 * 1000, // 1시간 (하루에 한 번만 변경)
+    gcTime: 2 * 60 * 60 * 1000, // 2시간
+  })
 
-    fetchData()
-  }, [user])
+  // 사용자 통계 조회 (30분 캐시)
+  const { data: statistics, isLoading: statsLoading } = useQuery<UserStatistics | null>({
+    queryKey: ['user-statistics', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null
+      return await (apiService as any).getUserStatistics(user.id)
+    },
+    staleTime: 30 * 60 * 1000, // 30분
+    gcTime: 60 * 60 * 1000, // 1시간
+    enabled: !!user?.id,
+  })
+
+  const loading = planLoading || statsLoading
+  const error = null // React Query가 에러를 자동으로 처리
 
   const stats = {
     totalDays: statistics?.total_days_read || 0,
@@ -55,36 +52,57 @@ const Dashboard: React.FC = () => {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
+    <div className={layout.pageContainer}>
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-primary opacity-5 dark:opacity-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 bg-primary-100 dark:bg-primary-900/50 rounded-full text-primary-700 dark:text-primary-300 text-sm font-medium mb-6">
+        <div className={cn(layout.container, 'relative z-10')}>
+          <div className={text.center}>
+            <div className={cn(
+              'inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-6',
+              'bg-primary-100 dark:bg-primary-900/50',
+              'text-primary-700 dark:text-primary-300'
+            )}>
               <Calendar size={16} className="mr-2" />
               {formattedDate}
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+            <h1 className={cn(
+              'text-4xl md:text-6xl font-bold mb-6',
+              text.bold
+            )}>
               MacChain 성경 읽기
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className={cn(
+              'text-xl md:text-2xl mb-8 max-w-2xl mx-auto',
+              text.secondary
+            )}>
               매일 함께하는 성경 읽기 여행
               <br />
-              <span className="text-primary-600 dark:text-primary-400 font-semibold">McCheyne 읽기 계획</span>으로 1년에 성경을 두 번 읽어보세요
+              <span className={cn(text.primary, 'font-semibold')}>
+                McCheyne 읽기 계획
+              </span>
+              으로 1년에 성경을 두 번 읽어보세요
             </p>
             {!isLoggedIn && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   to="/login"
-                  className="px-8 py-4 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center space-x-2"
+                  className={cn(
+                    button.primary,
+                    'px-8 py-4 hover:shadow-xl hover:scale-105'
+                  )}
                 >
                   <span>시작하기</span>
                   <ArrowRight size={20} />
                 </Link>
                 <Link
                   to="/reading-plan"
-                  className="px-8 py-4 bg-white dark:bg-gray-800 text-primary-700 dark:text-primary-300 rounded-lg font-semibold border-2 border-primary-200 dark:border-primary-700 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-all"
+                  className={cn(
+                    button.secondary,
+                    'px-8 py-4 text-primary-700 dark:text-primary-300',
+                    'hover:border-primary-400 dark:hover:border-primary-500',
+                    'hover:bg-primary-50 dark:hover:bg-primary-900/30'
+                  )}
                 >
                   읽기 계획 보기
                 </Link>
@@ -95,8 +113,8 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* Main Content */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <section className={cn(layout.container, 'pb-20')}>
+        <div className={card.grid}>
           {/* 오늘의 읽기 계획 */}
           <Card
             title="오늘의 읽기 계획"
@@ -105,11 +123,11 @@ const Dashboard: React.FC = () => {
             className="md:col-span-2 lg:col-span-1"
           >
             {loading ? (
-              <div className="flex items-center justify-center h-48">
+              <div className={cn(state.loading, 'h-48')}>
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
               </div>
             ) : error ? (
-              <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300">
+              <div className={state.error}>
                 {error}
               </div>
             ) : todayReading?.plan ? (
@@ -121,10 +139,16 @@ const Dashboard: React.FC = () => {
                     { book: todayReading.plan.reading3_book, chapter: todayReading.plan.reading3_chapter, verseStart: todayReading.plan.reading3_verse_start, verseEnd: todayReading.plan.reading3_verse_end },
                     { book: todayReading.plan.reading4_book, chapter: todayReading.plan.reading4_chapter, verseStart: todayReading.plan.reading4_verse_start, verseEnd: todayReading.plan.reading4_verse_end }
                   ].filter(r => r && r.book && r.chapter && r.verseStart && r.verseEnd).map((reading, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div 
+                      key={index} 
+                      className={cn(
+                        'flex items-center justify-between p-3 rounded-lg transition-colors',
+                        'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      )}
+                    >
                       <div className="flex items-center space-x-3">
                         <CheckCircle size={18} className="text-primary-500 dark:text-primary-400" />
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className={cn('font-medium', text.bold)}>
                           {reading.book} {reading.chapter}:{reading.verseStart}-{reading.verseEnd}
                         </span>
                       </div>
@@ -133,10 +157,10 @@ const Dashboard: React.FC = () => {
                 </div>
                 <Link 
                   to="/reading-plan" 
-                  className="mt-6 inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium group"
+                  className={cn(link.primary, 'mt-6')}
                 >
                   전체 계획 보기
-                  <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight size={18} className={link.icon} />
                 </Link>
               </>
             ) : (
@@ -152,33 +176,33 @@ const Dashboard: React.FC = () => {
             description="나의 성경 읽기 현황"
             icon={<TrendingUp size={24} />}
           >
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-1">
+            <div className={card.grid3}>
+              <div className={text.center}>
+                <div className={cn('text-3xl font-bold mb-1', text.primary)}>
                   {stats.totalDays}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">총 읽은 날</div>
+                <div className={text.small}>총 읽은 날</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-1">
+              <div className={text.center}>
+                <div className={cn('text-3xl font-bold mb-1', text.primary)}>
                   {stats.streak}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">연속 읽기</div>
+                <div className={text.small}>연속 읽기</div>
               </div>
-              <div className="text-center">
+              <div className={text.center}>
                 <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
                   {stats.completionRate}%
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">완주율</div>
+                <div className={text.small}>완주율</div>
               </div>
             </div>
             {isLoggedIn && (
               <Link 
                 to="/statistics" 
-                className="mt-6 inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium group"
+                className={cn(link.primary, 'mt-6')}
               >
                 상세 통계 보기
-                <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={18} className={link.icon} />
               </Link>
             )}
           </Card>
