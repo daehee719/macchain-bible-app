@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
-import { Brain, Send, Loader, Lightbulb, BookOpen, MessageCircle, Sparkles } from 'lucide-react'
+import { Brain, Send, Lightbulb, BookOpen, MessageCircle, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 import { apiService } from '../services/api'
+import { Loading } from '../components/Loading'
 
 interface AnalysisResult {
   id: string
@@ -92,7 +94,7 @@ const AIAnalysis: React.FC = () => {
       setInputPassage('')
     } catch (error) {
       console.error('Failed to analyze passage:', error)
-      alert('분석 중 오류가 발생했습니다.')
+      toast.error('분석 중 오류가 발생했습니다.')
     } finally {
       setIsAnalyzing(false)
     }
@@ -148,8 +150,11 @@ const AIAnalysis: React.FC = () => {
                 >
                   {isAnalyzing ? (
                     <>
-                      <Loader size={20} className="animate-spin" />
-                      분석 중...
+                      <div className="relative">
+                        <div className="h-5 w-5 rounded-full border-2 border-white/30"></div>
+                        <div className="absolute top-0 left-0 h-5 w-5 rounded-full border-2 border-transparent border-t-white animate-spin"></div>
+                      </div>
+                      <span className="animate-pulse">분석 중...</span>
                     </>
                   ) : (
                     <>
@@ -168,10 +173,7 @@ const AIAnalysis: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">분석 결과</h2>
           {loading ? (
             <Card>
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader size={48} className="animate-spin text-primary-600 mb-4" />
-                <p className="text-gray-600 dark:text-gray-300">분석 이력을 불러오는 중...</p>
-              </div>
+              <Loading size="lg" text="분석 이력을 불러오는 중..." />
             </Card>
           ) : analysisResults.length === 0 ? (
             <Card>

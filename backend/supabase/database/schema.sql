@@ -113,6 +113,35 @@ CREATE TABLE IF NOT EXISTS public.user_consents (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 커뮤니티 나눔(게시글) 테이블
+CREATE TABLE IF NOT EXISTS public.community_posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    passage TEXT, -- 관련 성경 구절 (예: "창세기 1:1-31")
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 커뮤니티 댓글 테이블
+CREATE TABLE IF NOT EXISTS public.community_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID NOT NULL REFERENCES public.community_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 커뮤니티 아멘(좋아요) 테이블
+CREATE TABLE IF NOT EXISTS public.community_likes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID NOT NULL REFERENCES public.community_posts(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(post_id, user_id) -- 한 사용자는 한 나눔에 아멘을 한 번만 누를 수 있음
+);
+
 -- 인덱스 생성
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON public.user_progress(user_id);
@@ -122,6 +151,12 @@ CREATE INDEX IF NOT EXISTS idx_reading_progress_completed ON public.reading_prog
 CREATE INDEX IF NOT EXISTS idx_ai_analysis_user_date ON public.ai_analysis(user_id, plan_date);
 CREATE INDEX IF NOT EXISTS idx_monthly_bible_data_book_chapter ON public.monthly_bible_data(book, chapter);
 CREATE INDEX IF NOT EXISTS idx_user_consents_user_id ON public.user_consents(user_id);
+CREATE INDEX IF NOT EXISTS idx_community_posts_user_id ON public.community_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_community_posts_created_at ON public.community_posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_community_comments_post_id ON public.community_comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_community_comments_user_id ON public.community_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_community_likes_post_id ON public.community_likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_community_likes_user_id ON public.community_likes(user_id);
 
 -- updated_at 자동 업데이트 함수
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -146,6 +181,12 @@ CREATE TRIGGER update_user_settings_updated_at BEFORE UPDATE ON public.user_sett
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_user_consents_updated_at BEFORE UPDATE ON public.user_consents
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_community_posts_updated_at BEFORE UPDATE ON public.community_posts
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_community_comments_updated_at BEFORE UPDATE ON public.community_comments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 트리거: 사용자 생성 시 기본 설정 생성
@@ -190,6 +231,9 @@ ALTER TABLE public.reading_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_analysis ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_consents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_likes ENABLE ROW LEVEL SECURITY;
 
 -- 사용자는 자신의 데이터만 조회/수정 가능
 CREATE POLICY "Users can view own profile" ON public.users
@@ -244,5 +288,47 @@ CREATE POLICY "Authenticated users can view reading plans" ON public.macchain_pl
 
 CREATE POLICY "Authenticated users can view bible data" ON public.monthly_bible_data
     FOR SELECT TO authenticated USING (true);
+
+-- 커뮤니티 나눔(게시글) 정책
+-- 모든 인증된 사용자가 나눔을 볼 수 있음
+CREATE POLICY "Authenticated users can view posts" ON public.community_posts
+    FOR SELECT TO authenticated USING (true);
+
+-- 사용자는 자신의 나눔만 생성/수정/삭제 가능
+CREATE POLICY "Users can create own posts" ON public.community_posts
+    FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own posts" ON public.community_posts
+    FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own posts" ON public.community_posts
+    FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+-- 커뮤니티 댓글 정책
+-- 모든 인증된 사용자가 댓글을 볼 수 있음
+CREATE POLICY "Authenticated users can view comments" ON public.community_comments
+    FOR SELECT TO authenticated USING (true);
+
+-- 사용자는 자신의 댓글만 생성/수정/삭제 가능
+CREATE POLICY "Users can create own comments" ON public.community_comments
+    FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own comments" ON public.community_comments
+    FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own comments" ON public.community_comments
+    FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+-- 커뮤니티 아멘(좋아요) 정책
+-- 모든 인증된 사용자가 아멘을 볼 수 있음
+CREATE POLICY "Authenticated users can view likes" ON public.community_likes
+    FOR SELECT TO authenticated USING (true);
+
+-- 사용자는 자신의 아멘만 추가/삭제 가능
+CREATE POLICY "Users can create own likes" ON public.community_likes
+    FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own likes" ON public.community_likes
+    FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 

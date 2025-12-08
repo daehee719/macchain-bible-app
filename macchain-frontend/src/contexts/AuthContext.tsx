@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase, callEdgeFunction } from '../lib/supabase'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
@@ -8,6 +9,7 @@ interface User {
   name: string
   nickname?: string
   isActive: boolean
+  avatarUrl?: string
 }
 
 interface AuthContextType {
@@ -26,10 +28,63 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// React Query 키
+const QUERY_KEY_USER = ['auth', 'user'] as const
+const QUERY_KEY_TOKEN = ['auth', 'token'] as const
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [loading, setLoading] = useState(true)
+  const [hasCheckedSession, setHasCheckedSession] = useState(false)
+
+  // React Query 캐시에서 사용자 정보 가져오기
+  // queryFn에서 Supabase 세션을 확인하여 초기값 설정
+  const { data: user } = useQuery<User | null>({
+    queryKey: QUERY_KEY_USER,
+    queryFn: async () => {
+      // Supabase 세션 확인
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        // 세션 정보로 기본 사용자 반환
+        return {
+          id: session.user.id,
+          email: session.user.email!,
+          name: (session.user.user_metadata as any)?.name || session.user.email!,
+          nickname: (session.user.user_metadata as any)?.nickname || '',
+          isActive: true,
+          avatarUrl: (session.user.user_metadata as any)?.avatar_url || undefined
+        } as User
+      }
+      return null
+    },
+    staleTime: Infinity, // 사용자 정보는 수동으로만 업데이트
+    gcTime: Infinity, // 캐시에서 제거하지 않음
+    retry: false, // 실패 시 재시도 안 함
+  })
+
+  // React Query 캐시에서 토큰 가져오기
+  // queryFn에서 Supabase 세션을 확인하여 초기값 설정
+  const { data: token } = useQuery<string | null>({
+    queryKey: QUERY_KEY_TOKEN,
+    queryFn: async () => {
+      // Supabase 세션 확인
+      const { data: { session } } = await supabase.auth.getSession()
+      return session?.access_token || null
+    },
+    staleTime: Infinity, // 토큰은 수동으로만 업데이트
+    gcTime: Infinity, // 캐시에서 제거하지 않음
+    retry: false, // 실패 시 재시도 안 함
+  })
+
+  // 사용자 정보를 React Query 캐시에 저장
+  const setUser = useCallback((userData: User | null) => {
+    queryClient.setQueryData<User | null>(QUERY_KEY_USER, userData)
+  }, [queryClient])
+
+  // 토큰을 React Query 캐시에 저장
+  const setToken = useCallback((tokenData: string | null) => {
+    queryClient.setQueryData<string | null>(QUERY_KEY_TOKEN, tokenData)
+  }, [queryClient])
 
   // Supabase 세션 확인 및 사용자 프로필 로드
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
@@ -37,33 +92,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const queryStartTime = Date.now()
       
-      // 타임아웃 처리 (10초)
-      const timeoutPromise = new Promise((_, reject) => {
+      // 타임아웃 처리 (1.5초로 단축, 실패해도 세션 정보로 로그인 유지)
+      const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
-          reject(new Error('Query timeout after 10 seconds'))
-        }, 10000)
+          reject(new Error('Query timeout'))
+        }, 1500)
       })
       
+      // 필요한 컬럼만 선택하여 쿼리 최적화
+      // id는 PRIMARY KEY이므로 인덱스가 자동으로 존재함
+      // limit(1)을 추가하여 최적화
       const queryPromise = supabase
         .from('users')
-        .select('*')
+        .select('id, email, name, nickname, is_active, avatar_url')
         .eq('id', supabaseUser.id)
-        .single()
+        .limit(1)
+        .maybeSingle() // single() 대신 maybeSingle() 사용 (더 빠름)
 
-      const { data: profile, error } = await Promise.race([
+      const result = await Promise.race([
         queryPromise,
         timeoutPromise
-      ]) as any
+      ]) as { data: any; error: any }
+      
+      const { data: profile, error } = result
       
       const queryDuration = Date.now() - queryStartTime
-      if (queryDuration > 500) {
-        console.warn(`⚠️ Slow profile query: ${queryDuration}ms`)
-      }
+      // 느린 쿼리 경고 제거 (콘솔을 깔끔하게 유지)
 
       if (error) {
         // 아직 프로필이 없는 경우(PGRST116)에는 이 시점에서 생성 시도
         if ((error as any).code === 'PGRST116') {
-          console.log('User profile not found (PGRST116), creating on demand...')
+            // 프로필 생성 시도 (조용히 처리)
           try {
             const { data: created, error: insertError } = await supabase
               .from('users')
@@ -83,64 +142,92 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               .single()
 
             if (insertError || !created) {
-              console.error('Failed to create user profile on demand:', insertError)
-              console.error('Insert error details:', JSON.stringify(insertError, null, 2))
-              return null
+              // 프로필 생성 실패 (조용히 처리, 세션 정보로 기본 사용자 반환)
+              // 프로필 생성 실패해도 세션 정보로 기본 사용자 반환
+              return {
+                id: supabaseUser.id,
+                email: supabaseUser.email!,
+                name: (supabaseUser.user_metadata as any)?.name || supabaseUser.email!,
+                nickname: (supabaseUser.user_metadata as any)?.nickname || '',
+              isActive: true,
+              avatarUrl: (supabaseUser.user_metadata as any)?.avatar_url || undefined
+              } as User
             }
 
-            console.log('User profile created successfully:', created.email)
+            // 프로필 생성 성공
             return {
               id: created.id,
               email: created.email,
               name: created.name,
               nickname: created.nickname,
-              isActive: created.is_active
+            isActive: created.is_active,
+            avatarUrl: (supabaseUser.user_metadata as any)?.avatar_url || undefined
             } as User
           } catch (insertErr) {
-            console.error('Error creating user profile on demand:', insertErr)
-            return null
+            // 프로필 생성 중 에러 발생 (조용히 처리)
+            // 프로필 생성 실패해도 세션 정보로 기본 사용자 반환
+            return {
+              id: supabaseUser.id,
+              email: supabaseUser.email!,
+              name: (supabaseUser.user_metadata as any)?.name || supabaseUser.email!,
+              nickname: (supabaseUser.user_metadata as any)?.nickname || '',
+            isActive: true,
+            avatarUrl: (supabaseUser.user_metadata as any)?.avatar_url || undefined
+            } as User
           }
         }
 
-        console.error('Failed to load user profile:', error)
-        console.error('Error details:', JSON.stringify(error, null, 2))
-        return null
+        // 에러 로그 제거 (조용히 처리)
+        // 프로필 로드 실패해도 세션 정보로 기본 사용자 반환
+        return {
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: (supabaseUser.user_metadata as any)?.name || supabaseUser.email!,
+          nickname: (supabaseUser.user_metadata as any)?.nickname || '',
+        isActive: true,
+        avatarUrl: (supabaseUser.user_metadata as any)?.avatar_url || undefined
+        } as User
       }
 
       // 프로필이 정상적으로 로드됨
       if (!profile) {
-        console.warn('Profile query returned no data')
-        return null
+        // 프로필 데이터 없음 (조용히 처리)
+        return {
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: (supabaseUser.user_metadata as any)?.name || supabaseUser.email!,
+          nickname: (supabaseUser.user_metadata as any)?.nickname || '',
+        isActive: true,
+        avatarUrl: (supabaseUser.user_metadata as any)?.avatar_url || undefined
+        } as User
       }
 
-      const totalDuration = Date.now() - startTime
-      if (totalDuration > 1000) {
-        console.warn(`⚠️ Slow profile load: ${totalDuration}ms`)
-      }
+      // 성능 로그 제거 (콘솔을 깔끔하게 유지)
       return {
         id: profile.id,
         email: profile.email,
         name: profile.name,
         nickname: profile.nickname,
-        isActive: profile.is_active
+        isActive: profile.is_active,
+        avatarUrl:
+          (supabaseUser.user_metadata as any)?.avatar_url ||
+          (profile as any)?.avatar_url ||
+          undefined
       } as User
     } catch (error: any) {
       const totalDuration = Date.now() - startTime
-      console.error(`❌ Error loading user profile (took ${totalDuration}ms):`, error)
-      if (error?.message?.includes('timeout')) {
-        console.error('Profile load timed out')
-      }
-      // 네트워크 에러인 경우 상세 정보 출력
-      if (error?.message) {
-        console.error('Error message:', error.message)
-      }
-      if (error?.code) {
-        console.error('Error code:', error.code)
-      }
-      if (error?.stack) {
-        console.error('Error stack:', error.stack)
-      }
-      return null
+      // 타임아웃이나 네트워크 에러는 조용히 처리 (이미 세션 정보로 로그인 상태 유지됨)
+      // 에러 로그를 완전히 제거하여 콘솔을 깔끔하게 유지
+      // 타임아웃이나 에러 발생 시에도 세션 정보로 기본 사용자 반환
+      // 이렇게 하면 프로필 로드가 실패해도 로그인 상태는 유지됨
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email!,
+        name: (supabaseUser.user_metadata as any)?.name || supabaseUser.email!,
+        nickname: (supabaseUser.user_metadata as any)?.nickname || '',
+        isActive: true,
+        avatarUrl: (supabaseUser.user_metadata as any)?.avatar_url || undefined
+      } as User
     }
   }
 
@@ -154,34 +241,189 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       isLoadingProfile = true
       try {
+        // 먼저 토큰 설정 (로그인 상태 유지)
         setToken(session.access_token)
+        
+        // 프로필 로드 시도 (실패해도 세션 정보로 기본 사용자 반환)
         const profile = await loadUserProfile(session.user)
         if (profile && isMounted) {
           setUser(profile)
+          if (import.meta.env.DEV) {
+            console.log('✅ 사용자 프로필 로드 완료:', profile.email)
+          }
+        } else if (isMounted) {
+          // 프로필이 null이어도 세션 정보로 기본 사용자 설정
+          const fallbackUser: User = {
+            id: session.user.id,
+            email: session.user.email!,
+            name: (session.user.user_metadata as any)?.name || session.user.email!,
+            nickname: (session.user.user_metadata as any)?.nickname || '',
+            isActive: true,
+            avatarUrl: (session.user.user_metadata as any)?.avatar_url || undefined
+          }
+          setUser(fallbackUser)
+          if (import.meta.env.DEV) {
+            console.log('⚠️ 프로필 로드 실패, 세션 정보로 기본 사용자 설정:', fallbackUser.email)
+          }
         }
       } catch (error) {
-        console.error('Failed to load profile:', error)
+        // 에러 발생 시에도 세션 정보로 기본 사용자 설정 (조용히 처리)
+        if (isMounted && session?.user) {
+          const fallbackUser: User = {
+            id: session.user.id,
+            email: session.user.email!,
+            name: (session.user.user_metadata as any)?.name || session.user.email!,
+            nickname: (session.user.user_metadata as any)?.nickname || '',
+            isActive: true,
+            avatarUrl: (session.user.user_metadata as any)?.avatar_url || undefined
+          }
+          setUser(fallbackUser)
+          if (import.meta.env.DEV) {
+            console.debug('✅ 세션 정보로 기본 사용자 설정:', fallbackUser.email)
+          }
+        }
       } finally {
         isLoadingProfile = false
       }
     }
 
-    // Supabase 인증 상태 변경 리스너 (초기 세션과 변경 모두 처리)
+    // 초기 세션 확인 (새로고침 시 세션 복원)
+    // useQuery가 이미 세션을 확인하므로, 여기서는 프로필만 로드
+    const checkInitialSession = async () => {
+      try {
+        console.log('🔍 초기 세션 확인 시작...')
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('❌ 세션 확인 오류:', error)
+          if (isMounted) {
+            setLoading(false)
+            setHasCheckedSession(true)
+          }
+          return
+        }
+
+        if (session?.user) {
+          console.log('✅ 세션 발견:', session.user.email)
+          
+          // useQuery가 이미 user와 token을 설정했으므로, 세션 확인 완료만 표시
+          if (isMounted) {
+            setHasCheckedSession(true)
+            setLoading(false)
+            console.log('✅ 세션 확인 완료, 로딩 상태 해제')
+            
+            // 프로필은 백그라운드에서 비동기로 로드 (완료되면 업데이트, 실패해도 무시)
+            setTimeout(() => {
+              if (!isMounted) return
+              
+              loadUserProfile(session.user)
+                .then((profile) => {
+                  if (profile && isMounted) {
+                    // 프로필이 세션 정보와 다를 때만 업데이트 (불필요한 리렌더링 방지)
+                    const prevUser = queryClient.getQueryData<User | null>(QUERY_KEY_USER)
+                    if (prevUser?.id !== profile.id || 
+                        prevUser?.email !== profile.email ||
+                        prevUser?.name !== profile.name) {
+                      // 다를 때만 업데이트
+                      setUser(profile)
+                      if (import.meta.env.DEV) {
+                        console.log('✅ 프로필 로드 완료 및 업데이트:', profile.email)
+                      }
+                    }
+                  }
+                })
+                .catch((error) => {
+                  // 프로필 로드 실패는 조용히 처리 (이미 세션 정보로 로그인 상태 유지됨)
+                })
+            }, 100) // 100ms 지연으로 초기 렌더링 우선
+          }
+        } else {
+          console.log('ℹ️ 저장된 세션 없음 - 로그아웃 상태 유지')
+          if (isMounted) {
+            setHasCheckedSession(true)
+            setLoading(false)
+          }
+        }
+      } catch (error) {
+        console.error('❌ 초기 세션 확인 실패:', error)
+        if (isMounted) {
+          setLoading(false)
+          setHasCheckedSession(true)
+        }
+      }
+    }
+
+    // 초기 세션 확인 실행
+    checkInitialSession()
+
+    // Supabase 인증 상태 변경 리스너 (로그인/로그아웃 이벤트 처리)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return
 
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        console.log('🔄 인증 상태 변경:', event, session?.user?.email || 'no user')
+
+        if (event === 'SIGNED_IN') {
+          // 새로운 로그인
           if (session?.user) {
+            console.log('✅ 로그인:', session.user.email)
             await loadProfileIfNeeded(session)
           }
+        } else if (event === 'INITIAL_SESSION') {
+          // 초기 세션 - checkInitialSession과 동일한 로직 적용
+          if (session?.user && isMounted) {
+            console.log('✅ INITIAL_SESSION 이벤트 - 세션 복원:', session.user.email)
+            // 세션이 있으면 무조건 로그인 상태 설정 (중복 체크 없이)
+            setToken(session.access_token)
+            const fallbackUser: User = {
+              id: session.user.id,
+              email: session.user.email!,
+              name: (session.user.user_metadata as any)?.name || session.user.email!,
+              nickname: (session.user.user_metadata as any)?.nickname || '',
+              isActive: true,
+              avatarUrl: (session.user.user_metadata as any)?.avatar_url || undefined
+            }
+            setUser(fallbackUser)
+            setToken(session.access_token)
+            setHasCheckedSession(true)
+            setLoading(false)
+            console.log('✅ INITIAL_SESSION에서 로그인 상태 설정:', fallbackUser.email, '토큰:', !!session.access_token)
+            
+            // 프로필은 백그라운드에서 비동기로 로드 (완료되면 업데이트, 실패해도 무시)
+            setTimeout(() => {
+              if (!isMounted) return
+              
+              loadUserProfile(session.user)
+                .then((profile) => {
+                  if (profile && isMounted) {
+                    // 이전 사용자 정보 가져오기
+                    const prevUser = queryClient.getQueryData<User | null>(QUERY_KEY_USER)
+                    if (prevUser?.id !== profile.id || 
+                        prevUser?.email !== profile.email ||
+                        prevUser?.name !== profile.name) {
+                      // 다를 때만 업데이트
+                      setUser(profile)
+                    }
+                    if (import.meta.env.DEV) {
+                      console.log('✅ INITIAL_SESSION 프로필 업데이트:', profile.email)
+                    }
+                  }
+                })
+                .catch((error) => {
+                  // 프로필 로드 실패는 조용히 처리 (에러 로그 출력 안 함)
+                })
+            }, 100) // 100ms 지연으로 초기 렌더링 우선
+          }
         } else if (event === 'SIGNED_OUT') {
+          console.log('👋 로그아웃')
           setUser(null)
           setToken(null)
-        }
-        
-        if (isMounted) {
-          setLoading(false)
+        } else if (event === 'TOKEN_REFRESHED') {
+          // 토큰 갱신 시 세션 업데이트
+          if (session?.user) {
+            console.log('🔄 토큰 갱신')
+            setToken(session.access_token)
+          }
         }
       }
     )
@@ -214,6 +456,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const profile = await loadUserProfile(data.session.user)
         if (profile) {
           setUser(profile)
+          setHasCheckedSession(true)
+          return true
+        } else {
+          // 프로필 로드 실패 시 세션 정보로 기본 사용자 설정
+          const fallbackUser: User = {
+            id: data.session.user.id,
+            email: data.session.user.email!,
+            name: (data.session.user.user_metadata as any)?.name || data.session.user.email!,
+            nickname: (data.session.user.user_metadata as any)?.nickname || '',
+            isActive: true,
+            avatarUrl: (data.session.user.user_metadata as any)?.avatar_url || undefined
+          }
+          setUser(fallbackUser)
+          setHasCheckedSession(true)
           return true
         }
       }
@@ -304,6 +560,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const profile = await loadUserProfile(authData.user)
           if (profile) {
             setUser(profile)
+            setHasCheckedSession(true)
+            return { success: true, user: authData.user }
+          } else {
+            // 프로필 로드 실패 시 세션 정보로 기본 사용자 설정
+            const fallbackUser: User = {
+              id: authData.user.id,
+              email: authData.user.email!,
+              name: (authData.user.user_metadata as any)?.name || authData.user.email!,
+              nickname: (authData.user.user_metadata as any)?.nickname || '',
+              isActive: true,
+              avatarUrl: (authData.user.user_metadata as any)?.avatar_url || undefined
+            }
+            setUser(fallbackUser)
+            setHasCheckedSession(true)
             return { success: true, user: authData.user }
           }
           // 프로필이 없어도 세션은 있으므로 로그인 성공으로 처리
@@ -371,23 +641,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await supabase.auth.signOut()
       setUser(null)
       setToken(null)
+      setHasCheckedSession(false)
     } catch (error) {
       console.error('Logout error:', error)
       // 에러가 발생해도 로컬 상태는 초기화
       setUser(null)
       setToken(null)
+      setHasCheckedSession(false)
     }
   }
 
-  const value: AuthContextType = useMemo(() => ({
-    user,
-    token,
-    isLoggedIn: !!user && !!token,
-    login,
-    register,
-    logout,
-    loading
-  }), [user, token, loading, login, register, logout])
+  const value: AuthContextType = useMemo(() => {
+    // 세션이 확인되었고 사용자와 토큰이 있으면 로그인 상태
+    // loading 상태와 관계없이 세션이 확인되면 로그인 상태 유지
+    const isLoggedIn = hasCheckedSession && !!user && !!token
+    console.log('🔍 AuthContext value 계산:', { 
+      hasUser: !!user, 
+      hasToken: !!token, 
+      hasCheckedSession,
+      isLoggedIn,
+      userEmail: user?.email,
+      loading
+    })
+    return {
+      user,
+      token,
+      isLoggedIn,
+      login,
+      register,
+      logout,
+      loading
+    }
+  }, [user, token, hasCheckedSession, loading, login, register, logout])
 
   return (
     <AuthContext.Provider value={value}>

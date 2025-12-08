@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase, callEdgeFunction } from '../lib/supabase'
 import Card from '../components/Card'
-import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen, Brain, Users, BarChart3, XCircle } from 'lucide-react'
+import { LogIn, UserPlus, Mail, Lock, User, Loader, BookOpen, Brain, Users, BarChart3, XCircle, RefreshCcw } from 'lucide-react'
+import { toast } from 'sonner'
 
 const Login: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true)
@@ -30,6 +31,29 @@ const Login: React.FC = () => {
   
   const { login, register } = useAuth()
   const navigate = useNavigate()
+
+  // 비밀번호 재설정 이메일 발송
+  const handleResetPassword = async () => {
+    if (!formData.email) {
+      setFieldErrors({ email: '이메일을 입력해주세요.' })
+      return
+    }
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/login`
+      })
+      if (error) {
+        throw error
+      }
+      toast.success('비밀번호 재설정 메일을 전송했습니다.')
+    } catch (err: any) {
+      console.error('Reset password error:', err)
+      toast.error('재설정 메일 전송에 실패했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // 이메일 중복 검증 (Edge Function을 통해 auth.users와 public.users 모두 확인)
   const checkEmailExists = async (email: string): Promise<boolean> => {
@@ -370,7 +394,7 @@ const Login: React.FC = () => {
                   )}
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <div className="relative">
                     <Lock size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                     <input
@@ -387,10 +411,21 @@ const Login: React.FC = () => {
                     />
                   </div>
                   {fieldErrors.password && (
-                    <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
                       <XCircle size={14} />
                       {fieldErrors.password}
                     </p>
+                  )}
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={handleResetPassword}
+                      disabled={loading}
+                      className="inline-flex items-center gap-2 text-sm text-primary-600 dark:text-primary-400 hover:underline self-end"
+                    >
+                      <RefreshCcw size={16} />
+                      비밀번호 재설정 메일 보내기
+                    </button>
                   )}
                 </div>
 

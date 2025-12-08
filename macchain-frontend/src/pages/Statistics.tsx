@@ -6,6 +6,7 @@ import { BarChart3, Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star, 
 import { apiService } from '../services/api'
 import { cn } from '../utils/cn'
 import { layout, card, text, state } from '../utils/styles'
+import { Loading } from '../components/Loading'
 
 interface ReadingStats {
   totalDays: number
@@ -109,11 +110,8 @@ const Statistics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className={cn(layout.pageContainer, 'flex items-center justify-center')}>
-        <div className={text.center}>
-          <Loader size={48} className="animate-spin text-primary-600 mx-auto mb-4" />
-          <p className={text.secondary}>통계를 불러오는 중...</p>
-        </div>
+      <div className={layout.pageContainer}>
+        <Loading size="lg" text="통계를 불러오는 중..." fullScreen />
       </div>
     )
   }

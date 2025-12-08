@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/Card'
-import { Settings as SettingsIcon, User, Bell, Shield, Mail, Save, Check, Loader } from 'lucide-react'
+import { Settings as SettingsIcon, User, Bell, Shield, Mail, Save, Check, Loader, Image as ImageIcon, KeyRound } from 'lucide-react'
+import { toast } from 'sonner'
 import { apiService } from '../services/api'
+import { supabase } from '../lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface UserSettings {
   marketingConsent: boolean
@@ -12,6 +15,8 @@ interface UserSettings {
 
 const Settings: React.FC = () => {
   const { user, isLoggedIn } = useAuth()
+  const queryClient = useQueryClient()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [settings, setSettings] = useState<UserSettings>({
     marketingConsent: false,
     notificationConsent: false,
@@ -21,6 +26,11 @@ const Settings: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
 
   useEffect(() => {
     if (isLoggedIn && user) {
@@ -67,6 +77,97 @@ const Settings: React.FC = () => {
     }))
   }
 
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) {
+      toast.error('로그인이 필요합니다.')
+      return
+    }
+    try {
+      setAvatarUploading(true)
+      const ext = file.name.split('.').pop()
+      const filePath = `${user.id}/${Date.now()}.${ext}`
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      })
+      if (uploadError) {
+        if ((uploadError as any)?.message?.includes('bucket')) {
+          toast.error('Storage 버킷(avatars)이 없습니다. Supabase에서 생성 후 다시 시도하세요.')
+        } else {
+          toast.error('프로필 이미지 업로드에 실패했습니다.')
+        }
+        return
+      }
+
+      const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      const publicUrl = publicData?.publicUrl
+      if (!publicUrl) {
+        toast.error('이미지 URL을 가져오지 못했습니다.')
+        return
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      })
+      if (updateError) {
+        toast.error('프로필 이미지 정보를 저장하지 못했습니다.')
+        return
+      }
+
+      // UI 반영
+      setAvatarPreview(publicUrl)
+      queryClient.setQueryData(['auth', 'user'], (prev: any) => {
+        if (!prev) return prev
+        return { ...prev, avatarUrl: publicUrl }
+      })
+
+      toast.success('프로필 이미지가 업데이트되었습니다.')
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+      toast.error('프로필 이미지 업로드 중 오류가 발생했습니다.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  const handleAvatarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleAvatarUpload(file)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!user) {
+      toast.error('로그인이 필요합니다.')
+      return
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('비밀번호는 6자 이상이어야 합니다.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('비밀번호가 일치하지 않습니다.')
+      return
+    }
+    try {
+      setPasswordSaving(true)
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) {
+        throw error
+      }
+      toast.success('비밀번호가 변경되었습니다.')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (error) {
+      console.error('Password change error:', error)
+      toast.error('비밀번호 변경에 실패했습니다.')
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
+
   const handleSave = async () => {
     if (!user) return
     
@@ -93,7 +194,7 @@ const Settings: React.FC = () => {
       setTimeout(() => setSaved(false), 3000)
     } catch (error) {
       console.error('설정 저장 실패:', error)
-      alert('설정 저장 중 오류가 발생했습니다.')
+      toast.error('설정 저장 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
     }
@@ -129,6 +230,44 @@ const Settings: React.FC = () => {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* 프로필 이미지 업로드 */}
+          <Card title="프로필" icon={<ImageIcon size={20} />}>
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-primary text-white flex items-center justify-center text-2xl font-bold overflow-hidden">
+                {avatarPreview || user?.avatarUrl ? (
+                  <img
+                    src={avatarPreview || user?.avatarUrl}
+                    alt="avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  (user?.nickname?.[0] || user?.name?.[0] || 'P')
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-gray-700 dark:text-gray-300 mb-2">프로필 이미지를 업로드하세요.</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={avatarUploading}
+                    className="px-4 py-2 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {avatarUploading ? '업로드 중...' : '이미지 선택'}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarInputChange}
+                  />
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">권장: 정사각형 이미지, 1MB 이하</p>
+              </div>
+            </div>
+          </Card>
+
           {/* 개인정보 설정 */}
           <Card title="개인정보 설정" icon={<User size={20} />}>
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -183,6 +322,41 @@ const Settings: React.FC = () => {
                 />
                 <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
               </label>
+            </div>
+          </Card>
+
+          {/* 비밀번호 변경 */}
+          <Card title="비밀번호 변경" icon={<KeyRound size={20} />}>
+            <div className="space-y-3">
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="새 비밀번호 (6자 이상)"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all"
+              />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="새 비밀번호 확인"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 outline-none transition-all"
+              />
+              <button
+                type="button"
+                onClick={handleChangePassword}
+                disabled={passwordSaving}
+                className="w-full px-4 py-3 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {passwordSaving ? (
+                  <>
+                    <Loader size={18} className="animate-spin" />
+                    변경 중...
+                  </>
+                ) : (
+                  '비밀번호 변경'
+                )}
+              </button>
             </div>
           </Card>
 

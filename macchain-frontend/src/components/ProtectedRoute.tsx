@@ -1,6 +1,7 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { Loading } from './Loading'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -10,14 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isLoggedIn, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>로딩 중...</p>
-        </div>
-      </div>
-    )
+    return <Loading size="lg" text="인증 확인 중..." fullScreen />
   }
 
   if (!isLoggedIn) {

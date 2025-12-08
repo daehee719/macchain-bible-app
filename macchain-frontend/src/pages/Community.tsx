@@ -5,8 +5,10 @@ import { supabase } from '../lib/supabase'
 import { apiService } from '../services/api'
 import Card from '../components/Card'
 import { MessageCircle, Heart, Share2, Send, TrendingUp, BookOpen } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '../utils/cn'
 import { layout, button, input, card, text, state } from '../utils/styles'
+import { Loading } from '../components/Loading'
 
 interface Post {
   id: string
@@ -324,7 +326,7 @@ const Community: React.FC = () => {
     },
     onError: (error) => {
       console.error('Failed to create post:', error)
-      alert('나눔 작성에 실패했습니다.')
+        toast.error('나눔 작성에 실패했습니다.')
     },
   })
 
@@ -382,7 +384,7 @@ const Community: React.FC = () => {
     },
     onError: (error) => {
       console.error('Failed to create comment:', error)
-      alert('댓글 작성에 실패했습니다.')
+        toast.error('댓글 작성에 실패했습니다.')
     },
   })
 
@@ -393,7 +395,7 @@ const Community: React.FC = () => {
 
   const handleLike = (postId: string) => {
     if (!user) {
-      alert('로그인이 필요합니다.')
+          toast.error('로그인이 필요합니다.')
       return
     }
     toggleLikeMutation.mutate(postId)
@@ -452,11 +454,23 @@ const Community: React.FC = () => {
               />
               <button 
                 onClick={handleCreatePost}
-                disabled={!newPost.trim() || !user}
+                disabled={!newPost.trim() || !user || createPostMutation.isPending}
                 className={cn(button.primary, 'w-full')}
               >
-                <Send size={20} />
-                나눔 올리기
+                {createPostMutation.isPending ? (
+                  <>
+                    <div className="relative">
+                      <div className="h-5 w-5 rounded-full border-2 border-white/30"></div>
+                      <div className="absolute top-0 left-0 h-5 w-5 rounded-full border-2 border-transparent border-t-white animate-spin"></div>
+                    </div>
+                    <span className="animate-pulse">올리는 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={20} />
+                    나눔 올리기
+                  </>
+                )}
               </button>
               {!user && (
                 <p className={cn(text.small, text.center)}>
@@ -499,10 +513,7 @@ const Community: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">최신 나눔</h2>
           {loading ? (
             <Card>
-              <div className={cn(state.loading, 'flex-col py-12')}>
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
-                <p className={text.secondary}>나눔을 불러오는 중...</p>
-              </div>
+              <Loading size="lg" text="나눔을 불러오는 중..." />
             </Card>
           ) : posts.length === 0 ? (
             <Card>

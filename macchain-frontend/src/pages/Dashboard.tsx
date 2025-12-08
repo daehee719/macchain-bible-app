@@ -7,6 +7,7 @@ import { BookOpen, Brain, Users, BarChart3, Calendar, TrendingUp, ArrowRight, Ch
 import { apiService, TodayPlanResponse, UserStatistics } from '../services/api'
 import { cn } from '../utils/cn'
 import { layout, button, card, text, state, link } from '../utils/styles'
+import { Loading } from '../components/Loading'
 
 const Dashboard: React.FC = () => {
   const { isLoggedIn, user } = useAuth()
@@ -123,9 +124,7 @@ const Dashboard: React.FC = () => {
             className="md:col-span-2 lg:col-span-1"
           >
             {loading ? (
-              <div className={cn(state.loading, 'h-48')}>
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-              </div>
+              <Loading size="md" text="읽기 계획을 불러오는 중..." />
             ) : error ? (
               <div className={state.error}>
                 {error}

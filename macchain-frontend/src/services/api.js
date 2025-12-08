@@ -317,5 +317,264 @@ class ApiService {
             return [];
         }
     }
+    // ===== 커뮤니티 나눔(게시글) 관련 =====
+    // 나눔 목록 조회 (뷰 사용)
+    async getCommunityPosts(limit = 50, offset = 0) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                return [];
+            }
+            // 1. 뷰에서 나눔 목록과 통계 조회
+            const { data: posts, error: postsError } = await supabase
+                .from('community_posts_with_stats')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .range(offset, offset + limit - 1);
+            if (postsError) {
+                console.error('Failed to get community posts from view:', postsError);
+                return [];
+            }
+            if (!posts || posts.length === 0) {
+                return [];
+            }
+            const postIds = posts.map(post => post.id);
+            // 2. 현재 사용자가 아멘한 나눔 ID 조회 (별도 쿼리)
+            const { data: userLikesData, error: userLikesError } = await supabase
+                .from('community_likes')
+                .select('post_id')
+                .eq('user_id', user.id)
+                .in('post_id', postIds);
+            if (userLikesError) {
+                console.error('Failed to get user likes:', userLikesError);
+            }
+            const userLikes = new Set((userLikesData || []).map(like => like.post_id));
+            // 3. 결과 조합
+            return posts.map(post => ({
+                id: post.id,
+                content: post.content,
+                passage: post.passage,
+                created_at: post.created_at,
+                updated_at: post.updated_at,
+                author: {
+                    name: post.author_name || '알 수 없음',
+                    nickname: post.author_nickname || '',
+                    avatar: '👤'
+                },
+                likes: post.likes_count || 0,
+                comments: post.comments_count || 0,
+                isLiked: userLikes.has(post.id)
+            }));
+        }
+        catch (error) {
+            console.error('Error getting community posts:', error);
+            return [];
+        }
+    }
+    // 나눔 생성
+    async createCommunityPost(content, passage = null) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('로그인이 필요합니다.');
+            }
+            const { data, error } = await supabase
+                .from('community_posts')
+                .insert({
+                user_id: user.id,
+                content,
+                passage
+            })
+                .select()
+                .single();
+            if (error) {
+                console.error('Failed to create community post:', error);
+                throw error;
+            }
+            return data;
+        }
+        catch (error) {
+            console.error('Error creating community post:', error);
+            throw error;
+        }
+    }
+    // 나눔 삭제
+    async deleteCommunityPost(postId) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('로그인이 필요합니다.');
+            }
+            const { error } = await supabase
+                .from('community_posts')
+                .delete()
+                .eq('id', postId)
+                .eq('user_id', user.id);
+            if (error) {
+                console.error('Failed to delete community post:', error);
+                throw error;
+            }
+            return true;
+        }
+        catch (error) {
+            console.error('Error deleting community post:', error);
+            throw error;
+        }
+    }
+    // 댓글 조회
+    async getCommunityComments(postId) {
+        try {
+            const { data, error } = await supabase
+                .from('community_comments')
+                .select(`
+                id,
+                content,
+                created_at,
+                user_id,
+                users:user_id (
+                    name,
+                    nickname
+                )
+            `)
+                .eq('post_id', postId)
+                .order('created_at', { ascending: true });
+            if (error) {
+                console.error('Failed to get community comments:', error);
+                return [];
+            }
+            return (data || []).map(comment => ({
+                id: comment.id,
+                content: comment.content,
+                created_at: comment.created_at,
+                author: {
+                    name: comment.users?.name || '알 수 없음',
+                    nickname: comment.users?.nickname || '',
+                    avatar: '👤'
+                }
+            }));
+        }
+        catch (error) {
+            console.error('Error getting community comments:', error);
+            return [];
+        }
+    }
+    // 댓글 생성
+    async createCommunityComment(postId, content) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('로그인이 필요합니다.');
+            }
+            const { data, error } = await supabase
+                .from('community_comments')
+                .insert({
+                post_id: postId,
+                user_id: user.id,
+                content
+            })
+                .select(`
+                id,
+                content,
+                created_at,
+                user_id,
+                users:user_id (
+                    name,
+                    nickname
+                )
+            `)
+                .single();
+            if (error) {
+                console.error('Failed to create community comment:', error);
+                throw error;
+            }
+            return {
+                id: data.id,
+                content: data.content,
+                created_at: data.created_at,
+                author: {
+                    name: data.users?.name || '알 수 없음',
+                    nickname: data.users?.nickname || '',
+                    avatar: '👤'
+                }
+            };
+        }
+        catch (error) {
+            console.error('Error creating community comment:', error);
+            throw error;
+        }
+    }
+    // 댓글 삭제
+    async deleteCommunityComment(commentId) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('로그인이 필요합니다.');
+            }
+            const { error } = await supabase
+                .from('community_comments')
+                .delete()
+                .eq('id', commentId)
+                .eq('user_id', user.id);
+            if (error) {
+                console.error('Failed to delete community comment:', error);
+                throw error;
+            }
+            return true;
+        }
+        catch (error) {
+            console.error('Error deleting community comment:', error);
+            throw error;
+        }
+    }
+    // 아멘(좋아요) 토글
+    async toggleCommunityLike(postId) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('로그인이 필요합니다.');
+            }
+            // 먼저 현재 아멘 상태 확인
+            const { data: existingLike, error: checkError } = await supabase
+                .from('community_likes')
+                .select('id')
+                .eq('post_id', postId)
+                .eq('user_id', user.id)
+                .maybeSingle();
+            if (checkError && checkError.code !== 'PGRST116') {
+                console.error('Failed to check community like:', checkError);
+                throw checkError;
+            }
+            if (existingLike) {
+                // 이미 아멘한 경우 삭제
+                const { error: deleteError } = await supabase
+                    .from('community_likes')
+                    .delete()
+                    .eq('id', existingLike.id);
+                if (deleteError) {
+                    console.error('Failed to delete community like:', deleteError);
+                    throw deleteError;
+                }
+                return false; // 아멘 취소
+            }
+            else {
+                // 아멘하지 않은 경우 추가
+                const { error: insertError } = await supabase
+                    .from('community_likes')
+                    .insert({
+                    post_id: postId,
+                    user_id: user.id
+                });
+                if (insertError) {
+                    console.error('Failed to create community like:', insertError);
+                    throw insertError;
+                }
+                return true; // 아멘 추가
+            }
+        }
+        catch (error) {
+            console.error('Error toggling community like:', error);
+            throw error;
+        }
+    }
 }
 export const apiService = new ApiService();

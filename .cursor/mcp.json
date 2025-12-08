@@ -10,6 +10,16 @@
 		  "SUPABASE_ACCESS_TOKEN": "sbp_da04b4e6f66af1e338113af204683398fbb4df74",
 		  "SUPABASE_PROJECT_REF": "dazushjgczteromlitve"
 		}
+	  },
+	  "vercel": {
+		"command": "npx",
+		"args": [
+		  "-y",
+		  "@modelcontextprotocol/server-vercel"
+		],
+		"env": {
+		  "VERCEL_TOKEN": "s5svm0QGCnHi75fP46JMHy6C"
+		}
 	  }
 	}
   }

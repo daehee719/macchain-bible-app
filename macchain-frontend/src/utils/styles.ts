@@ -52,6 +52,14 @@ export const state = {
   error: 'p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300',
 }
 
+// 로딩 애니메이션
+export const loading = {
+  spinner: 'animate-spin rounded-full border-4 border-primary-200 dark:border-primary-800 border-t-primary-600 dark:border-t-primary-400',
+  pulse: 'animate-pulse',
+  bounce: 'animate-bounce',
+  skeleton: 'animate-pulse bg-gray-200 dark:bg-gray-700 rounded',
+}
+
 // 링크
 export const link = {
   primary: 'inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium group',

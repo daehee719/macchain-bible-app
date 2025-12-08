@@ -6,6 +6,7 @@ import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight, Flame } from 'luc
 import { apiService, ReadingPlan } from '../services/api'
 import { cn } from '../utils/cn'
 import { layout, button, card, text, state } from '../utils/styles'
+import { Loading } from '../components/Loading'
 
 interface ReadingDay {
   date: string
@@ -349,8 +350,8 @@ const ReadingPlanPage: React.FC = () => {
         {/* Reading Days */}
         <div className={cn(card.grid, 'mb-12')}>
           {loading ? (
-            <div className={cn(state.loading, 'col-span-full')}>
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="col-span-full">
+              <Loading size="lg" text="읽기 계획을 불러오는 중..." />
             </div>
           ) : getWeekData().length > 0 ? (
             getWeekData().map((day, dayIndex) => (
