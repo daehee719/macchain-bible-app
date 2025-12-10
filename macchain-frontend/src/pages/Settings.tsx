@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useSyncManager } from '../hooks/useSyncManager'
 import Card from '../components/Card'
-import { Settings as SettingsIcon, User, Bell, Shield, Mail, Save, Check, Loader, Image as ImageIcon, KeyRound } from 'lucide-react'
+import { SyncMonitor } from '../components/SyncMonitor'
+import { Settings as SettingsIcon, User, Bell, Shield, Mail, Save, Check, Loader, Image as ImageIcon, KeyRound, Activity } from 'lucide-react'
 import { toast } from 'sonner'
 import { apiService } from '../services/api'
 import { supabase } from '../lib/supabase'
@@ -16,6 +18,7 @@ interface UserSettings {
 const Settings: React.FC = () => {
   const { user, isLoggedIn } = useAuth()
   const queryClient = useQueryClient()
+  const syncManager = useSyncManager()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [settings, setSettings] = useState<UserSettings>({
     marketingConsent: false,
@@ -31,6 +34,7 @@ const Settings: React.FC = () => {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordSaving, setPasswordSaving] = useState(false)
+  const [showSyncMonitor, setShowSyncMonitor] = useState(false)
 
   useEffect(() => {
     if (isLoggedIn && user) {
@@ -87,42 +91,60 @@ const Settings: React.FC = () => {
       const ext = file.name.split('.').pop()
       const filePath = `${user.id}/${Date.now()}.${ext}`
 
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      })
-      if (uploadError) {
-        if ((uploadError as any)?.message?.includes('bucket')) {
-          toast.error('Storage 버킷(avatars)이 없습니다. Supabase에서 생성 후 다시 시도하세요.')
-        } else {
-          toast.error('프로필 이미지 업로드에 실패했습니다.')
+      // SyncManager를 사용하여 프로필 이미지 업로드 (Mutation 동기화)
+      await syncManager.executeMutation(
+        ['auth', 'user'],
+        async () => {
+          const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          })
+          if (uploadError) {
+            if ((uploadError as any)?.message?.includes('bucket')) {
+              throw new Error('Storage 버킷(avatars)이 없습니다. Supabase에서 생성 후 다시 시도하세요.')
+            } else {
+              throw new Error('프로필 이미지 업로드에 실패했습니다.')
+            }
+          }
+
+          const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath)
+          const publicUrl = publicData?.publicUrl
+          if (!publicUrl) {
+            throw new Error('이미지 URL을 가져오지 못했습니다.')
+          }
+
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: { avatar_url: publicUrl }
+          })
+          if (updateError) {
+            throw new Error('프로필 이미지 정보를 저장하지 못했습니다.')
+          }
+
+          return publicUrl
+        },
+        {
+          optimisticUpdate: (oldData: any) => {
+            // 낙관적 업데이트: 임시로 미리보기 URL 설정
+            const tempUrl = URL.createObjectURL(file)
+            setAvatarPreview(tempUrl)
+            return oldData
+          },
+          onSuccess: (publicUrl: string) => {
+            // UI 반영
+            setAvatarPreview(publicUrl)
+            queryClient.setQueryData(['auth', 'user'], (prev: any) => {
+              if (!prev) return prev
+              return { ...prev, avatarUrl: publicUrl }
+            })
+            toast.success('프로필 이미지가 업데이트되었습니다.')
+          },
+          onError: (error) => {
+            console.error('Avatar upload error:', error)
+            toast.error(error.message || '프로필 이미지 업로드 중 오류가 발생했습니다.')
+            setAvatarPreview(null)
+          },
         }
-        return
-      }
-
-      const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath)
-      const publicUrl = publicData?.publicUrl
-      if (!publicUrl) {
-        toast.error('이미지 URL을 가져오지 못했습니다.')
-        return
-      }
-
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { avatar_url: publicUrl }
-      })
-      if (updateError) {
-        toast.error('프로필 이미지 정보를 저장하지 못했습니다.')
-        return
-      }
-
-      // UI 반영
-      setAvatarPreview(publicUrl)
-      queryClient.setQueryData(['auth', 'user'], (prev: any) => {
-        if (!prev) return prev
-        return { ...prev, avatarUrl: publicUrl }
-      })
-
-      toast.success('프로필 이미지가 업데이트되었습니다.')
+      )
     } catch (error) {
       console.error('Avatar upload error:', error)
       toast.error('프로필 이미지 업로드 중 오류가 발생했습니다.')
@@ -153,13 +175,29 @@ const Settings: React.FC = () => {
     }
     try {
       setPasswordSaving(true)
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
-      if (error) {
-        throw error
-      }
-      toast.success('비밀번호가 변경되었습니다.')
-      setNewPassword('')
-      setConfirmPassword('')
+      
+      // SyncManager를 사용하여 비밀번호 변경 (Mutation 동기화)
+      await syncManager.executeMutation(
+        ['auth', 'user'],
+        async () => {
+          const { error } = await supabase.auth.updateUser({ password: newPassword })
+          if (error) {
+            throw error
+          }
+          return true
+        },
+        {
+          onSuccess: () => {
+            toast.success('비밀번호가 변경되었습니다.')
+            setNewPassword('')
+            setConfirmPassword('')
+          },
+          onError: (error) => {
+            console.error('Password change error:', error)
+            toast.error('비밀번호 변경에 실패했습니다.')
+          },
+        }
+      )
     } catch (error) {
       console.error('Password change error:', error)
       toast.error('비밀번호 변경에 실패했습니다.')
@@ -173,25 +211,41 @@ const Settings: React.FC = () => {
     
     setSaving(true)
     try {
-      // 동의 설정 저장
-      await apiService.updateUserConsents(user.id, {
-        privacy_consent: settings.privacyConsent,
-        marketing_consent: settings.marketingConsent,
-        notification_consent: settings.notificationConsent
-      })
+      // SyncManager를 사용하여 설정 저장 (Mutation 동기화)
+      await syncManager.executeMutation(
+        ['user-settings', user.id],
+        async () => {
+          // 동의 설정 저장
+          await apiService.updateUserConsents(user.id, {
+            privacy_consent: settings.privacyConsent,
+            marketing_consent: settings.marketingConsent,
+            notification_consent: settings.notificationConsent
+          })
 
-      // 사용자 설정 저장 (알림 시간 등)
-      if (userSettings) {
-        await apiService.updateUserSettings(user.id, {
-          notification_enabled: settings.notificationConsent,
-          reminder_time: userSettings.reminder_time || '09:00',
-          language: userSettings.language || 'ko',
-          theme: userSettings.theme || 'light'
-        })
-      }
-      
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+          // 사용자 설정 저장 (알림 시간 등)
+          if (userSettings) {
+            await apiService.updateUserSettings(user.id, {
+              notification_enabled: settings.notificationConsent,
+              reminder_time: userSettings.reminder_time || '09:00',
+              language: userSettings.language || 'ko',
+              theme: userSettings.theme || 'light'
+            })
+          }
+          
+          return true
+        },
+        {
+          onSuccess: () => {
+            setSaved(true)
+            setTimeout(() => setSaved(false), 3000)
+            toast.success('설정이 저장되었습니다.')
+          },
+          onError: (error) => {
+            console.error('설정 저장 실패:', error)
+            toast.error('설정 저장 중 오류가 발생했습니다.')
+          },
+        }
+      )
     } catch (error) {
       console.error('설정 저장 실패:', error)
       toast.error('설정 저장 중 오류가 발생했습니다.')
@@ -371,6 +425,23 @@ const Settings: React.FC = () => {
                 보안 설정
               </button>
             </div>
+          </Card>
+
+          {/* 동기화 모니터링 */}
+          <Card title="동기화 모니터링" icon={<Activity size={20} />} className="md:col-span-2">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">동기화 상태</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">실시간 동기화 상태를 모니터링하세요.</p>
+              </div>
+              <button
+                onClick={() => setShowSyncMonitor(!showSyncMonitor)}
+                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-primary-200 dark:border-primary-700 text-primary-700 dark:text-primary-300 rounded-lg font-medium hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:border-primary-400 dark:hover:border-primary-500 transition-all"
+              >
+                {showSyncMonitor ? '숨기기' : '보기'}
+              </button>
+            </div>
+            {showSyncMonitor && <SyncMonitor />}
           </Card>
         </div>
 

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
+import { useSyncManager } from '../hooks/useSyncManager'
 import Card from '../components/Card'
 import { Calendar, CheckCircle, Circle, ArrowLeft, ArrowRight, Flame } from 'lucide-react'
 import { apiService, ReadingPlan } from '../services/api'
 import { cn } from '../utils/cn'
 import { layout, button, card, text, state } from '../utils/styles'
 import { Loading } from '../components/Loading'
+import { toast } from 'sonner'
 
 interface ReadingDay {
   date: string
@@ -23,7 +25,9 @@ interface ReadingDay {
 const ReadingPlanPage: React.FC = () => {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const syncManager = useSyncManager()
   const [currentWeek, setCurrentWeek] = useState(0)
+  const [updatingProgress, setUpdatingProgress] = useState<Set<string>>(new Set())
 
   // 사용자 통계 조회 (30분 캐시)
   const { data: statistics } = useQuery({
@@ -171,74 +175,89 @@ const ReadingPlanPage: React.FC = () => {
     })
   }, [currentWeek, loading, queryClient, user])
 
-  // 진행률 업데이트 Mutation
-  const updateProgressMutation = useMutation({
-    mutationFn: async ({ 
-      dayIndex, 
-      passageIndex, 
-      newCompleted 
-    }: { 
-      dayIndex: number
-      passageIndex: number
-      newCompleted: boolean
-    }) => {
-      if (!user?.id) throw new Error('로그인이 필요합니다.')
-      const day = readingData[dayIndex]
-      const passage = day.passages[passageIndex]
-      await (apiService as any).updateReadingProgress(
-        user.id,
-        day.date,
-        passage.readingId,
-        newCompleted
-      )
-      return { dayIndex, passageIndex, newCompleted }
-    },
-    onMutate: async ({ dayIndex, passageIndex, newCompleted }) => {
-      // 낙관적 업데이트
-      await queryClient.cancelQueries({ queryKey: ['reading-plan-week', currentWeek] })
-      const previousData = queryClient.getQueryData<ReadingDay[]>(['reading-plan-week', currentWeek])
-      
-      queryClient.setQueryData<ReadingDay[]>(['reading-plan-week', currentWeek], (old = []) =>
-        old.map((d, dIdx) => 
-          dIdx === dayIndex 
-            ? {
-                ...d,
-                passages: d.passages.map((p, pIdx) => 
-                  pIdx === passageIndex 
-                    ? { ...p, completed: newCompleted }
-                    : p
-                )
-              }
-            : d
-        )
-      )
-
-      return { previousData }
-    },
-    onError: (err, variables, context) => {
-      // 실패 시 롤백
-      if (context?.previousData) {
-        queryClient.setQueryData(['reading-plan-week', currentWeek], context.previousData)
-      }
-      console.error('Failed to update reading progress:', err)
-    },
-    onSuccess: () => {
-      // 통계 캐시 무효화 (진행률이 변경되었으므로)
-      queryClient.invalidateQueries({ queryKey: ['user-statistics', user?.id] })
-    },
-  })
-
-  const togglePassageCompletion = (dayIndex: number, passageIndex: number) => {
+  // 진행률 업데이트 (SyncManager 사용)
+  const handleUpdateProgress = async (dayIndex: number, passageIndex: number, newCompleted: boolean) => {
     if (!user?.id) {
-      console.warn('로그인이 필요합니다.')
+      toast.error('로그인이 필요합니다.')
       return
     }
 
     const day = readingData[dayIndex]
-    const passage = day.passages[passageIndex]
-    const newCompleted = !passage.completed
+    if (!day) return
 
-    updateProgressMutation.mutate({ dayIndex, passageIndex, newCompleted })
+    const passage = day.passages[passageIndex]
+    if (!passage) return
+
+    const progressKey = `${day.date}-${String(passage.readingId)}`
+    if (updatingProgress.has(progressKey)) return
+
+    setUpdatingProgress(prev => new Set(prev).add(progressKey))
+
+    try {
+      await syncManager.executeMutation(
+        ['reading-plan-week', String(currentWeek)],
+        async () => {
+          await (apiService as any).updateReadingProgress(
+            user.id,
+            day.date,
+            passage.readingId,
+            newCompleted
+          )
+          return { dayIndex, passageIndex, newCompleted }
+        },
+        {
+          optimisticUpdate: (oldData: ReadingDay[] | undefined) => {
+            if (!oldData) return oldData
+            return oldData.map((d, dIdx) =>
+              dIdx === dayIndex
+                ? {
+                    ...d,
+                    passages: d.passages.map((p, pIdx) =>
+                      pIdx === passageIndex
+                        ? { ...p, completed: newCompleted }
+                        : p
+                    ),
+                  }
+                : d
+            )
+          },
+          onSuccess: () => {
+            // 통계 캐시 무효화
+            queryClient.invalidateQueries({ queryKey: ['user-statistics', user?.id] })
+          },
+          onError: (error) => {
+            console.error('Failed to update reading progress:', error)
+            toast.error('진행률 업데이트에 실패했습니다.')
+          },
+          retryConfig: {
+            maxRetries: 2,
+            retryDelay: 1000,
+          },
+        }
+      )
+    } finally {
+      setUpdatingProgress(prev => {
+        const next = new Set(prev)
+        next.delete(progressKey)
+        return next
+      })
+    }
+  }
+
+  const togglePassageCompletion = (dayIndex: number, passageIndex: number) => {
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다.')
+      return
+    }
+
+    const day = readingData[dayIndex]
+    if (!day) return
+
+    const passage = day.passages[passageIndex]
+    if (!passage) return
+
+    const newCompleted = !passage.completed
+    handleUpdateProgress(dayIndex, passageIndex, newCompleted)
   }
 
   const getWeekData = () => {

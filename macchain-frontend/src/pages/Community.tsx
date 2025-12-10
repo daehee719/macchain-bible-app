@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
 import { apiService } from '../services/api'
+import { useSyncManager } from '../hooks/useSyncManager'
+import { useCommunitySync } from '../hooks/useCommunitySync'
 import Card from '../components/Card'
 import { MessageCircle, Heart, Share2, Send, TrendingUp, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,9 +40,11 @@ interface Comment {
 const Community: React.FC = () => {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const syncManager = useSyncManager()
   const [newPost, setNewPost] = useState('')
   const [selectedPassage, setSelectedPassage] = useState('')
   const [newComments, setNewComments] = useState<{ [postId: string]: string }>({})
+  const [processingPosts, setProcessingPosts] = useState<Set<string>>(new Set())
 
   // 나눔 목록 조회 (React Query 캐싱: 5분)
   const { data: posts = [], isLoading: loading, refetch: refetchPosts } = useQuery<Post[]>({
@@ -128,283 +131,185 @@ const Community: React.FC = () => {
     }
   }, [user, loading, posts.length, queryClient])
 
-  // 실시간 구독 설정
-  useEffect(() => {
-    if (!user) return
+  // 실시간 구독 설정 (SyncManager 사용)
+  useCommunitySync(posts)
 
-    // 나눔 실시간 구독
-    const postsChannel = supabase
-      .channel('community-posts')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'community_posts'
+  // 나눔 생성 Mutation (SyncManager 사용)
+  const handleCreatePost = async () => {
+    if (!newPost.trim() || !user) return
+
+    const postId = `post-${Date.now()}`
+    setProcessingPosts(prev => new Set(prev).add(postId))
+
+    try {
+      await syncManager.executeMutation(
+        ['community-posts'],
+        async () => {
+          return await (apiService as any).createCommunityPost(newPost, selectedPassage || null)
         },
-        (payload) => {
-          console.log('📢 나눔 변경 감지:', payload.eventType, payload.new)
-          
-          if (payload.eventType === 'INSERT') {
-            // 새 나눔 추가
+        {
+          onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['community-posts'] })
-          } else if (payload.eventType === 'UPDATE') {
-            // 나눔 수정
-            queryClient.invalidateQueries({ queryKey: ['community-posts'] })
-          } else if (payload.eventType === 'DELETE') {
-            // 나눔 삭제
-            queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
-              old.filter(post => post.id !== payload.old.id)
-            )
-          }
+            setNewPost('')
+            setSelectedPassage('')
+            toast.success('나눔이 등록되었습니다.')
+          },
+          onError: (error) => {
+            console.error('Failed to create post:', error)
+            toast.error('나눔 작성에 실패했습니다.')
+          },
         }
       )
-      .subscribe()
+    } finally {
+      setProcessingPosts(prev => {
+        const next = new Set(prev)
+        next.delete(postId)
+        return next
+      })
+    }
+  }
 
-    // 댓글 실시간 구독
-    const commentsChannel = supabase
-      .channel('community-comments')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'community_comments'
+  // 아멘 토글 Mutation (SyncManager 사용)
+  const handleLike = async (postId: string) => {
+    if (!user) {
+      toast.error('로그인이 필요합니다.')
+      return
+    }
+
+    if (processingPosts.has(postId)) return
+
+    const post = posts.find(p => p.id === postId)
+    if (!post) return
+
+    setProcessingPosts(prev => new Set(prev).add(postId))
+
+    try {
+      await syncManager.executeMutation(
+        ['community-posts'],
+        async () => {
+          return await (apiService as any).toggleCommunityLike(postId)
         },
-        (payload) => {
-          console.log('💬 댓글 변경 감지:', payload.eventType, payload.new)
-          
-          if (payload.eventType === 'INSERT') {
-            // 새 댓글 추가
-            const newComment = payload.new as any
-            const postId = newComment.post_id
-            
-            // 사용자 정보 조회 및 캐시 업데이트
-            const updateCommentCache = (userData: any) => {
-              queryClient.setQueryData<{ [postId: string]: Comment[] }>(
-                ['community-comments', posts.map(p => p.id)],
-                (old = {}) => {
-                  const existingComments = old[postId] || []
-                  
-                  // 중복 방지
-                  if (existingComments.some(c => c.id === newComment.id)) {
-                    return old
+        {
+          optimisticUpdate: (oldData: Post[] | undefined) => {
+            if (!oldData) return oldData
+            return oldData.map(p =>
+              p.id === postId
+                ? {
+                    ...p,
+                    isLiked: !p.isLiked,
+                    likes: p.isLiked ? p.likes - 1 : p.likes + 1,
                   }
+                : p
+            )
+          },
+          onSuccess: (isLiked: boolean) => {
+            // 서버 응답 기준으로 최종 상태 동기화
+            queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
+              old.map(p => {
+                if (p.id === postId) {
+                  const finalLikes = isLiked
+                    ? (post.isLiked ? post.likes : post.likes + 1)
+                    : (post.isLiked ? post.likes - 1 : post.likes)
 
                   return {
-                    ...old,
-                    [postId]: [
-                      ...existingComments,
-                      {
-                        id: newComment.id,
-      author: {
-                          name: userData?.name || '알 수 없음',
-                          nickname: userData?.nickname || '',
-        avatar: '👤'
-      },
-                        content: newComment.content,
-                        timestamp: new Date(newComment.created_at)
-                      }
-                    ]
+                    ...p,
+                    isLiked,
+                    likes: Math.max(0, finalLikes),
                   }
                 }
-              )
-            }
+                return p
+              })
+            )
+          },
+          onError: (error) => {
+            console.error('Failed to toggle like:', error)
+            toast.error('아멘 처리 중 오류가 발생했습니다.')
+          },
+          retryConfig: {
+            maxRetries: 2,
+            retryDelay: 1000,
+          },
+        }
+      )
+    } finally {
+      setProcessingPosts(prev => {
+        const next = new Set(prev)
+        next.delete(postId)
+        return next
+      })
+    }
+  }
 
-            // 사용자 정보 비동기 조회
-            ;(async () => {
-              try {
-                const { data: userData } = await supabase
-                  .from('users')
-                  .select('name, nickname')
-                  .eq('id', newComment.user_id)
-                  .single()
-                updateCommentCache(userData)
-              } catch {
-                // 사용자 정보 조회 실패 시 기본값 사용
-                updateCommentCache(null)
-              }
-            })()
-            // 나눔의 댓글 수 업데이트
+  // 댓글 생성 Mutation (SyncManager 사용)
+  const handleAddComment = async (postId: string) => {
+    const commentText = newComments[postId]
+    if (!commentText?.trim() || !user) return
+
+    const processingId = `comment-${postId}-${Date.now()}`
+    setProcessingPosts(prev => new Set(prev).add(processingId))
+
+    try {
+      const commentQueryKey = ['community-comments', posts.map(p => p.id)]
+      
+      await syncManager.executeMutation(
+        commentQueryKey as any,
+        async () => {
+          return await (apiService as any).createCommunityComment(postId, commentText)
+        },
+        {
+          optimisticUpdate: (oldData: { [postId: string]: Comment[] } | undefined) => {
+            if (!oldData) return oldData
+            return {
+              ...oldData,
+              [postId]: [
+                ...(oldData[postId] || []),
+                {
+                  id: `temp-${Date.now()}`,
+                  author: {
+                    name: user.name,
+                    nickname: user.nickname || '',
+                    avatar: '👤',
+                  },
+                  content: commentText,
+                  timestamp: new Date(),
+                },
+              ],
+            }
+          },
+          onSuccess: (comment: any) => {
+            queryClient.setQueryData<{ [postId: string]: Comment[] }>(
+              commentQueryKey as any,
+              (old = {}) => ({
+                ...old,
+                [postId]: [...(old[postId] || []), {
+                  ...comment,
+                  timestamp: new Date(comment.created_at),
+                }],
+              })
+            )
             queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
               old.map(post =>
-                post.id === payload.new.post_id
+                post.id === postId
                   ? { ...post, comments: post.comments + 1 }
                   : post
               )
             )
-          } else if (payload.eventType === 'DELETE') {
-            // 댓글 삭제
-            const deletedComment = payload.old as any
-            queryClient.setQueryData<{ [postId: string]: Comment[] }>(
-              ['community-comments', posts.map(p => p.id)],
-              (old = {}) => {
-                const postId = deletedComment.post_id
-                return {
-                  ...old,
-                  [postId]: (old[postId] || []).filter(c => c.id !== deletedComment.id)
-                }
-              }
-            )
-            // 나눔의 댓글 수 업데이트
-            queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
-              old.map(post =>
-                post.id === deletedComment.post_id
-                  ? { ...post, comments: Math.max(0, post.comments - 1) }
-                  : post
-              )
-            )
-          }
+            setNewComments(prev => ({ ...prev, [postId]: '' }))
+            toast.success('댓글이 등록되었습니다.')
+          },
+          onError: (error) => {
+            console.error('Failed to create comment:', error)
+            toast.error('댓글 작성에 실패했습니다.')
+          },
         }
       )
-      .subscribe()
-
-    // 아멘 실시간 구독
-    const likesChannel = supabase
-      .channel('community-likes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'community_likes'
-        },
-        (payload) => {
-          console.log('❤️ 아멘 변경 감지:', payload.eventType, payload.new)
-          
-          if (payload.eventType === 'INSERT') {
-            // 새 아멘 추가
-            const newLike = payload.new as any
-            queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
-              old.map(post =>
-                post.id === newLike.post_id
-                  ? {
-                      ...post,
-                      likes: post.likes + 1,
-                      isLiked: newLike.user_id === user.id ? true : post.isLiked
-                    }
-                  : post
-              )
-            )
-          } else if (payload.eventType === 'DELETE') {
-            // 아멘 제거
-            const deletedLike = payload.old as any
-            queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
-              old.map(post =>
-                post.id === deletedLike.post_id
-                  ? {
-                      ...post,
-                      likes: Math.max(0, post.likes - 1),
-                      isLiked: deletedLike.user_id === user.id ? false : post.isLiked
-                    }
-                  : post
-              )
-            )
-          }
-        }
-      )
-      .subscribe()
-
-    // 정리 함수
-    return () => {
-      postsChannel.unsubscribe()
-      commentsChannel.unsubscribe()
-      likesChannel.unsubscribe()
+    } finally {
+      setProcessingPosts(prev => {
+        const next = new Set(prev)
+        next.delete(processingId)
+        return next
+      })
     }
-  }, [user, posts, queryClient])
-
-  // 나눔 생성 Mutation
-  const createPostMutation = useMutation({
-    mutationFn: async ({ content, passage }: { content: string; passage: string | null }) => {
-      return await (apiService as any).createCommunityPost(content, passage)
-    },
-    onSuccess: () => {
-      // 나눔 목록 캐시 무효화 및 리프레시
-      queryClient.invalidateQueries({ queryKey: ['community-posts'] })
-    setNewPost('')
-    setSelectedPassage('')
-    },
-    onError: (error) => {
-      console.error('Failed to create post:', error)
-        toast.error('나눔 작성에 실패했습니다.')
-    },
-  })
-
-  // 아멘 토글 Mutation
-  const toggleLikeMutation = useMutation({
-    mutationFn: async (postId: string) => {
-      return await (apiService as any).toggleCommunityLike(postId)
-    },
-    onSuccess: (isLiked: boolean, postId: string) => {
-      // 나눔 목록 캐시 업데이트
-      queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
-        old.map(post =>
-          post.id === postId
-            ? {
-                ...post,
-                isLiked,
-                likes: isLiked ? post.likes + 1 : post.likes - 1,
-              }
-            : post
-        )
-      )
-    },
-    onError: (error) => {
-      console.error('Failed to toggle like:', error)
-    },
-  })
-
-  // 댓글 생성 Mutation
-  const createCommentMutation = useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
-      return await (apiService as any).createCommunityComment(postId, content)
-    },
-    onSuccess: (comment: any, variables: { postId: string; content: string }) => {
-      const { postId } = variables
-      // 댓글 캐시 업데이트
-      queryClient.setQueryData<{ [postId: string]: Comment[] }>(
-        ['community-comments', posts.map(p => p.id)],
-        (old = {}) => ({
-          ...old,
-          [postId]: [...(old[postId] || []), {
-            ...comment,
-            timestamp: new Date(comment.created_at),
-          }],
-        })
-      )
-      // 나눔 목록의 댓글 수 업데이트
-      queryClient.setQueryData<Post[]>(['community-posts'], (old = []) =>
-        old.map(post =>
-          post.id === postId
-            ? { ...post, comments: post.comments + 1 }
-            : post
-        )
-      )
-      setNewComments(prev => ({ ...prev, [postId]: '' }))
-    },
-    onError: (error) => {
-      console.error('Failed to create comment:', error)
-        toast.error('댓글 작성에 실패했습니다.')
-    },
-  })
-
-  const handleCreatePost = () => {
-    if (!newPost.trim() || !user) return
-    createPostMutation.mutate({ content: newPost, passage: selectedPassage || null })
-  }
-
-  const handleLike = (postId: string) => {
-    if (!user) {
-          toast.error('로그인이 필요합니다.')
-      return
-    }
-    toggleLikeMutation.mutate(postId)
-  }
-
-  const handleAddComment = (postId: string) => {
-    const commentText = newComments[postId]
-    if (!commentText?.trim() || !user) return
-    createCommentMutation.mutate({ postId, content: commentText })
   }
 
   const formatTimestamp = (date: Date) => {
@@ -454,10 +359,10 @@ const Community: React.FC = () => {
               />
               <button 
                 onClick={handleCreatePost}
-                disabled={!newPost.trim() || !user || createPostMutation.isPending}
+                disabled={!newPost.trim() || !user || processingPosts.size > 0}
                 className={cn(button.primary, 'w-full')}
               >
-                {createPostMutation.isPending ? (
+                {processingPosts.size > 0 ? (
                   <>
                     <div className="relative">
                       <div className="h-5 w-5 rounded-full border-2 border-white/30"></div>
@@ -467,7 +372,7 @@ const Community: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <Send size={20} />
+                <Send size={20} />
                     나눔 올리기
                   </>
                 )}
@@ -568,14 +473,15 @@ const Community: React.FC = () => {
                   )}>
                     <button 
                       onClick={() => handleLike(post.id)}
-                      disabled={!user}
+                      disabled={!user || processingPosts.has(post.id)}
                       className={cn(
                         button.icon,
                         'px-4 py-2 rounded-lg font-medium transition-all',
                         post.isLiked 
                           ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50' 
                           : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
-                        button.disabled
+                        button.disabled,
+                        processingPosts.has(post.id) && 'opacity-50 cursor-not-allowed'
                       )}
                     >
                       <Heart size={18} className={post.isLiked ? 'fill-current' : ''} />

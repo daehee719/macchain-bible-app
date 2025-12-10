@@ -1,16 +1,21 @@
-import React from 'react'
-import { useQuery } from '@tanstack/react-query'
+import React, { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useSyncManager } from '../hooks/useSyncManager'
 import Card from '../components/Card'
-import { BookOpen, Brain, Users, BarChart3, Calendar, TrendingUp, ArrowRight, CheckCircle } from 'lucide-react'
+import { BookOpen, Brain, Users, BarChart3, Calendar, TrendingUp, ArrowRight, CheckCircle, RefreshCw } from 'lucide-react'
 import { apiService, TodayPlanResponse, UserStatistics } from '../services/api'
 import { cn } from '../utils/cn'
 import { layout, button, card, text, state, link } from '../utils/styles'
 import { Loading } from '../components/Loading'
+import { toast } from 'sonner'
 
 const Dashboard: React.FC = () => {
   const { isLoggedIn, user } = useAuth()
+  const queryClient = useQueryClient()
+  const syncManager = useSyncManager()
+  const [refreshing, setRefreshing] = useState(false)
 
   // 오늘의 읽기 계획 조회 (1시간 캐시)
   const { data: todayReading, isLoading: planLoading } = useQuery<TodayPlanResponse>({
@@ -37,6 +42,33 @@ const Dashboard: React.FC = () => {
   const loading = planLoading || statsLoading
   const error = null // React Query가 에러를 자동으로 처리
 
+  // 데이터 새로고침 (SyncManager 사용)
+  const handleRefresh = async () => {
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다.')
+      return
+    }
+    setRefreshing(true)
+    try {
+      await syncManager.createTask(
+        'refresh',
+        {
+          queryKeys: [
+            ['today-plan'],
+            ['user-statistics', user.id],
+          ],
+        },
+        'high'
+      )
+      toast.success('데이터를 새로고침했습니다.')
+    } catch (error) {
+      console.error('Failed to refresh data:', error)
+      toast.error('데이터 새로고침에 실패했습니다.')
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   const stats = {
     totalDays: statistics?.total_days_read || 0,
     streak: statistics?.current_streak || 0,
@@ -59,13 +91,29 @@ const Dashboard: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-primary opacity-5 dark:opacity-10"></div>
         <div className={cn(layout.container, 'relative z-10')}>
           <div className={text.center}>
-            <div className={cn(
-              'inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-6',
-              'bg-primary-100 dark:bg-primary-900/50',
-              'text-primary-700 dark:text-primary-300'
-            )}>
-              <Calendar size={16} className="mr-2" />
-              {formattedDate}
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className={cn(
+                'inline-flex items-center px-4 py-2 rounded-full text-sm font-medium',
+                'bg-primary-100 dark:bg-primary-900/50',
+                'text-primary-700 dark:text-primary-300'
+              )}>
+                <Calendar size={16} className="mr-2" />
+                {formattedDate}
+              </div>
+              {isLoggedIn && (
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className={cn(
+                    button.icon,
+                    'px-4 py-2 rounded-full',
+                    refreshing && 'opacity-50 cursor-not-allowed'
+                  )}
+                  title="데이터 새로고침"
+                >
+                  <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+                </button>
+              )}
             </div>
             <h1 className={cn(
               'text-4xl md:text-6xl font-bold mb-6',

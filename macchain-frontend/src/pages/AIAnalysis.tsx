@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useSyncManager } from '../hooks/useSyncManager'
+import { useQueryClient } from '@tanstack/react-query'
 import Card from '../components/Card'
 import { Brain, Send, Lightbulb, BookOpen, MessageCircle, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
@@ -16,6 +18,8 @@ interface AnalysisResult {
 
 const AIAnalysis: React.FC = () => {
   const { user, isLoggedIn } = useAuth()
+  const queryClient = useQueryClient()
+  const syncManager = useSyncManager()
   const [inputPassage, setInputPassage] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([])
@@ -71,27 +75,42 @@ const AIAnalysis: React.FC = () => {
         ]
       }
 
-      // Supabase에 저장
-      await apiService.saveAIAnalysis(
-        user.id,
-        today,
-        1,
-        inputPassage,
-        'general',
-        mockAnalysis
+      // SyncManager를 사용하여 분석 결과 저장 (Mutation 동기화)
+      await syncManager.executeMutation(
+        ['ai-analysis', user.id],
+        async () => {
+          return await apiService.saveAIAnalysis(
+            user.id,
+            today,
+            1,
+            inputPassage,
+            'general',
+            mockAnalysis
+          )
+        },
+        {
+          optimisticUpdate: (oldData: AnalysisResult[] | undefined) => {
+            const newAnalysis: AnalysisResult = {
+              id: Date.now().toString(),
+              passage: inputPassage,
+              analysis: mockAnalysis.analysis,
+              insights: mockAnalysis.insights,
+              timestamp: new Date()
+            }
+            return oldData ? [newAnalysis, ...oldData] : [newAnalysis]
+          },
+          onSuccess: (result) => {
+            // 분석 이력 다시 로드
+            loadAnalysisHistory()
+            setInputPassage('')
+            toast.success('분석이 완료되었습니다.')
+          },
+          onError: (error) => {
+            console.error('Failed to analyze passage:', error)
+            toast.error('분석 중 오류가 발생했습니다.')
+          },
+        }
       )
-
-      // 로컬 상태 업데이트
-      const newAnalysis: AnalysisResult = {
-        id: Date.now().toString(),
-        passage: inputPassage,
-        analysis: mockAnalysis.analysis,
-        insights: mockAnalysis.insights,
-        timestamp: new Date()
-      }
-      
-      setAnalysisResults(prev => [newAnalysis, ...prev])
-      setInputPassage('')
     } catch (error) {
       console.error('Failed to analyze passage:', error)
       toast.error('분석 중 오류가 발생했습니다.')

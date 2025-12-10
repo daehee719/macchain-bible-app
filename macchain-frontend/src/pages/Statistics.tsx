@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
+import { useSyncManager } from '../hooks/useSyncManager'
 import Card from '../components/Card'
-import { BarChart3, Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star, Loader, Flame } from 'lucide-react'
+import { BarChart3, Calendar, Target, TrendingUp, BookOpen, Clock, Award, Star, Loader, Flame, RefreshCw } from 'lucide-react'
 import { apiService } from '../services/api'
 import { cn } from '../utils/cn'
-import { layout, card, text, state } from '../utils/styles'
+import { layout, card, text, state, button } from '../utils/styles'
 import { Loading } from '../components/Loading'
+import { toast } from 'sonner'
 
 interface ReadingStats {
   totalDays: number
@@ -21,7 +23,10 @@ interface ReadingStats {
 
 const Statistics: React.FC = () => {
   const { user, isLoggedIn } = useAuth()
+  const queryClient = useQueryClient()
+  const syncManager = useSyncManager()
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month')
+  const [refreshing, setRefreshing] = useState(false)
 
   // 사용자 통계 조회 (30분 캐시)
   const { data: userStats, isLoading: statsLoading } = useQuery({
@@ -60,6 +65,32 @@ const Statistics: React.FC = () => {
   })
 
   const loading = statsLoading || monthlyLoading
+
+  // 통계 새로고침 (작업 큐 사용)
+  const handleRefresh = async () => {
+    if (refreshing) return
+
+    setRefreshing(true)
+    try {
+      await syncManager.createTask(
+        'refresh',
+        {
+          queryKeys: [
+            ['user-statistics', user?.id],
+            ['monthly-statistics', user?.id, new Date().getFullYear()],
+          ],
+        },
+        'high',
+        2
+      )
+      toast.success('통계를 새로고침했습니다.')
+    } catch (error) {
+      console.error('Failed to refresh statistics:', error)
+      toast.error('새로고침에 실패했습니다.')
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   const stats: ReadingStats = {
     totalDays: userStats?.total_days_read || 0,
@@ -121,12 +152,28 @@ const Statistics: React.FC = () => {
       <div className={layout.container}>
         {/* Header */}
         <header className={layout.header}>
-          <h1 className={layout.title}>
-            읽기 통계
-          </h1>
-          <p className={layout.subtitle}>
-            나의 성경 읽기 여정을 한눈에 보세요
-          </p>
+          <div className="flex items-center justify-between w-full">
+            <div>
+              <h1 className={layout.title}>
+                읽기 통계
+              </h1>
+              <p className={layout.subtitle}>
+                나의 성경 읽기 여정을 한눈에 보세요
+              </p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || !isLoggedIn}
+              className={cn(
+                button.icon,
+                'p-3 rounded-lg',
+                refreshing && 'opacity-50 cursor-not-allowed'
+              )}
+              title="새로고침"
+            >
+              <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </header>
 
         {/* 핵심 통계 */}

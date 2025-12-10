@@ -526,50 +526,24 @@ class ApiService {
             throw error;
         }
     }
-    // 아멘(좋아요) 토글
+    // 아멘(좋아요) 토글 - RPC 함수 사용 (최적화된 버전)
     async toggleCommunityLike(postId) {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 throw new Error('로그인이 필요합니다.');
             }
-            // 먼저 현재 아멘 상태 확인
-            const { data: existingLike, error: checkError } = await supabase
-                .from('community_likes')
-                .select('id')
-                .eq('post_id', postId)
-                .eq('user_id', user.id)
-                .maybeSingle();
-            if (checkError && checkError.code !== 'PGRST116') {
-                console.error('Failed to check community like:', checkError);
-                throw checkError;
+            // PostgreSQL RPC 함수를 사용하여 서버 측에서 원자적으로 처리
+            // 한 번의 호출로 SELECT + INSERT/DELETE를 처리
+            const { data, error } = await supabase.rpc('toggle_community_like', {
+                p_post_id: postId,
+                p_user_id: user.id
+            });
+            if (error) {
+                console.error('Failed to toggle community like:', error);
+                throw error;
             }
-            if (existingLike) {
-                // 이미 아멘한 경우 삭제
-                const { error: deleteError } = await supabase
-                    .from('community_likes')
-                    .delete()
-                    .eq('id', existingLike.id);
-                if (deleteError) {
-                    console.error('Failed to delete community like:', deleteError);
-                    throw deleteError;
-                }
-                return false; // 아멘 취소
-            }
-            else {
-                // 아멘하지 않은 경우 추가
-                const { error: insertError } = await supabase
-                    .from('community_likes')
-                    .insert({
-                    post_id: postId,
-                    user_id: user.id
-                });
-                if (insertError) {
-                    console.error('Failed to create community like:', insertError);
-                    throw insertError;
-                }
-                return true; // 아멘 추가
-            }
+            return data;
         }
         catch (error) {
             console.error('Error toggling community like:', error);
