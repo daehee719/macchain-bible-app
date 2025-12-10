@@ -1,217 +1,329 @@
-# 🙏 MacChain Bible App
+# 🙏 MacChain - 성경 읽기 플랫폼
 
-> **AI 기반 성경 읽기 플랫폼** - Cloudflare 서버리스 아키텍처로 완전 무료 운영되는 프로덕션 수준의 성경 공부 애플리케이션
+> **AI 기반 성경 읽기 플랫폼** - Supabase, React, React Native로 구축된 웹 및 모바일 애플리케이션
 
-## 🎉 **프로덕션 배포 완료!**
+## 📋 프로젝트 개요
 
-### 🌐 **실시간 접속**
-- **웹사이트**: https://d8ddbf9f.macchain-frontend.pages.dev
-- **API**: https://macchain-api-public.daeheuigang.workers.dev
-- **GitHub**: https://github.com/daehee719/macchain-bible-app
+MacChain은 성경을 체계적으로 읽고 공부할 수 있도록 도와주는 플랫폼입니다. McCheyne 읽기 계획을 기반으로 매일 성경을 읽고, AI 분석, 커뮤니티 기능, 통계 추적 등을 제공합니다.
 
-### 💰 **완전 무료 운영**
-- **월 비용**: $0 (Cloudflare Free Tier 100% 활용)
-- **연간 절약**: $1,200+
-- **성능**: 글로벌 CDN, 응답시간 < 100ms, 가용성 99.9%
+### 주요 특징
+- 📅 **McCheyne 읽기 계획**: 1년에 성경을 두 번 읽는 체계적인 계획
+- 🤖 **AI 성경 분석**: 성경 구절에 대한 깊이 있는 분석
+- 👥 **커뮤니티**: 다른 성도들과 나눔과 교제
+- 📊 **통계 추적**: 읽기 진행률, 연속 읽기 기록 등
+- 🔄 **실시간 동기화**: 서버와 실시간으로 데이터 동기화
+- 📱 **크로스 플랫폼**: 웹(React) 및 모바일(React Native/Expo) 지원
+- 🔌 **오프라인 지원**: 네트워크가 없어도 작업 가능
+- 🛡️ **중앙화된 오류 처리**: 지능적인 재시도 및 에러 관리
 
-## 🌟 주요 기능
+## 🏗️ 프로젝트 구조
 
-### 📅 **McCheyne 읽기 계획**
-- 365일 체계적인 성경 읽기 계획
-- 매일 구약 2장, 신약 2장 읽기
-- 진행률 추적 및 통계
-- 실시간 동기화
+\`\`\`
+MacChain/
+├── macchain-frontend/          # React 웹 애플리케이션
+│   ├── src/
+│   │   ├── components/         # 재사용 가능한 컴포넌트
+│   │   ├── pages/              # 페이지 컴포넌트
+│   │   ├── contexts/           # React Context
+│   │   ├── hooks/              # Custom Hooks
+│   │   ├── services/           # API 서비스
+│   │   ├── sync/               # 동기화 시스템 (핵심)
+│   │   ├── lib/                # 라이브러리 설정
+│   │   └── utils/              # 유틸리티
+│   └── package.json
+│
+├── macchain-mobile/            # React Native 모바일 애플리케이션
+│   ├── src/
+│   │   ├── screens/            # 화면 컴포넌트
+│   │   ├── components/         # 재사용 가능한 컴포넌트
+│   │   ├── contexts/           # React Context
+│   │   ├── hooks/              # Custom Hooks
+│   │   ├── services/           # API 서비스
+│   │   ├── sync/               # 동기화 시스템 (웹과 동일)
+│   │   └── lib/                # 라이브러리 설정
+│   └── package.json
+│
+├── backend/                    # 백엔드 설정
+│   └── supabase/
+│       └── database/
+│           └── schema.sql     # 데이터베이스 스키마
+│
+└── docs/                       # 프로젝트 문서
+\`\`\`
 
-### 🤖 **AI 원어 분석**
-- Cloudflare AI 기반 히브리어/그리스어 분석
-- 단어별 문법 분석 및 의미 해석
-- 문화적 배경 및 실용적 적용
-- 실시간 분석 결과 제공
+## 🛠️ 기술 스택
 
-### 📊 **개인 통계**
-- 읽기 진행률 및 연속 읽기 기록
-- 월별/연도별 통계
-- 완독 달성률 추적
-- 실시간 대시보드
+### Frontend (Web)
+- **React 18** + **TypeScript**
+- **Vite** - 빌드 도구
+- **React Router** - 라우팅
+- **TanStack Query (React Query)** - 서버 상태 관리 및 캐싱
+- **Supabase JS** - 백엔드 서비스
+- **Tailwind CSS** - 스타일링
+- **Lucide React** - 아이콘
+- **Sonner** - Toast 알림
 
-### 🎨 **사용자 경험**
-- 다크 모드 지원
-- 반응형 디자인
-- 직관적인 UI/UX
-- 모바일 최적화
+### Mobile
+- **React Native** + **TypeScript**
+- **Expo** - 개발 플랫폼
+- **React Navigation** - 네비게이션
+- **TanStack Query** - 서버 상태 관리
+- **NativeWind** - Tailwind CSS for React Native
+- **Expo Secure Store** - 보안 저장소
+- **React Native Toast Message** - 알림
 
-### 🛡️ **엔터프라이즈급 기능**
-- SSL 보안 인증서
-- 글로벌 CDN 배포
-- 자동 백업 시스템
-- CI/CD 자동 배포
+### Backend
+- **Supabase** - BaaS (Backend as a Service)
+  - PostgreSQL 데이터베이스
+  - 인증 시스템
+  - 실시간 구독 (Realtime)
+  - Storage (파일 저장)
+  - Edge Functions
 
-## 🏗️ 기술 스택
-
-### **Frontend**
-- **React 18** + TypeScript
-- **Vite** (빌드 도구)
-- **React Router** (라우팅)
-- **Context API** (상태 관리)
-- **Lucide React** (아이콘)
-
-### **Backend**
-- **Cloudflare Workers** (서버리스)
-- **Cloudflare D1** (SQLite 데이터베이스)
-- **Cloudflare AI** (AI 모델)
-- **JWT** (인증)
-
-### **Deployment**
-- **Cloudflare Pages** (프론트엔드)
-- **Cloudflare Workers** (백엔드)
-- **GitHub Actions** (CI/CD)
-
-### **Development**
-- **ESLint** (코드 품질)
-- **Vitest** (단위 테스트)
-- **Playwright** (E2E 테스트)
-- **TypeScript** (타입 안정성)
+### 동기화 시스템 (핵심 기능)
+- **SyncManager**: 중앙화된 동기화 관리
+- **TaskQueue**: 우선순위 기반 작업 큐
+- **RealtimeSubscriber**: 실시간 구독 관리
+- **MutationSyncManager**: 낙관적 업데이트 및 롤백
+- **BatchProcessor**: 배치 처리로 성능 최적화
+- **ErrorHandler**: 중앙화된 오류 처리 및 재시도 전략
+- **Logger**: 상세한 로깅 시스템
+- **OfflineQueue**: 오프라인 작업 큐
+- **NetworkMonitor**: 네트워크 상태 모니터링
 
 ## 🚀 빠른 시작
 
-### **프로덕션 환경 (권장)**
-```bash
-# 라이브 서비스 바로 접속
-open https://d8ddbf9f.macchain-frontend.pages.dev
-```
+### 사전 요구사항
+- Node.js 18+ 
+- npm 또는 yarn
+- Supabase 계정 및 프로젝트
 
-### **로컬 개발 환경**
-```bash
+### 웹 애플리케이션 실행
+
+\`\`\`bash
 # 저장소 클론
 git clone https://github.com/daehee719/macchain-bible-app.git
 cd macchain-bible-app
 
-# 프론트엔드 개발 서버 실행
+# 프론트엔드 디렉토리로 이동
 cd macchain-frontend
+
+# 의존성 설치
 npm install
+
+# 환경 변수 설정 (.env 파일 생성)
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# 개발 서버 실행
 npm run dev
 
-# 브라우저에서 http://localhost:3000 접속
-```
+# 브라우저에서 http://localhost:5173 접속
+\`\`\`
 
-## 📁 프로젝트 구조
+### 모바일 애플리케이션 실행
 
-```
-macchain-bible-app/
-├── macchain-frontend/          # React 프론트엔드
-│   ├── src/
-│   │   ├── components/         # 재사용 가능한 컴포넌트
-│   │   ├── pages/             # 페이지 컴포넌트
-│   │   ├── contexts/          # React Context
-│   │   ├── services/          # API 서비스
-│   │   └── styles/            # CSS 스타일
-│   ├── public/                # 정적 파일
-│   └── package.json
-├── cloudflare-workers/         # Cloudflare Workers 백엔드
-│   ├── api/                   # API 엔드포인트
-│   ├── database/              # D1 데이터베이스 스키마
-│   ├── utils/                 # 유틸리티 함수
-│   └── wrangler.toml          # Cloudflare 설정
-├── docs/                      # 프로젝트 문서
-├── .github/workflows/         # CI/CD 워크플로우
-└── readme.md
-```
+\`\`\`bash
+# 모바일 디렉토리로 이동
+cd macchain-mobile
 
-## 🔧 API 문서
+# 의존성 설치
+npm install
 
-### **인증 API**
-- `POST /api/auth/login` - 사용자 로그인
-- `POST /api/auth/register` - 사용자 회원가입
+# 환경 변수 설정 (.env.development 파일 생성)
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-### **읽기 계획 API**
-- `GET /api/mccheyne/today` - 오늘의 읽기 계획
-- `GET /api/mccheyne/plan` - 전체 읽기 계획
+# Expo 개발 서버 실행
+npm start
 
-### **사용자 API**
-- `GET /api/users/profile` - 사용자 프로필
-- `PUT /api/users/profile` - 프로필 업데이트
+# Expo Go 앱에서 QR 코드 스캔 또는 시뮬레이터 실행
+\`\`\`
 
-### **통계 API**
-- `GET /api/statistics/user` - 사용자 통계
-- `GET /api/statistics/reading` - 읽기 통계
+## 📚 주요 기능
 
-### **AI 분석 API**
-- `POST /api/ai/analyze` - 성경 구절 AI 분석
-- `GET /api/ai/history` - 분석 이력
+### 1. McCheyne 읽기 계획
+- 매일 구약 2장, 신약 2장 읽기
+- 진행률 추적 및 완료 표시
+- 주간/월간 통계
 
-### **동의 관리 API**
-- `GET /api/consent` - 동의 설정 조회
-- `PUT /api/consent` - 동의 설정 업데이트
+### 2. AI 성경 분석
+- 성경 구절 입력 및 AI 분석
+- 분석 이력 저장 및 조회
+- 인사이트 제공
 
-## 🚀 배포
+### 3. 커뮤니티
+- 나눔 작성 및 공유
+- 아멘(좋아요) 및 댓글
+- 실시간 업데이트
 
-### **Cloudflare Pages (프론트엔드)**
-```bash
-# 자동 배포 (GitHub Push 시)
-git push origin main
+### 4. 통계
+- 총 읽은 날 수
+- 연속 읽기 기록
+- 완주율 추적
+- 월별 진행률
 
-# 수동 배포
-cd cloudflare-workers
-wrangler pages deploy ../macchain-frontend/dist --project-name macchain-frontend
-```
+### 5. 동기화 시스템
+- **실시간 동기화**: Supabase Realtime을 통한 실시간 업데이트
+- **오프라인 지원**: 네트워크 없이도 작업 가능, 재연결 시 자동 동기화
+- **배치 처리**: 여러 작업을 한 번에 처리하여 성능 최적화
+- **오류 처리**: 지능적인 재시도 전략 및 회로 차단기 패턴
+- **로깅**: 상세한 동기화 로그 기록 및 모니터링
 
-### **Cloudflare Workers (백엔드)**
-```bash
-# 자동 배포 (GitHub Push 시)
-git push origin main
+### 6. 설정
+- 프로필 이미지 업로드
+- 비밀번호 변경
+- 동의 설정 관리
+- 동기화 모니터링 대시보드
 
-# 수동 배포
-cd cloudflare-workers
-wrangler deploy
-```
+## 🔧 개발 가이드
 
-## 📊 프로덕션 상태
+### 환경 변수 설정
 
-### **비용 최적화**
-- **개발 비용**: $0/월
-- **운영 비용**: $0/월
-- **확장성**: 무제한
-- **안정성**: 99.9%+ 가용성
+#### Frontend (.env)
+\`\`\`env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+\`\`\`
 
-### **성능 지표**
-- **응답 시간**: < 100ms (글로벌 CDN)
-- **로딩 시간**: < 2초
-- **가용성**: 99.9%+
-- **동시 사용자**: 무제한
+#### Mobile (.env.development, .env.production)
+\`\`\`env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+\`\`\`
 
-### **보안**
-- **SSL/TLS**: 자동 인증서
-- **CORS**: 적절한 설정
-- **JWT**: 안전한 인증
-- **데이터 암호화**: 전송 및 저장 시
+### 데이터베이스 스키마 적용
 
-## 🔄 CI/CD
+\`\`\`bash
+# Supabase 대시보드에서 SQL Editor 열기
+# backend/supabase/database/schema.sql 파일 내용 실행
+\`\`\`
 
-### **자동화된 워크플로우**
-- **코드 품질**: ESLint, TypeScript 검사
-- **테스트**: Vitest 단위 테스트, Playwright E2E 테스트
-- **배포**: Cloudflare Pages + Workers 자동 배포
-- **모니터링**: 실시간 로그 및 에러 추적
+### 빌드 및 배포
 
-### **브랜치 전략**
-- `main`: 프로덕션 브랜치
-- `develop`: 개발 브랜치
-- `feature/*`: 기능 개발 브랜치
-- `archive/*`: 보관 브랜치
+#### Frontend
+\`\`\`bash
+cd macchain-frontend
+npm run build
+# dist/ 폴더에 빌드 결과물 생성
+\`\`\`
 
-## 📚 문서
+#### Mobile
+\`\`\`bash
+cd macchain-mobile
+# Expo 빌드 (EAS Build 사용 권장)
+eas build --platform ios
+eas build --platform android
+\`\`\`
 
-- [API 문서](https://macchain-api-public.daeheuigang.workers.dev)
-- [배포 가이드](docs/CLOUDFLARE_DEPLOYMENT.md)
-- [개발 가이드](docs/DEVELOPMENT_GUIDE.md)
-- [아키텍처 문서](docs/ARCHITECTURE.md)
+## 📖 문서
+
+### 핵심 문서
+- [동기화 시스템 구현 완료](./docs/SYNC_IMPLEMENTATION_COMPLETE.md)
+- [동기화 개선 기능 완료](./docs/SYNC_ENHANCEMENTS_COMPLETE.md)
+- [오류 처리 중앙화](./docs/ERROR_HANDLING_CENTRALIZATION.md)
+- [오프라인 동기화 구현](./docs/OFFLINE_SYNC_IMPLEMENTATION.md)
+- [실시간 구독 가이드](./docs/REALTIME_SUBSCRIPTION.md)
+
+### 배포 및 설정
+- [Vercel 배포 가이드](./docs/VERCEL_SETUP_GUIDE.md)
+- [Supabase 마이그레이션 가이드](./docs/SUPABASE_MIGRATION_GUIDE.md)
+- [환경별 DB 분리](./docs/ENVIRONMENT_DB_SEPARATION.md)
+
+### 개발 가이드
+- [캐싱 전략](./docs/CACHE_STRATEGY.md)
+- [스타일 개선](./docs/STYLE_IMPROVEMENT.md)
+- [Git Flow 가이드](./docs/GIT_FLOW_GUIDE.md)
+
+## 🏛️ 아키텍처
+
+### 동기화 시스템 아키텍처
+
+\`\`\`
+┌─────────────────────────────────────────────────┐
+│              SyncManager (중앙 관리자)          │
+├─────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐           │
+│  │  TaskQueue   │  │ BatchProcessor│           │
+│  │ (작업 큐)     │  │ (배치 처리)   │           │
+│  └──────────────┘  └──────────────┘           │
+│  ┌──────────────┐  ┌──────────────┐           │
+│  │ RealtimeSub  │  │ MutationSync │           │
+│  │ (실시간 구독) │  │ (Mutation)    │           │
+│  └──────────────┘  └──────────────┘           │
+│  ┌──────────────┐  ┌──────────────┐           │
+│  │ ErrorHandler │  │ Logger       │           │
+│  │ (오류 처리)   │  │ (로깅)       │           │
+│  └──────────────┘  └──────────────┘           │
+│  ┌──────────────┐  ┌──────────────┐           │
+│  │ OfflineQueue │  │ NetworkMonitor│           │
+│  │ (오프라인 큐) │  │ (네트워크)    │           │
+│  └──────────────┘  └──────────────┘           │
+└─────────────────────────────────────────────────┘
+\`\`\`
+
+### 데이터 흐름
+
+\`\`\`
+사용자 액션
+  ↓
+React Component
+  ↓
+SyncManager.executeMutation() 또는 createTask()
+  ↓
+낙관적 업데이트 (UI 즉시 반영)
+  ↓
+서버 요청 (Supabase)
+  ↓
+성공: 최종 상태 동기화
+실패: 롤백 + 재시도 (ErrorHandler)
+  ↓
+실시간 구독 (RealtimeSubscriber)
+  ↓
+다른 사용자에게 변경사항 전파
+\`\`\`
+
+## 🧪 테스트
+
+### Frontend
+\`\`\`bash
+cd macchain-frontend
+
+# 단위 테스트
+npm run test
+
+# E2E 테스트
+npm run test:e2e
+
+# 타입 체크
+npm run type-check
+
+# 린트
+npm run lint
+\`\`\`
+
+## 📊 성능 최적화
+
+- **React Query 캐싱**: 데이터 자동 캐싱 및 무효화
+- **배치 처리**: 여러 작업을 한 번에 처리
+- **낙관적 업데이트**: 즉각적인 UI 반응
+- **프리페칭**: 다음 페이지 데이터 미리 로드
+- **데이터베이스 뷰**: N+1 쿼리 최적화
+- **오프라인 지원**: 네트워크 없이도 작업 가능
+
+## 🔒 보안
+
+- **Supabase RLS**: Row Level Security로 데이터 보호
+- **JWT 인증**: 안전한 인증 시스템
+- **Secure Store**: 모바일에서 안전한 저장소 사용
+- **HTTPS**: 모든 통신 암호화
 
 ## 🤝 기여하기
 
 1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
+2. Create your Feature Branch (\`git checkout -b feature/AmazingFeature\`)
+3. Commit your Changes (\`git commit -m 'Add some AmazingFeature'\`)
+4. Push to the Branch (\`git push origin feature/AmazingFeature\`)
 5. Open a Pull Request
 
 ## 📄 라이선스
@@ -224,8 +336,9 @@ wrangler deploy
 
 ## 🙏 감사의 말
 
-- **Cloudflare** - 서버리스 인프라 제공
+- **Supabase** - 강력한 BaaS 플랫폼 제공
 - **React Team** - 훌륭한 프론트엔드 프레임워크
+- **Expo Team** - React Native 개발을 쉽게 만들어주는 도구
 - **McCheyne** - 체계적인 성경 읽기 계획
 - **오픈소스 커뮤니티** - 다양한 라이브러리와 도구
 
