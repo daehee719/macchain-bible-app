@@ -18,7 +18,7 @@ MacChain은 성경을 체계적으로 읽고 공부할 수 있도록 도와주�
 
 ## 🏗️ 프로젝트 구조
 
-\`\`\`
+```
 MacChain/
 ├── macchain-frontend/          # React 웹 애플리케이션
 │   ├── src/
@@ -49,7 +49,7 @@ MacChain/
 │           └── schema.sql     # 데이터베이스 스키마
 │
 └── docs/                       # 프로젝트 문서
-\`\`\`
+```
 
 ## 🛠️ 기술 스택
 
