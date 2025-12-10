@@ -100,7 +100,7 @@ MacChain/
 
 ### 웹 애플리케이션 실행
 
-\`\`\`bash
+```bash
 # 저장소 클론
 git clone https://github.com/daehee719/macchain-bible-app.git
 cd macchain-bible-app
@@ -119,11 +119,11 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 npm run dev
 
 # 브라우저에서 http://localhost:5173 접속
-\`\`\`
+```
 
 ### 모바일 애플리케이션 실행
 
-\`\`\`bash
+```bash
 # 모바일 디렉토리로 이동
 cd macchain-mobile
 
@@ -138,7 +138,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 npm start
 
 # Expo Go 앱에서 QR 코드 스캔 또는 시뮬레이터 실행
-\`\`\`
+```
 
 ## 📚 주요 기능
 
@@ -181,40 +181,40 @@ npm start
 ### 환경 변수 설정
 
 #### Frontend (.env)
-\`\`\`env
+```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
-\`\`\`
+```
 
 #### Mobile (.env.development, .env.production)
-\`\`\`env
+```env
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-\`\`\`
+```
 
 ### 데이터베이스 스키마 적용
 
-\`\`\`bash
+```bash
 # Supabase 대시보드에서 SQL Editor 열기
 # backend/supabase/database/schema.sql 파일 내용 실행
-\`\`\`
+```
 
 ### 빌드 및 배포
 
 #### Frontend
-\`\`\`bash
+```bash
 cd macchain-frontend
 npm run build
 # dist/ 폴더에 빌드 결과물 생성
-\`\`\`
+```
 
 #### Mobile
-\`\`\`bash
+```bash
 cd macchain-mobile
 # Expo 빌드 (EAS Build 사용 권장)
 eas build --platform ios
 eas build --platform android
-\`\`\`
+```
 
 ## 📖 문서
 
@@ -239,7 +239,7 @@ eas build --platform android
 
 ### 동기화 시스템 아키텍처
 
-\`\`\`
+```
 ┌─────────────────────────────────────────────────┐
 │              SyncManager (중앙 관리자)          │
 ├─────────────────────────────────────────────────┤
@@ -260,11 +260,11 @@ eas build --platform android
 │  │ (오프라인 큐) │  │ (네트워크)    │           │
 │  └──────────────┘  └──────────────┘           │
 └─────────────────────────────────────────────────┘
-\`\`\`
+```
 
 ### 데이터 흐름
 
-\`\`\`
+```
 사용자 액션
   ↓
 React Component
@@ -281,12 +281,12 @@ SyncManager.executeMutation() 또는 createTask()
 실시간 구독 (RealtimeSubscriber)
   ↓
 다른 사용자에게 변경사항 전파
-\`\`\`
+```
 
 ## 🧪 테스트
 
 ### Frontend
-\`\`\`bash
+```bash
 cd macchain-frontend
 
 # 단위 테스트
@@ -300,7 +300,7 @@ npm run type-check
 
 # 린트
 npm run lint
-\`\`\`
+```
 
 ## 📊 성능 최적화
 
