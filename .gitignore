@@ -111,3 +111,9 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
